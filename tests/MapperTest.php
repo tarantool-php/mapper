@@ -2,11 +2,9 @@
 
 use Tarantool\Client;
 use Tarantool\Mapper\Manager;
-
 use Tarantool\Mapper\Migrations\Collection as MigrationCollection;
 use Tarantool\Connection\SocketConnection;
 use Tarantool\Packer\PurePacker;
-
 use Tarantool\Schema\Space;
 use Tarantool\Schema\Index;
 
@@ -41,7 +39,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
 
         $rows = $manager->get('mapping')->bySpace('sequence');
         $map = [];
-        foreach($rows as $row) {
+        foreach ($rows as $row) {
             $map[$row->line] = $row->property;
         }
         ksort($map);
@@ -63,8 +61,8 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $schema = new Space($client, Space::VSPACE);
         $response = $schema->select([], Index::SPACE_NAME);
         $data = $response->getData();
-        foreach($data as $row) {
-            if($row[1] == 0) {
+        foreach ($data as $row) {
+            if ($row[1] == 0) {
                 // user space
                 $client->evaluate('box.schema.space.drop('.$row[0].')');
             }

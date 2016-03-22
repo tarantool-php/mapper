@@ -48,15 +48,14 @@ class MapperServiceProvider extends ServiceProvider
 
         $this->app->singleton(Manager::class);
 
-        if(is_dir(resource_path('migrations'))) {
-
+        if (is_dir(resource_path('migrations'))) {
             $migrations = [];
             foreach (with(new Finder())->files()->in(resource_path('migrations')) as $file) {
                 $migrations[] = studly_case(substr($file->getBasename('.php'), 16));
             }
 
-            $this->app->resolving(Collection::class, function(Collection $collection) use ($migrations) {
-                foreach($migrations as $migration) {
+            $this->app->resolving(Collection::class, function (Collection $collection) use ($migrations) {
+                foreach ($migrations as $migration) {
                     $collection->registerMigration($migration);
                 }
             });

@@ -26,7 +26,7 @@ class Metadata implements Contracts\Metadata
             }
 
             $fields = [];
-            if($type != 'mapping') {
+            if ($type != 'mapping') {
                 $mapping = $this->manager->get('mapping')->bySpace($type);
                 foreach ($mapping as $row) {
                     $fields[$row->line] = $row->property;

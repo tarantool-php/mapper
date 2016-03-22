@@ -8,7 +8,7 @@ class Tracker implements Contracts\Migration
 {
     public function migrate(Contracts\Manager $manager)
     {
-        if(!$manager->getSchema()->hasSpace('mapping')) {
+        if (!$manager->getSchema()->hasSpace('mapping')) {
             $migration = new Bootstrap();
             $migration->migrate($manager);
         }

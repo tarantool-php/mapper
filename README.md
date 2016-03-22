@@ -7,9 +7,9 @@ Using composer.
 ```json
 {
   "min-stability": "dev",
-    "require": {
-        "tarantool/mapper": "*"
-    }
+  "require": {
+    "tarantool/mapper": "*"
+  }
 }
 ```
 

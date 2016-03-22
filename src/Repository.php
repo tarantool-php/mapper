@@ -28,21 +28,21 @@ class Repository implements Contracts\Repository
         $fields = null;
         $first = false;
 
-        if(substr($method, 0, 2) == 'by') {
+        if (substr($method, 0, 2) == 'by') {
             $fields = substr($method, 2);
         }
 
-        if(substr($method, 0, 7) == 'firstBy') {
+        if (substr($method, 0, 7) == 'firstBy') {
             $first = true;
             $fields = substr($method, 7);
         }
 
-        if(substr($method, 0, 5) == 'oneBy') {
+        if (substr($method, 0, 5) == 'oneBy') {
             $first = true;
             $fields = substr($method, 5);
         }
 
-        if($fields) {
+        if ($fields) {
             $fields = explode('_', snake_case($fields));
             return $this->find(array_combine($fields, $arguments), $first);
         }
@@ -59,24 +59,23 @@ class Repository implements Contracts\Repository
         $data = $space->select(array_values($params), $index);
 
         $result = [];
-        if(!empty($data->getData())) {
-            foreach($data->getData() as $tuple) {
+        if (!empty($data->getData())) {
+            foreach ($data->getData() as $tuple) {
                 $data = $this->type->decode($tuple);
                 if (isset($data['id']) && array_key_exists($data['id'], $this->byId)) {
                     $entity = $this->entities[$this->byId[$data['id']]];
                     $entity->update($data);
-
                 } else {
                     $entity = new Entity($data);
                     $this->register($entity);
                 }
-                if($first) {
+                if ($first) {
                     return $entity;
                 }
                 $result[] = $entity;
             }
         }
-        if(!$first) {
+        if (!$first) {
             return $result;
         }
     }
@@ -91,19 +90,19 @@ class Repository implements Contracts\Repository
 
     public function save(Contracts\Entity $entity)
     {
-        if(!$this->knows($entity)) {
+        if (!$this->knows($entity)) {
             throw new LogicException("Entity is not related with this repository");
         }
 
         $manager = $this->type->getManager();
         $client = $manager->getClient();
 
-        if(!$entity->getId()) {
+        if (!$entity->getId()) {
 
             // generate id
             $sequence = $manager->get('sequence');
             $sequenceRow = $sequence->oneByName($this->type->getName());
-            if(!$sequenceRow) {
+            if (!$sequenceRow) {
                 $sequenceRow = $sequence->make([
                     'name' => $this->type->getName(),
                     'value' => 1,
@@ -123,9 +122,9 @@ class Repository implements Contracts\Repository
             $this->register($entity);
         } else {
             $changes = $entity->pullChanges();
-            if(count($changes)) {
+            if (count($changes)) {
                 $operations = [];
-                foreach($this->type->encode($changes) as $key => $value) {
+                foreach ($this->type->encode($changes) as $key => $value) {
                     $operations[] = ['=', $key +1, $value];
                 }
                 $client->getSpace($this->type->getName())->update($entity->getId(), $operations);
@@ -136,7 +135,7 @@ class Repository implements Contracts\Repository
 
     protected function register(Contracts\Entity $entity)
     {
-        if(!$this->knows($entity)) {
+        if (!$this->knows($entity)) {
             $this->entities[] = $entity;
         }
         if ($entity->getId() && !array_key_exists($entity->getId(), $this->byId)) {

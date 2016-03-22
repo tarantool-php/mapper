@@ -16,11 +16,11 @@ class Type implements Contracts\Type
         $this->manager = $manager;
         $this->name = $name;
 
-        if($name == 'mapping') {
-            $properties = ['id', 'space', 'line', 'property'];;
+        if ($name == 'mapping') {
+            $properties = ['id', 'space', 'line', 'property'];
         }
 
-        if($properties) {
+        if ($properties) {
             $this->properties = $properties;
         }
     }
@@ -54,14 +54,14 @@ class Type implements Contracts\Type
         sort($properties);
         $indexName = implode('_', $properties);
 
-        if($schema->hasIndex($this->getName(), $indexName)) {
+        if ($schema->hasIndex($this->getName(), $indexName)) {
             throw new LogicException("Index $indexName already exists!");
         }
 
-        if(!count($arguments['parts'])) {
+        if (!count($arguments['parts'])) {
             $arguments['parts'] = [];
-            foreach($this->getMapping() as $index => $name) {
-                if(in_array($name, $properties)) {
+            foreach ($this->getMapping() as $index => $name) {
+                if (in_array($name, $properties)) {
                     $arguments['parts'][] = $index + 1;
                     $arguments['parts'][] = $name == 'id' ? 'NUM' : 'STR';
                 }
@@ -78,7 +78,7 @@ class Type implements Contracts\Type
     public function addProperty($first)
     {
         foreach (func_get_args() as $property) {
-            if(in_array($property, $this->properties)) {
+            if (in_array($property, $this->properties)) {
                 throw new LogicException("Duplicate property $property");
             }
             $this->properties[] = $property;
@@ -89,8 +89,8 @@ class Type implements Contracts\Type
     public function encode($input)
     {
         $output = [];
-        foreach($this->getMapping() as $index => $name) {
-            if(array_key_exists($name, $input)) {
+        foreach ($this->getMapping() as $index => $name) {
+            if (array_key_exists($name, $input)) {
                 $output[$index] = $input[$name];
             }
         }
@@ -100,12 +100,11 @@ class Type implements Contracts\Type
     public function decode($input)
     {
         $output = [];
-        foreach($this->getMapping() as $index => $name) {
-            if(array_key_exists($index, $input)) {
+        foreach ($this->getMapping() as $index => $name) {
+            if (array_key_exists($index, $input)) {
                 $output[$name] = $input[$index];
             }
         }
         return $output;
-
     }
 }

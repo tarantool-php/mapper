@@ -6,7 +6,6 @@ use Tarantool\Client;
 use Tarantool\Mapper\Contracts;
 use Tarantool\Schema\Space;
 use Tarantool\Schema\Index;
-
 use LogicException;
 
 class Schema implements Contracts\Schema

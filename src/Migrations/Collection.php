@@ -19,7 +19,7 @@ class Collection implements Contracts\Migration
 
     public function migrate(Contracts\Manager $manager)
     {
-        if(!$manager->getSchema()->hasSpace('migration')) {
+        if (!$manager->getSchema()->hasSpace('migration')) {
             $instance = new Tracker();
             $instance->migrate($manager);
             $manager->save($manager->get('migration')->make(['name' => Migration::class]));
