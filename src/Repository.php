@@ -10,7 +10,13 @@ class Repository implements Contracts\Repository
 {
     protected $type;
     protected $entities = [];
-    protected $byId = [];
+    protected $keyMap = [];
+
+    protected $magicMethodRules = [
+        'by' => false,
+        'firstBy' => true,
+        'oneBy' => true
+    ];
 
     public function __construct(Contracts\Type $type)
     {
@@ -24,32 +30,17 @@ class Repository implements Contracts\Repository
 
     public function __call($method, $arguments)
     {
-        $finder = null;
-        $fields = null;
-        $first = false;
-
-        if (substr($method, 0, 2) == 'by') {
-            $fields = substr($method, 2);
+        foreach($this->magicMethodRules as $prefix => $oneItem) {
+            if(substr($method, 0, strlen($prefix)) == $prefix) {
+                $fields = explode('_', snake_case(substr($method, strlen($prefix))));
+                return $this->find(array_combine($fields, $arguments), $oneItem);
+            }
         }
 
-        if (substr($method, 0, 7) == 'firstBy') {
-            $first = true;
-            $fields = substr($method, 7);
-        }
-
-        if (substr($method, 0, 5) == 'oneBy') {
-            $first = true;
-            $fields = substr($method, 5);
-        }
-
-        if ($fields) {
-            $fields = explode('_', snake_case($fields));
-            return $this->find(array_combine($fields, $arguments), $first);
-        }
         throw new BadMethodCallException("Method $method not found");
     }
 
-    public function find($params, $first = false)
+    public function find($params, $oneItem = false)
     {
         $fields = array_keys($params);
         sort($fields);
@@ -62,20 +53,20 @@ class Repository implements Contracts\Repository
         if (!empty($data->getData())) {
             foreach ($data->getData() as $tuple) {
                 $data = $this->type->decode($tuple);
-                if (isset($data['id']) && array_key_exists($data['id'], $this->byId)) {
-                    $entity = $this->entities[$this->byId[$data['id']]];
+                if (isset($data['id']) && array_key_exists($data['id'], $this->keyMap)) {
+                    $entity = $this->entities[$this->keyMap[$data['id']]];
                     $entity->update($data);
                 } else {
                     $entity = new Entity($data);
                     $this->register($entity);
                 }
-                if ($first) {
+                if ($oneItem) {
                     return $entity;
                 }
                 $result[] = $entity;
             }
         }
-        if (!$first) {
+        if (!$oneItem) {
             return $result;
         }
     }
@@ -138,8 +129,8 @@ class Repository implements Contracts\Repository
         if (!$this->knows($entity)) {
             $this->entities[] = $entity;
         }
-        if ($entity->getId() && !array_key_exists($entity->getId(), $this->byId)) {
-            $this->byId[$entity->getId()] = array_search($entity, $this->entities);
+        if ($entity->getId() && !array_key_exists($entity->getId(), $this->keyMap)) {
+            $this->keyMap[$entity->getId()] = array_search($entity, $this->entities);
         }
         return $entity;
     }

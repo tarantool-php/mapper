@@ -18,7 +18,7 @@ class MakeMigrationCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Generate new migration';
+    protected $description = 'Create a new migration';
 
     /**
      * Create a new command instance.
