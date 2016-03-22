@@ -85,43 +85,24 @@ class Repository implements Contracts\Repository
             throw new LogicException("Entity is not related with this repository");
         }
 
-        $manager = $this->type->getManager();
-        $client = $manager->getClient();
-
         if (!$entity->getId()) {
-
-            // generate id
-            $sequence = $manager->get('sequence');
-            $sequenceRow = $sequence->oneByName($this->type->getName());
-            if (!$sequenceRow) {
-                $sequenceRow = $sequence->make([
-                    'name' => $this->type->getName(),
-                    'value' => 1,
-                ]);
-                $manager->save($sequenceRow);
-            }
-
-            $response = $client->getSpace('sequence')->update($sequenceRow->id, [
-                ['+', 2, 1]
-            ]);
-
-            $entity->setId($response->getData()[0][2]);
-
+            $this->generateId($entity);
             $tuple = $this->type->encode($entity->toArray());
-            $client->getSpace($this->type->getName())->insert($tuple);
+            $this->type->getSpace()->insert($tuple);
 
-            $this->register($entity);
         } else {
+
             $changes = $entity->pullChanges();
             if (count($changes)) {
                 $operations = [];
                 foreach ($this->type->encode($changes) as $key => $value) {
-                    $operations[] = ['=', $key +1, $value];
+                    $operations[] = ['=', $key+1, $value];
                 }
-                $client->getSpace($this->type->getName())->update($entity->getId(), $operations);
+                $this->type->getSpace()->update($entity->getId(), $operations);
             }
         }
-        $entity->pullChanges();
+
+        return $entity;
     }
 
     protected function register(Contracts\Entity $entity)
@@ -132,6 +113,32 @@ class Repository implements Contracts\Repository
         if ($entity->getId() && !array_key_exists($entity->getId(), $this->keyMap)) {
             $this->keyMap[$entity->getId()] = array_search($entity, $this->entities);
         }
+        return $entity;
+    }
+
+    protected function generateId(Contracts\Entity $entity)
+    {
+        $manager = $this->type->getManager();
+        $name = $this->type->getName();
+
+        $sequence = $manager->get('sequence')->oneByName($name);
+        if (!$sequence) {
+            $sequence = $manager->get('sequence')->make([
+                'name' => $name,
+                'value' => 0,
+            ]);
+            $manager->save($sequence);
+        }
+
+        $nextValue = $manager->getClient()
+            ->getSpace('sequence')
+            ->update($sequence->id, [['+', 2, 1]])
+            ->getData()[0][2];
+
+        $entity->setId($nextValue);
+
+        $this->register($entity);
+
         return $entity;
     }
 }

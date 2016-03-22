@@ -25,6 +25,11 @@ class Type implements Contracts\Type
         }
     }
 
+    public function getSpace()
+    {
+        return $this->getManager()->getClient()->getSpace($this->name);
+    }
+
     public function getManager()
     {
         return $this->manager;
