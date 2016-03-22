@@ -1,0 +1,23 @@
+{
+    "name": "tarantool/mapper",
+    "require": {
+        "tarantool/client": "^0.1.0",
+        "rybakit/msgpack": "^0.1.0",
+        "illuminate/support": "^5.2",
+        "phpunit/phpunit": "^5.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tarantool\\Mapper\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Dmitry Krokhin",
+            "email": "nekufa@gmail.com"
+        }
+    ],
+    "scripts": {
+        "cs": "php-cs-fixer fix . --level=psr2"
+    }
+}
