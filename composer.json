@@ -3,7 +3,7 @@
     "require": {
         "tarantool/client": "^0.1.0",
         "rybakit/msgpack": "^0.1.0",
-        "illuminate/support": "^5.2",
+        "illuminate/support": "^5.2"
     },
     "required-dev": {
         "phpunit/phpunit": "^5.2"
