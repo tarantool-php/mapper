@@ -32,7 +32,8 @@ class Repository implements Contracts\Repository
     {
         foreach($this->magicMethodRules as $prefix => $oneItem) {
             if(substr($method, 0, strlen($prefix)) == $prefix) {
-                $fields = explode('_', snake_case(substr($method, strlen($prefix))));
+                $tail = substr($method, strlen($prefix));
+                $fields = array_map('strtolower', explode('And', $tail));
                 return $this->find(array_combine($fields, $arguments), $oneItem);
             }
         }
