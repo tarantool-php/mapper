@@ -23,5 +23,8 @@ class MigrationTest extends PHPUnit_Framework_TestCase
         $manager->save($post);
 
         $this->assertNotNull($post->id);
+
+        $migration = $manager->get('migrations')->find(['name' => CreatePosts::class]);
+        $this->assertNotNull($migration);
     }
 }

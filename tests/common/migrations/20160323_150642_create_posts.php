@@ -7,11 +7,12 @@ class CreatePosts implements Migration
 {
     public function migrate(Manager $manager)
     {
-        $posts = $manager->getMeta()->create('posts', ['body', 'slug', 'title']);
+        $posts = $manager->getMeta()->create('posts');
+        $posts->addProperty('body');
+        $posts->addProperty('slug', 'title');
         $posts->addIndex('slug');
 
-        $posts->addProperty('author');
-        $posts->addProperty('month');
+        $posts->addProperty(['author', 'month']);
         $posts->addIndex(['author', 'month'], ['unique' => false]);
     }
 }

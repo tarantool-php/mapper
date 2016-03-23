@@ -85,7 +85,11 @@ class Type implements Contracts\Type
      */
     public function addProperty($first)
     {
-        foreach (func_get_args() as $property) {
+        $properties = func_get_args();
+        if(is_array($first)) {
+            $properties = $properties[0];
+        }
+        foreach ($properties as $property) {
             if ($this->hasProperty($property)) {
                 throw new LogicException("Duplicate property $property");
             }
