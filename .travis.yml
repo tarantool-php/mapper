@@ -11,6 +11,12 @@ services:
   - docker
 
 before_script:
-  - docker run -d -p 127.0.0.1:3301:3301/tcp -v $PWD/resources/lua/tarantool.lua:/opt/tarantool.lua tarantool/tarantool /usr/bin/tarantool /opt/tarantool.lua
+  - docker run -d -p 127.0.0.1:3301:3301/tcp -v $(pwd)/resources/lua/tarantool.lua:/opt/tarantool.lua tarantool/tarantool /usr/bin/tarantool /opt/tarantool.lua
   - composer self-update
   - composer install --no-interaction --prefer-source --dev
+
+after_script:
+  - if [[ -f coverage.clover ]]; then
+      curl -sSOL https://scrutinizer-ci.com/ocular.phar &&
+      php ocular.phar code-coverage:upload --format=php-clover coverage.clover;
+    fi
