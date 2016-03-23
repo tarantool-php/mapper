@@ -13,7 +13,7 @@ class Tracker implements Contracts\Migration
             $migration->migrate($manager);
         }
 
-        $migration = $manager->getMetadata()->create('migration', ['name']);
+        $migration = $manager->getMeta()->create('migration', ['name']);
         $migration->addIndex(['name']);
         $manager->save($manager->get('migration')->make(['name' => Bootstrap::class]));
     }

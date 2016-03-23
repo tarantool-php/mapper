@@ -2,7 +2,7 @@
 
 namespace Tarantool\Mapper\Contracts;
 
-interface Metadata
+interface Meta
 {
     /**
      * @return Type

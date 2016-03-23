@@ -27,7 +27,7 @@ interface Manager
     public function getSchema();
 
     /**
-     * @return Metadata
+     * @return Meta
      */
-    public function getMetadata();
+    public function getMeta();
 }

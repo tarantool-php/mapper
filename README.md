@@ -27,7 +27,7 @@ $client = new Client(new SocketConnection(), new PurePacker());
 $manager = new Manager($client);
 
 // describe your model
-$meta = $manager->getMetadata()->create('post', ['title', 'slug', 'body']);
+$meta = $manager->getMeta()->create('post', ['title', 'slug', 'body']);
 $meta->addIndex('slug');
 
 // write your code

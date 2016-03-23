@@ -5,7 +5,7 @@ namespace Tarantool\Mapper;
 use Tarantool\Client;
 use Tarantool\Mapper\Contracts;
 use Tarantool\Mapper\Schema\Schema;
-use Tarantool\Mapper\Schema\Metadata;
+use Tarantool\Mapper\Schema\Meta;
 use LogicException;
 
 class Manager implements Contracts\Manager
@@ -24,7 +24,7 @@ class Manager implements Contracts\Manager
     public function get($type)
     {
         if (!array_key_exists($type, $this->repositores)) {
-            $this->repositores[$type] = new Repository($this->getMetadata()->get($type));
+            $this->repositores[$type] = new Repository($this->getMeta()->get($type));
         }
         return $this->repositores[$type];
     }
@@ -63,13 +63,13 @@ class Manager implements Contracts\Manager
     }
 
     /**
-     * @return Metadata
+     * @return Meta
      */
-    public function getMetadata()
+    public function getMeta()
     {
-        if (!isset($this->metadata)) {
-            $this->metadata = new Metadata($this);
+        if (!isset($this->meta)) {
+            $this->meta = new Meta($this);
         }
-        return $this->metadata;
+        return $this->meta;
     }
 }

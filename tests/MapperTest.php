@@ -13,7 +13,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
     public function testUsage()
     {
         $manager = self::createManager();
-        $meta = $manager->getMetadata()->create('post', ['title', 'slug', 'author']);
+        $meta = $manager->getMeta()->create('post', ['title', 'slug', 'author']);
         $meta->addIndex('slug');
 
         $post = $manager->get('post')->make([
@@ -47,7 +47,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $this->assertCount(3, $map);
         $this->assertSame($map, ['id', 'name', 'value']);
 
-        $mapping = $manager->getMetadata()->get('sequence')->getMapping();
+        $mapping = $manager->getMeta()->get('sequence')->getMapping();
         $this->assertSame($map, $mapping);
     }
 

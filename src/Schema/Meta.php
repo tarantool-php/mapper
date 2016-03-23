@@ -5,7 +5,7 @@ namespace Tarantool\Mapper\Schema;
 use Tarantool\Mapper\Contracts;
 use LogicException;
 
-class Metadata implements Contracts\Metadata
+class Meta implements Contracts\Meta
 {
     protected $manager;
     protected $types = [];
