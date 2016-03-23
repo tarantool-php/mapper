@@ -11,3 +11,4 @@ class CreatePosts implements Migration
         $posts->addIndex('slug');
     }
 }
+

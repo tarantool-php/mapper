@@ -26,7 +26,8 @@ class MapperServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $convention = app(Convention::class);
+        $convention = $this->app->make(Convention::class);
+
         $config = config('tarantool');
 
         switch ($config['connection']) {
