@@ -21,13 +21,13 @@ class Migrator implements Contracts\Migration
 
     public function migrate(Contracts\Manager $manager)
     {
-        if (!$manager->getSchema()->hasSpace('migration')) {
+        if (!$manager->getSchema()->hasSpace('migrations')) {
             $instance = new Tracker();
             $instance->migrate($manager);
-            $manager->save($manager->get('migration')->make(['name' => Migration::class]));
+            $manager->save($manager->get('migrations')->make(['name' => Migration::class]));
         }
 
-        $repository = $manager->get('migration');
+        $repository = $manager->get('migrations');
 
         foreach ($this->migrations as $migration) {
             $row = [
