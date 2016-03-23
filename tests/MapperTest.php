@@ -2,7 +2,7 @@
 
 use Tarantool\Client;
 use Tarantool\Mapper\Manager;
-use Tarantool\Mapper\Migrations\Collection as MigrationCollection;
+use Tarantool\Mapper\Migrations\Migrator;
 use Tarantool\Connection\SocketConnection;
 use Tarantool\Packer\PurePacker;
 use Tarantool\Schema\Space;
@@ -72,8 +72,8 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager = new Manager($client);
 
         // boostrap
-        $migration = new MigrationCollection();
-        $migration->migrate($manager);
+        $migrator = new Migrator();
+        $migrator->migrate($manager);
 
         return $manager;
     }

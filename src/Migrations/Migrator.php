@@ -5,7 +5,7 @@ namespace Tarantool\Mapper\Migrations;
 use Tarantool\Mapper\Contracts;
 use InvalidArgumentException;
 
-class Collection implements Contracts\Migration
+class Migrator implements Contracts\Migration
 {
     protected $migrations = [];
 
