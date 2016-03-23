@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Symfony\Component\Finder\Finder;
 use Tarantool\Connection\Connection;
 use Tarantool\Connection\SocketConnection;
-use Tarantool\Mapper\Migrations\Collection;
+use Tarantool\Mapper\Migrations\Migrator;
 use Tarantool\Packer\Packer;
 use Tarantool\Packer\PurePacker;
 use UnexpectedValueException;
@@ -26,6 +26,7 @@ class MapperServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $convention = app(Convention::class);
         $config = config('tarantool');
 
         switch ($config['connection']) {
@@ -48,15 +49,16 @@ class MapperServiceProvider extends ServiceProvider
 
         $this->app->singleton(Manager::class);
 
-        if (is_dir(resource_path('migrations'))) {
-            $migrations = [];
-            foreach (with(new Finder())->files()->in(resource_path('migrations')) as $file) {
-                $migrations[] = studly_case(substr($file->getBasename('.php'), 16));
-            }
+        if (is_dir($convention->migrationPath())) {
+            $this->app->resolving(Migrator::class, function (Migrator $migrator) use ($convention) {
 
-            $this->app->resolving(Collection::class, function (Collection $collection) use ($migrations) {
+                $migrations = [];
+                foreach (with(new Finder())->files()->in($convention->migrationPath()) as $file) {
+                    $migrations[] = studly_case(substr($file->getBasename('.php'), 16));
+                }
+
                 foreach ($migrations as $migration) {
-                    $collection->registerMigration($migration);
+                    $migrator->registerMigration($migration);
                 }
             });
         }

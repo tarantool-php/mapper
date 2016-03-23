@@ -4,7 +4,7 @@ namespace Tarantool\Mapper\Integration\Laravel;
 
 use Illuminate\Console\Command;
 use Tarantool\Mapper\Manager;
-use Tarantool\Mapper\Migrations\Collection;
+use Tarantool\Mapper\Migrations\Migrator;
 
 class MigrateCommand extends Command
 {
@@ -37,8 +37,8 @@ class MigrateCommand extends Command
      *
      * @return mixed
      */
-    public function handle(Manager $manager, Collection $collection)
+    public function handle(Manager $manager, Migrator $migrator)
     {
-        $collection->migrate($manager);
+        $migrator->migrate($manager);
     }
 }

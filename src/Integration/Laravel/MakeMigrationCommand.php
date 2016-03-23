@@ -3,6 +3,7 @@
 namespace Tarantool\Mapper\Integration\Laravel;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Composer;
 
 class MakeMigrationCommand extends Command
 {
@@ -35,21 +36,24 @@ class MakeMigrationCommand extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(Convention $convention, Composer $composer)
     {
         $name = $this->argument('name');
         $class = studly_case($name);
 
-        $template = implode(DIRECTORY_SEPARATOR, [
-            dirname(dirname(dirname(__DIR__))),
-            'resources', 'views', 'migration.php',
-        ]);
+        if(class_exists($class)) {
+            throw new \Exception("Class $class exists");
+        }
 
-        $filename = resource_path('migrations/'.date('Ymd_His_').$name.'.php');
+        $template = $convention->migrationTemplatePath();
+
+        $filename = $convention->migrationPath().DIRECTORY_SEPARATOR.date('Ymd_His_').$name.'.php';
 
         ob_start();
         include $template;
 
         file_put_contents($filename, ob_get_clean());
+
+        $composer->dumpAutoloads();
     }
 }
