@@ -15,7 +15,7 @@ class LaravelTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame(
             $convention->migrationPath(),
-            implode(DIRECTORY_SEPARATOR, [__DIR__, 'common', 'migrations'])
+            resource_path('migrations')
         );
 
         $this->assertSame(
