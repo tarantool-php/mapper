@@ -16,7 +16,7 @@ class Migrator implements Contracts\Migration
         if (!$reflection->implementsInterface(Contracts\Migration::class)) {
             throw new InvalidArgumentException("Register only Migration classes");
         }
-        $this->migrations = [];
+        $this->migrations[] = $class;
     }
 
     public function migrate(Contracts\Manager $manager)
@@ -35,7 +35,7 @@ class Migrator implements Contracts\Migration
             ];
             if (!$repository->find($row, true)) {
                 $instance = new $migration;
-                $instance->migrate($this->manager);
+                $instance->migrate($manager);
                 $manager->save($repository->make($row));
             }
         }

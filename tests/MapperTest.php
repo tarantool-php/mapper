@@ -1,18 +1,10 @@
 <?php
 
-use Tarantool\Client;
-use Tarantool\Mapper\Manager;
-use Tarantool\Mapper\Migrations\Migrator;
-use Tarantool\Connection\SocketConnection;
-use Tarantool\Packer\PurePacker;
-use Tarantool\Schema\Space;
-use Tarantool\Schema\Index;
-
 class MapperTest extends PHPUnit_Framework_TestCase
 {
     public function testUsage()
     {
-        $manager = self::createManager();
+        $manager = Helper::createManager();
         $meta = $manager->getMeta()->create('post', ['title', 'slug', 'author']);
         $meta->addIndex('slug');
 
@@ -35,9 +27,9 @@ class MapperTest extends PHPUnit_Framework_TestCase
 
     public function testBasicMapping()
     {
-        $manager = self::createManager();
+        $manager = Helper::createManager();
 
-        $rows = $manager->get('mapping')->bySpace('sequence');
+        $rows = $manager->get('mapping')->bySpace('sequences');
         $map = [];
         foreach ($rows as $row) {
             $map[$row->line] = $row->property;
@@ -47,34 +39,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $this->assertCount(3, $map);
         $this->assertSame($map, ['id', 'name', 'value']);
 
-        $mapping = $manager->getMeta()->get('sequence')->getMapping();
+        $mapping = $manager->getMeta()->get('sequences')->getMapping();
         $this->assertSame($map, $mapping);
-    }
-
-    public static function createManager()
-    {
-        // create client
-        $connection = new SocketConnection(getenv('TNT_CONN_HOST'));
-        $client = new Client($connection, new PurePacker());
-
-        // flush everything
-        $schema = new Space($client, Space::VSPACE);
-        $response = $schema->select([], Index::SPACE_NAME);
-        $data = $response->getData();
-        foreach ($data as $row) {
-            if ($row[1] == 0) {
-                // user space
-                $client->evaluate('box.schema.space.drop('.$row[0].')');
-            }
-        }
-
-        // create fresh manager instance
-        $manager = new Manager($client);
-
-        // boostrap
-        $migrator = new Migrator();
-        $migrator->migrate($manager);
-
-        return $manager;
     }
 }

@@ -11,6 +11,9 @@
         "phpunit/phpunit": "^5.2"
     },
     "autoload": {
+        "classmap": [
+            "tests"
+        ],
         "psr-4": {
             "Tarantool\\Mapper\\": "src/"
         }
