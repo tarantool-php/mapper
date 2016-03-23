@@ -1,15 +1,20 @@
 {
     "name": "tarantool/mapper",
+    "description": "PHP Object Storage based on Tarantool.",
+    "keywords": ["tarantool", "client", "pure", "nosql", "orm"],
+    "type": "library",
+    "license": "MIT",
     "require": {
+        "php": "^5.5|^7.0",
         "tarantool/client": "^0.1.0",
         "rybakit/msgpack": "^0.1.0"
-    },
-    "suggest": {
-        "illuminate/support": "Laravel Integration"
     },
     "required-dev": {
         "phpunit/phpunit": "^5.2",
         "illuminate/support": "^5.2"
+    },
+    "suggest": {
+        "illuminate/support": "Laravel Integration"
     },
     "autoload": {
         "classmap": [
