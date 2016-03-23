@@ -13,7 +13,7 @@ class MigrateCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'migrate';
+    protected $signature;
 
     /**
      * The console command description.
@@ -24,11 +24,10 @@ class MigrateCommand extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
-    public function __construct()
+    public function __construct(Convention $convention)
     {
+        $this->signature = $convention->migrateSignature();
         parent::__construct();
     }
 

@@ -16,4 +16,14 @@ class Convention
     {
         return resource_path('migrations');
     }
+
+    public function makeMigrationSignature()
+    {
+        return 'make:migration {name}';
+    }
+
+    public function migrateSignature()
+    {
+        return 'migrate';
+    }
 }
