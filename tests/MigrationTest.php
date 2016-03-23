@@ -15,7 +15,9 @@ class MigrationTest extends PHPUnit_Framework_TestCase
         $post = $manager->get('posts')->make([
             'title' => 'hello world',
             'slug' => 'hello-world',
-            'body' => 'This is hello world post'
+            'body' => 'This is hello world post',
+            'author' => 'Dmitry Krokhin',
+            'month' => 'March',
         ]);
 
         $manager->save($post);

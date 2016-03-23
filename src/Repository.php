@@ -41,14 +41,24 @@ class Repository implements Contracts\Repository
         throw new BadMethodCallException("Method $method not found");
     }
 
-    public function find($params, $oneItem = false)
+    public function find($params = [], $oneItem = false)
     {
         $fields = array_keys($params);
+        $values = [];
+
         sort($fields);
+        foreach($fields as $field) {
+            $values[] = $params[$field];
+        }
+
         $index = implode('_', $fields);
 
+        if(!$index) {
+            $index = 'id';
+        }
+
         $space = $this->type->getManager()->getClient()->getSpace($this->type->getName());
-        $data = $space->select(array_values($params), $index);
+        $data = $space->select($values, $index);
 
         $result = [];
         if (!empty($data->getData())) {

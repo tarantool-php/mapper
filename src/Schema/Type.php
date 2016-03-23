@@ -62,8 +62,11 @@ class Type implements Contracts\Type
         if ($schema->hasIndex($this->getName(), $indexName)) {
             throw new LogicException("Index $indexName already exists!");
         }
+        if(!$arguments) {
+            $arguments = [];
+        }
 
-        if (!count($arguments['parts'])) {
+        if (!array_key_exists('parts', $arguments) || !count($arguments['parts'])) {
             $arguments['parts'] = [];
             foreach ($this->getMapping() as $index => $name) {
                 if (in_array($name, $properties)) {
