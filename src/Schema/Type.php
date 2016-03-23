@@ -49,7 +49,7 @@ class Type implements Contracts\Type
     {
         $properties = (array) $properties;
         foreach ($properties as $property) {
-            if (!in_array($property, $this->properties)) {
+            if (!$this->hasProperty($property)) {
                 throw new LogicException("Unknown property $property for " . $this->name);
             }
         }
@@ -83,12 +83,16 @@ class Type implements Contracts\Type
     public function addProperty($first)
     {
         foreach (func_get_args() as $property) {
-            if (in_array($property, $this->properties)) {
+            if ($this->hasProperty($property)) {
                 throw new LogicException("Duplicate property $property");
             }
             $this->properties[] = $property;
         }
         return $this;
+    }
+
+    public function hasProperty($name) {
+        return in_array($name, $this->properties);
     }
 
     public function encode($input)

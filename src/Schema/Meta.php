@@ -27,7 +27,7 @@ class Meta implements Contracts\Meta
 
             $fields = [];
             if ($type != 'mapping') {
-                $mapping = $this->manager->get('mapping')->bySpace($type);
+                $mapping = $this->manager->get('mapping')->find(['space' => $type]);
                 foreach ($mapping as $row) {
                     $fields[$row->line] = $row->property;
                 }

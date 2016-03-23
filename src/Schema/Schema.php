@@ -11,6 +11,8 @@ use LogicException;
 class Schema implements Contracts\Schema
 {
     protected $client;
+    protected $spaceSpace;
+    protected $indexSpace;
 
     public function __construct(Client $client)
     {

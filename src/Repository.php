@@ -95,7 +95,7 @@ class Repository implements Contracts\Repository
             if (count($changes)) {
                 $operations = [];
                 foreach ($this->type->encode($changes) as $key => $value) {
-                    $operations[] = ['=', $key+1, $value];
+                    $operations[] = ['=', $key + 1, $value];
                 }
                 $this->type->getSpace()->update($entity->getId(), $operations);
             }

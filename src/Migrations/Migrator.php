@@ -4,6 +4,7 @@ namespace Tarantool\Mapper\Migrations;
 
 use Tarantool\Mapper\Contracts;
 use InvalidArgumentException;
+use ReflectionClass;
 
 class Migrator implements Contracts\Migration
 {
@@ -11,7 +12,8 @@ class Migrator implements Contracts\Migration
 
     public function registerMigration($class)
     {
-        if (!is_subclass_of($class, Contracts\Migration::class)) {
+        $reflection = new ReflectionClass($class);
+        if (!$reflection->implementsInterface(Contracts\Migration::class)) {
             throw new InvalidArgumentException("Register only Migration classes");
         }
         $this->migrations = [];
@@ -28,10 +30,13 @@ class Migrator implements Contracts\Migration
         $repository = $manager->get('migration');
 
         foreach ($this->migrations as $migration) {
-            if (!$repository->byName($migration)) {
+            $row = [
+                'name' => $migration
+            ];
+            if (!$repository->find($row, true)) {
                 $instance = new $migration;
                 $instance->migrate($this->manager);
-                $manager->save($repository->create(['name' => $migration]));
+                $manager->save($repository->make($row));
             }
         }
     }

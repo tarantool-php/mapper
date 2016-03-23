@@ -10,6 +10,8 @@ use LogicException;
 
 class Manager implements Contracts\Manager
 {
+    protected $meta;
+    protected $schema;
     protected $client;
     protected $repositores = [];
 
