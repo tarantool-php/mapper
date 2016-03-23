@@ -85,14 +85,21 @@ class Type implements Contracts\Type
      */
     public function addProperty($first)
     {
-        $properties = func_get_args();
-        if(is_array($first)) {
-            $properties = $properties[0];
-        }
+        $properties = is_array($first) ? $first : func_get_args();
+
         foreach ($properties as $property) {
+
             if ($this->hasProperty($property)) {
                 throw new LogicException("Duplicate property $property");
             }
+
+            $mapping = $this->manager->get('mapping')->make([
+                'space' => $this->name,
+                'line' => count($this->properties),
+                'property' => $property,
+            ]);
+            $this->manager->save($mapping);
+
             $this->properties[] = $property;
         }
         return $this;

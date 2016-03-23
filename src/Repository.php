@@ -43,6 +43,13 @@ class Repository implements Contracts\Repository
 
     public function find($params = [], $oneItem = false)
     {
+        if(is_int($params)) {
+            $params = [
+                'id' => $params
+            ];
+            $oneItem = true;
+        }
+
         $fields = array_keys($params);
         $values = [];
 
@@ -59,6 +66,7 @@ class Repository implements Contracts\Repository
 
         $space = $this->type->getManager()->getClient()->getSpace($this->type->getName());
         $data = $space->select($values, $index);
+
 
         $result = [];
         if (!empty($data->getData())) {
@@ -105,9 +113,10 @@ class Repository implements Contracts\Repository
             if (count($changes)) {
                 $operations = [];
                 foreach ($this->type->encode($changes) as $key => $value) {
-                    $operations[] = ['=', $key + 1, $value];
+                    $operations[] = ['=', $key, $value];
                 }
-                $this->type->getSpace()->update($entity->getId(), $operations);
+
+                $result = $this->type->getSpace()->update($entity->getId(), $operations);
             }
         }
 

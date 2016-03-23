@@ -34,6 +34,7 @@ class Meta implements Contracts\Meta
                 ksort($fields);
             }
 
+
             $this->types[$type] = new Type($this->manager, $type, array_values($fields));
         }
         return $this->types[$type];

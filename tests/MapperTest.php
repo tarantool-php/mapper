@@ -23,6 +23,12 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager->save($post);
 
         $this->assertSame($post->title, 'Hello world!');
+
+        $manager = Helper::createManager(false);
+        $anotherInstance = $manager->get('post')->find(['id' => $post->id], true);
+        $this->assertNotNull($anotherInstance);
+
+        $this->assertSame($anotherInstance->title, $post->title);
     }
 
     public function testBasicMapping()

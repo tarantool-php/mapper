@@ -32,7 +32,7 @@ class Schema implements Contracts\Schema
 
     public function hasSpace($space)
     {
-        return $this->getSpaceId($space) != null;
+        return $this->getSpaceId($space) !== null;
     }
 
     public function createSpace($space)
