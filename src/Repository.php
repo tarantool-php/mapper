@@ -107,6 +107,19 @@ class Repository implements Contracts\Repository
         if (!$entity->getId()) {
             $this->generateId($entity);
             $tuple = $this->type->encode($entity->toArray());
+
+            // normalize tuple
+            if(array_values($tuple) != $tuple) {
+                // index was skipped
+                $max = max(array_keys($tuple));
+                foreach(range(0, $max) as $index) {
+                    if(!array_key_exists($index, $tuple)) {
+                        $tuple[$index] = null;
+                    }
+                }
+                ksort($tuple);
+            }
+
             $this->type->getSpace()->insert($tuple);
         } else {
             $changes = $entity->pullChanges();

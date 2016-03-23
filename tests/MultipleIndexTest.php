@@ -54,7 +54,19 @@ class MultipleIndexTest extends PHPUnit_Framework_TestCase
         $posts = $manager->get('posts')->byMonthAndAuthor('January', 'Dmitry Krokhin');
         $this->assertCount(1, $posts);
 
+        // skip body
+        $emptyPost = $manager->save($manager->get('posts')->make([
+            'slug' => 'a-post-without-title-and-body',
+            'author' => 'Dmitry Krokhin',
+            'month' => 'December',
+        ]));
+
         $posts = $manager->get('posts')->byMonthAndAuthor('January', 'Vasiliy');
         $this->assertCount(0, $posts);
+
+        $newManager = Helper::createManager(false);
+        $newEmptyPost = $newManager->get('posts')->find($emptyPost->id);
+        $this->assertNull($newEmptyPost->header);
+        $this->assertNull($newEmptyPost->body);
     }
 }
