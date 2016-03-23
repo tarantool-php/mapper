@@ -30,8 +30,8 @@ class Repository implements Contracts\Repository
 
     public function __call($method, $arguments)
     {
-        foreach($this->magicMethodRules as $prefix => $oneItem) {
-            if(substr($method, 0, strlen($prefix)) == $prefix) {
+        foreach ($this->magicMethodRules as $prefix => $oneItem) {
+            if (substr($method, 0, strlen($prefix)) == $prefix) {
                 $tail = substr($method, strlen($prefix));
                 $fields = array_map('strtolower', explode('And', $tail));
                 return $this->find(array_combine($fields, $arguments), $oneItem);
@@ -90,9 +90,7 @@ class Repository implements Contracts\Repository
             $this->generateId($entity);
             $tuple = $this->type->encode($entity->toArray());
             $this->type->getSpace()->insert($tuple);
-
         } else {
-
             $changes = $entity->pullChanges();
             if (count($changes)) {
                 $operations = [];

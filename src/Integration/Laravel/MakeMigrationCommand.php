@@ -41,7 +41,7 @@ class MakeMigrationCommand extends Command
         $name = $this->argument('name');
         $class = studly_case($name);
 
-        if(class_exists($class)) {
+        if (class_exists($class)) {
             throw new \Exception("Class $class exists");
         }
 

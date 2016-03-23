@@ -16,5 +16,4 @@ class Convention
     {
         return resource_path('migrations');
     }
-
 }
