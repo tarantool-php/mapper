@@ -1,0 +1,16 @@
+language: php
+
+sudo: required
+
+php:
+  - 5.5
+  - 5.6
+  - 7.0
+
+services:
+  - docker
+
+before_script:
+  - docker run -d -p 127.0.0.1:3301:3301/tcp -v $PWD/resources/lua/tarantool.lua:/opt/tarantool.lua tarantool/tarantool /usr/bin/tarantool /opt/tarantool.lua
+  - composer self-update
+  - composer install --no-interaction --prefer-source --dev
