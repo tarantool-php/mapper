@@ -1,13 +1,12 @@
 <?php
 
-use Tarantool\Mapper\Migrations\Migrator;
 use Tarantool\Mapper\Integration\Laravel\Convention;
 
 class LaravelTest extends PHPUnit_Framework_TestCase
 {
     public function testConvention()
     {
-        $convention = new Convention;
+        $convention = new Convention();
 
         // default signatures
         $this->assertSame('tnt:migrate', $convention->migrateSignature());

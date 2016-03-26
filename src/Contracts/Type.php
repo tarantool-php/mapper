@@ -11,12 +11,14 @@ interface Type
 
     /**
      * @param $field string|array
+     *
      * @return Type
      */
     public function addIndex($field, array $arguments = null);
 
     /**
      * @param $property string
+     *
      * @return Type
      */
     public function addProperty($property);
@@ -25,4 +27,12 @@ interface Type
 
     public function encode($array);
     public function decode($array);
+
+    /**
+     * @param $type Type
+     * @param $property string
+     *
+     * @return Type
+     */
+    public function reference(Type $foreign, $property = null);
 }

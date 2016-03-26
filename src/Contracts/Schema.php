@@ -2,8 +2,6 @@
 
 namespace Tarantool\Mapper\Contracts;
 
-use Tarantool\Client;
-
 interface Schema
 {
     public function hasSpace($space);

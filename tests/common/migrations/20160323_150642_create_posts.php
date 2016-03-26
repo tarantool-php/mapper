@@ -16,4 +16,3 @@ class CreatePosts implements Migration
         $posts->addIndex(['author', 'month'], ['unique' => false]);
     }
 }
-

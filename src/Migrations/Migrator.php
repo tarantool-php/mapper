@@ -14,7 +14,7 @@ class Migrator implements Contracts\Migration
     {
         $reflection = new ReflectionClass($class);
         if (!$reflection->implementsInterface(Contracts\Migration::class)) {
-            throw new InvalidArgumentException("Register only Migration classes");
+            throw new InvalidArgumentException('Register only Migration classes');
         }
         $this->migrations[] = $class;
     }
@@ -31,10 +31,10 @@ class Migrator implements Contracts\Migration
 
         foreach ($this->migrations as $migration) {
             $row = [
-                'name' => $migration
+                'name' => $migration,
             ];
             if (!$repository->find($row, true)) {
-                $instance = new $migration;
+                $instance = new $migration();
                 $instance->migrate($manager);
                 $manager->save($repository->make($row));
             }

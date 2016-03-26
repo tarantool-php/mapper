@@ -23,7 +23,7 @@ class Entity implements Contracts\Entity
     public function __set($key, $value)
     {
         if ($key == 'id' && $this->getId()) {
-            throw new LogicException("Id property is readonly");
+            throw new LogicException('Id property is readonly');
         }
 
         $this->data[$key] = $value;
@@ -32,6 +32,10 @@ class Entity implements Contracts\Entity
     public function __get($key)
     {
         if (array_key_exists($key, $this->data)) {
+            if (is_callable($this->data[$key])) {
+                $this->data[$key] = $this->data[$key]();
+            }
+
             return $this->data[$key];
         }
     }
@@ -50,6 +54,7 @@ class Entity implements Contracts\Entity
     public function setId($id)
     {
         $this->__set('id', $id);
+
         return $this;
     }
 
@@ -75,6 +80,7 @@ class Entity implements Contracts\Entity
         }
 
         $this->original = $this->data;
+
         return $changes;
     }
 }

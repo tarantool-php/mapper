@@ -26,17 +26,20 @@ class Meta implements Contracts\Meta
             }
 
             $fields = [];
+            $references = null;
             if ($type != 'mapping') {
                 $mapping = $this->manager->get('mapping')->find(['space' => $type]);
                 foreach ($mapping as $row) {
                     $fields[$row->line] = $row->property;
                 }
                 ksort($fields);
+                if (!in_array($type, ['reference', 'sequences'])) {
+                    $references = $this->manager->get('reference')->find(['space' => $type]);
+                }
             }
-
-
-            $this->types[$type] = new Type($this->manager, $type, array_values($fields));
+            $this->types[$type] = new Type($this->manager, $type, array_values($fields), $references);
         }
+
         return $this->types[$type];
     }
 

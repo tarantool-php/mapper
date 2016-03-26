@@ -11,7 +11,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $post = $manager->get('post')->make([
             'title' => 'Hello world',
             'slug' => 'hello-world',
-            'author' => 'Dmitry Krokhin'
+            'author' => 'Dmitry Krokhin',
         ]);
 
         $manager->save($post);

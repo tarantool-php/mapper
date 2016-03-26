@@ -17,7 +17,7 @@ abstract class Helper
         $client = new Client($connection, new PurePacker());
 
         // flush everything
-        if($flush) {
+        if ($flush) {
             $schema = new Space($client, Space::VSPACE);
             $response = $schema->select([], Index::SPACE_NAME);
             $data = $response->getData();

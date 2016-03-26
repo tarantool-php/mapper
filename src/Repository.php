@@ -2,7 +2,6 @@
 
 namespace Tarantool\Mapper;
 
-use Tarantool\Mapper\Contracts;
 use BadMethodCallException;
 use LogicException;
 
@@ -15,7 +14,7 @@ class Repository implements Contracts\Repository
     protected $magicMethodRules = [
         'by' => false,
         'firstBy' => true,
-        'oneBy' => true
+        'oneBy' => true,
     ];
 
     public function __construct(Contracts\Type $type)
@@ -34,6 +33,7 @@ class Repository implements Contracts\Repository
             if (substr($method, 0, strlen($prefix)) == $prefix) {
                 $tail = substr($method, strlen($prefix));
                 $fields = array_map('strtolower', explode('And', $tail));
+
                 return $this->find(array_combine($fields, $arguments), $oneItem);
             }
         }
@@ -43,9 +43,9 @@ class Repository implements Contracts\Repository
 
     public function find($params = [], $oneItem = false)
     {
-        if(is_int($params)) {
+        if (is_int($params)) {
             $params = [
-                'id' => $params
+                'id' => $params,
             ];
             $oneItem = true;
         }
@@ -54,19 +54,18 @@ class Repository implements Contracts\Repository
         $values = [];
 
         sort($fields);
-        foreach($fields as $field) {
+        foreach ($fields as $field) {
             $values[] = $params[$field];
         }
 
         $index = implode('_', $fields);
 
-        if(!$index) {
+        if (!$index) {
             $index = 'id';
         }
 
         $space = $this->type->getManager()->getClient()->getSpace($this->type->getName());
         $data = $space->select($values, $index);
-
 
         $result = [];
         if (!empty($data->getData())) {
@@ -101,7 +100,7 @@ class Repository implements Contracts\Repository
     public function save(Contracts\Entity $entity)
     {
         if (!$this->knows($entity)) {
-            throw new LogicException("Entity is not related with this repository");
+            throw new LogicException('Entity is not related with this repository');
         }
 
         if (!$entity->getId()) {
@@ -109,11 +108,11 @@ class Repository implements Contracts\Repository
             $tuple = $this->type->encode($entity->toArray());
 
             // normalize tuple
-            if(array_values($tuple) != $tuple) {
+            if (array_values($tuple) != $tuple) {
                 // index was skipped
                 $max = max(array_keys($tuple));
-                foreach(range(0, $max) as $index) {
-                    if(!array_key_exists($index, $tuple)) {
+                foreach (range(0, $max) as $index) {
+                    if (!array_key_exists($index, $tuple)) {
                         $tuple[$index] = null;
                     }
                 }
@@ -144,6 +143,7 @@ class Repository implements Contracts\Repository
         if ($entity->getId() && !array_key_exists($entity->getId(), $this->keyMap)) {
             $this->keyMap[$entity->getId()] = array_search($entity, $this->entities);
         }
+
         return $entity;
     }
 

@@ -3,7 +3,6 @@
 namespace Tarantool\Mapper;
 
 use Tarantool\Client;
-use Tarantool\Mapper\Contracts;
 use Tarantool\Mapper\Schema\Schema;
 use Tarantool\Mapper\Schema\Meta;
 use LogicException;
@@ -28,6 +27,7 @@ class Manager implements Contracts\Manager
         if (!array_key_exists($type, $this->repositores)) {
             $this->repositores[$type] = new Repository($this->getMeta()->get($type));
         }
+
         return $this->repositores[$type];
     }
 
@@ -42,7 +42,7 @@ class Manager implements Contracts\Manager
             }
         }
 
-        throw new LogicException("Entity should be related with repository");
+        throw new LogicException('Entity should be related with repository');
     }
 
     /**
@@ -69,6 +69,7 @@ class Manager implements Contracts\Manager
         if (!isset($this->schema)) {
             $this->schema = new Schema($this->getClient());
         }
+
         return $this->schema;
     }
 
@@ -80,6 +81,7 @@ class Manager implements Contracts\Manager
         if (!isset($this->meta)) {
             $this->meta = new Meta($this);
         }
+
         return $this->meta;
     }
 }
