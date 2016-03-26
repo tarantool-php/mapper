@@ -10,8 +10,8 @@ class LaravelTest extends PHPUnit_Framework_TestCase
         $convention = new Convention;
 
         // default signatures
-        $this->assertSame('migrate', $convention->migrateSignature());
-        $this->assertSame('make:migration {name}', $convention->makeMigrationSignature());
+        $this->assertSame('tnt:migrate', $convention->migrateSignature());
+        $this->assertSame('tnt:migration {name}', $convention->makeMigrationSignature());
 
         $this->assertSame(
             $convention->migrationPath(),

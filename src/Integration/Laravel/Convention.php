@@ -19,11 +19,11 @@ class Convention
 
     public function makeMigrationSignature()
     {
-        return 'make:migration {name}';
+        return 'tnt:migration {name}';
     }
 
     public function migrateSignature()
     {
-        return 'migrate';
+        return 'tnt:migrate';
     }
 }
