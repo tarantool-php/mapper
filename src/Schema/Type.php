@@ -85,6 +85,8 @@ class Type implements Contracts\Type
         }
 
         $schema->createIndex($this->getName(), $indexName, $arguments);
+
+        return $this;
     }
 
     /**
