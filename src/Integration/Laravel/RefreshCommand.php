@@ -8,7 +8,7 @@ use Tarantool\Mapper\Migrations\Migrator;
 use Tarantool\Schema\Space;
 use Tarantool\Schema\Index;
 
-class MigrateCommand extends Command
+class RefreshCommand extends Command
 {
     /**
      * The name and signature of the console command.
