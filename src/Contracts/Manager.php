@@ -17,6 +17,11 @@ interface Manager
     public function save(Entity $entity);
 
     /**
+     * @return Entity
+     */
+    public function make($type, $data);
+
+    /**
      * @return Client
      */
     public function getClient();
