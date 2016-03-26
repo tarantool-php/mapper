@@ -26,4 +26,9 @@ class Convention
     {
         return 'tnt:migrate';
     }
+
+    public function refreshSignature()
+    {
+        return 'tnt:refresh';
+    }
 }
