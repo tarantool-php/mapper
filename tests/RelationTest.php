@@ -27,7 +27,7 @@ class RelationTest extends PHPUnit_Framework_TestCase
 
         $doc = $meta->create('document', ['type']);
         $item = $meta->create('item', ['name']);
-        $meta->create('document_details')->reference($doc)->reference($item);
+        $meta->create('document_details', [$doc, $item, 'qty']);
 
         $items = [
             $manager->make('item', ['name' => 'Jack Daniels\' No.7']),

@@ -60,7 +60,13 @@ class Meta implements Contracts\Meta
         $instance->addIndex('id');
 
         if ($fields) {
-            call_user_func_array([$instance, 'addProperty'], (array) $fields);
+            foreach ($fields as $field) {
+                if ($field instanceof Contracts\Type) {
+                    $instance->reference($field);
+                } else {
+                    $instance->addProperty($field);
+                }
+            }
         }
 
         return $this->types[$type] = $instance;
