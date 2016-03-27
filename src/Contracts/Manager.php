@@ -21,6 +21,8 @@ interface Manager
      */
     public function make($type, $data);
 
+    public function findRepository(Entity $entity);
+
     /**
      * @return Client
      */

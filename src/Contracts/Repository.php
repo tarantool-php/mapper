@@ -18,4 +18,9 @@ interface Repository
      * @return Entity
      */
     public function save(Entity $entity);
+
+    /**
+     * @return Type
+     */
+    public function getType();
 }

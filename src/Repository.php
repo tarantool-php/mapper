@@ -24,6 +24,21 @@ class Repository implements Contracts\Repository
 
     public function make(array $data = null)
     {
+        if ($data) {
+            $newData = [];
+            foreach ($data as $k => $v) {
+                if (!is_numeric($k)) {
+                    $newData[$k] = $v;
+                } else {
+                    if ($v instanceof Contracts\Entity) {
+                        $type = $this->type->getManager()->findRepository($v)->getType();
+                        $newData[$this->type->getReferenceProperty($type)] = $v;
+                    }
+                }
+            }
+            $data = $newData;
+        }
+
         return $this->register(new Entity($data));
     }
 
@@ -180,5 +195,10 @@ class Repository implements Contracts\Repository
         $this->register($entity);
 
         return $entity;
+    }
+
+    public function getType()
+    {
+        return $this->type;
     }
 }

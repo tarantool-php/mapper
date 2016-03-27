@@ -144,6 +144,24 @@ class Type implements Contracts\Type
         return array_key_exists($name, $this->references);
     }
 
+    public function getReferenceProperty(Contracts\Type $type)
+    {
+        $properties = [];
+        foreach ($this->references as $property => $reference) {
+            if ($reference->type == $type->getName()) {
+                $properties[] = $property;
+            }
+        }
+        if (!count($properties)) {
+            throw new LogicException('Type is not related with '.$type->getName());
+        }
+        if (count($properties) > 1) {
+            throw new LogicException('Multiple type reference found');
+        }
+
+        return $properties[0];
+    }
+
     public function encode($input)
     {
         $output = [];

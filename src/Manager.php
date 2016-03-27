@@ -40,12 +40,16 @@ class Manager implements Contracts\Manager
      */
     public function save(Contracts\Entity $entity)
     {
+        return $this->findRepository($entity)->save($entity);
+    }
+
+    public function findRepository(Contracts\Entity $entity)
+    {
         foreach ($this->repositores as $repository) {
             if ($repository->knows($entity)) {
-                return $repository->save($entity);
+                return $repository;
             }
         }
-
         throw new LogicException('Entity should be related with repository');
     }
 

@@ -37,4 +37,6 @@ interface Type
     public function reference(Type $foreign, $property = null);
 
     public function isReference($name);
+
+    public function getReferenceProperty(Type $foreign);
 }
