@@ -79,7 +79,7 @@ class Type implements Contracts\Type
             foreach ($this->getMapping() as $index => $name) {
                 if (in_array($name, $properties)) {
                     $arguments['parts'][] = $index + 1;
-                    $arguments['parts'][] = $name == 'id' ? 'NUM' : 'STR';
+                    $arguments['parts'][] = $name == 'id' || $this->isReference($name) ? 'NUM' : 'STR';
                 }
             }
         }
@@ -134,7 +134,14 @@ class Type implements Contracts\Type
             'type' => $foreign->getName(),
         ]);
 
+        $this->addIndex($property, ['unique' => false]);
+
         return $this;
+    }
+
+    public function isReference($name)
+    {
+        return array_key_exists($name, $this->references);
     }
 
     public function encode($input)
@@ -143,7 +150,7 @@ class Type implements Contracts\Type
         foreach ($this->getMapping() as $index => $name) {
             if (array_key_exists($name, $input)) {
                 $value = $input[$name];
-                if (array_key_exists($name, $this->references)) {
+                if ($this->isReference($name)) {
                     $value = $value->getId();
                 }
                 $output[$index] = $value;
@@ -159,7 +166,7 @@ class Type implements Contracts\Type
         foreach ($this->getMapping() as $index => $name) {
             if (array_key_exists($index, $input)) {
                 $output[$name] = $input[$index];
-                if (array_key_exists($name, $this->references)) {
+                if ($this->isReference($name)) {
                     $manager = $this->getManager();
                     $type = $this->references[$name]->type;
                     $id = $output[$name];

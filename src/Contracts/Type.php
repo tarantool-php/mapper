@@ -35,4 +35,6 @@ interface Type
      * @return Type
      */
     public function reference(Type $foreign, $property = null);
+
+    public function isReference($name);
 }

@@ -53,6 +53,12 @@ class Repository implements Contracts\Repository
             $oneItem = true;
         }
 
+        foreach ($params as $key => $value) {
+            if ($this->type->isReference($key)) {
+                $params[$key] = $value->getId();
+            }
+        }
+
         $fields = array_keys($params);
         $values = [];
 

@@ -20,12 +20,16 @@ class Manager implements Contracts\Manager
     }
 
     /**
-     * @return Contracts\Repository
+     * @return Contracts\Repository|Contracts\Entity
      */
-    public function get($type)
+    public function get($type, $id = null)
     {
         if (!array_key_exists($type, $this->repositores)) {
             $this->repositores[$type] = new Repository($this->getMeta()->get($type));
+        }
+
+        if ($id) {
+            return $this->repositores[$type]->find($id);
         }
 
         return $this->repositores[$type];

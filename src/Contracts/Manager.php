@@ -7,9 +7,9 @@ use Tarantool\Client;
 interface Manager
 {
     /**
-     * @return Repository
+     * @return Repository|Entity
      */
-    public function get($type);
+    public function get($type, $id = null);
 
     /**
      * @return Entity
