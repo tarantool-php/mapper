@@ -6,7 +6,7 @@ interface Schema
 {
     public function hasSpace($space);
 
-    public function createSpace($space);
+    public function makeSpace($space);
 
-    public function createIndex($space, $index, array $arguments);
+    public function makeIndex($space, $index, array $arguments);
 }

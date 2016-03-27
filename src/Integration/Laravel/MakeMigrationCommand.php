@@ -19,7 +19,7 @@ class MakeMigrationCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Create a new migration';
+    protected $description = 'Make new tarantool migration';
 
     /**
      * Create a new command instance.

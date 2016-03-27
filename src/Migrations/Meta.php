@@ -13,7 +13,7 @@ class Meta implements Contracts\Migration
             $migration->migrate($manager);
         }
 
-        $reference = $manager->getMeta()->create('reference', [
+        $reference = $manager->getMeta()->make('reference', [
             'space', 'property', 'type',
         ])->addIndex(['space'], ['unique' => false]);
     }

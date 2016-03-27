@@ -8,9 +8,9 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager();
         $meta = $manager->getMeta();
 
-        $person = $meta->create('person', ['firstName', 'lastName']);
-        $user = $meta->create('user', ['login', 'password'])->reference($person, 'info');
-        $recovery = $meta->create('recovery', ['token'])->reference($user)->addIndex('token');
+        $person = $meta->make('person', ['firstName', 'lastName']);
+        $user = $meta->make('user', ['login', 'password'])->reference($person, 'info');
+        $recovery = $meta->make('recovery', ['token'])->reference($user)->addIndex('token');
 
         $person = $manager->make('person', ['firstName' => 'Dmitry', 'lastName' => 'Krokhin']);
         $user = $manager->make('user', ['login' => 'nekufa', 'password' => 'password', 'info' => $person]);
@@ -25,9 +25,9 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager();
         $meta = $manager->getMeta();
 
-        $doc = $meta->create('document', ['type']);
-        $item = $meta->create('item', ['name']);
-        $meta->create('document_details', [$doc, $item, 'qty']);
+        $doc = $meta->make('document', ['type']);
+        $item = $meta->make('item', ['name']);
+        $meta->make('document_details', [$doc, $item, 'qty']);
 
         $items = [
             $manager->make('item', ['name' => 'Jack Daniels\' No.7']),

@@ -12,5 +12,5 @@ interface Meta
     /**
      * @return Type
      */
-    public function create($type, array $fields = null);
+    public function make($type, array $fields = null);
 }

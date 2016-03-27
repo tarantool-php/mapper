@@ -5,7 +5,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
     public function testUsage()
     {
         $manager = Helper::createManager();
-        $meta = $manager->getMeta()->create('post', ['title', 'slug', 'author']);
+        $meta = $manager->getMeta()->make('post', ['title', 'slug', 'author']);
         $meta->addIndex('slug');
 
         $post = $manager->get('post')->make([

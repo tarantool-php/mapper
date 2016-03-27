@@ -34,7 +34,7 @@ class Schema implements Contracts\Schema
         return $this->getSpaceId($space) !== null;
     }
 
-    public function createSpace($space)
+    public function makeSpace($space)
     {
         $this->client->evaluate("box.schema.space.create('$space')");
     }
@@ -57,7 +57,7 @@ class Schema implements Contracts\Schema
         return !empty($response->getData());
     }
 
-    public function createIndex($space, $index, array $arguments)
+    public function makeIndex($space, $index, array $arguments)
     {
         $config = [];
         foreach ($arguments as $k => $v) {

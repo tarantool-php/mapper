@@ -20,11 +20,8 @@ class MigrateCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Apply all migration to the schema';
+    protected $description = 'Apply all migrations to the schema';
 
-    /**
-     * Create a new command instance.
-     */
     public function __construct(Convention $convention)
     {
         $this->signature = $convention->migrateSignature();
