@@ -22,8 +22,8 @@ interface Type
      * @return Type
      */
     public function addProperty($property);
-
     public function hasProperty($property);
+    public function getProperties();
 
     public function encode($array);
     public function decode($array);
@@ -35,8 +35,7 @@ interface Type
      * @return Type
      */
     public function reference(Type $foreign, $property = null);
-
     public function isReference($name);
-
     public function getReferenceProperty(Type $foreign);
+    public function getReferences();
 }

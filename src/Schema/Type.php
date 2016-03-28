@@ -120,6 +120,11 @@ class Type implements Contracts\Type
         return in_array($name, $this->properties);
     }
 
+    public function getProperties()
+    {
+        return $this->properties;
+    }
+
     public function reference(Contracts\Type $foreign, $property = null)
     {
         if (!$property) {
@@ -160,6 +165,16 @@ class Type implements Contracts\Type
         }
 
         return $properties[0];
+    }
+
+    public function getReferences()
+    {
+        $references = [];
+        foreach ($this->references as $property => $config) {
+            $references[$property] = $config->type;
+        }
+
+        return $references;
     }
 
     public function encode($input)

@@ -12,6 +12,9 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $user = $meta->make('user', ['login', 'password'])->reference($person, 'info');
         $recovery = $meta->make('recovery', ['token'])->reference($user)->addIndex('token');
 
+        $this->assertSame($user->getReferences(), ['info' => 'person']);
+        $this->assertSame($recovery->getReferences(), ['user' => 'user']);
+
         $person = $manager->make('person', ['firstName' => 'Dmitry', 'lastName' => 'Krokhin']);
         $user = $manager->make('user', ['login' => 'nekufa', 'password' => 'password', 'info' => $person]);
         $recovery = $manager->make('recovery', ['token' => md5(time()), 'user' => $user]);

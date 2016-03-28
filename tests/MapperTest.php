@@ -8,6 +8,8 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $meta = $manager->getMeta()->make('post', ['title', 'slug', 'author']);
         $meta->addIndex('slug');
 
+        $this->assertSame($meta->getProperties(), ['id', 'title', 'slug', 'author']);
+
         $post = $manager->get('post')->make([
             'title' => 'Hello world',
             'slug' => 'hello-world',
