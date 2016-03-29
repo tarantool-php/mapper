@@ -10,9 +10,14 @@ interface Repository
     public function make();
 
     /**
-     * @return Entity[]
+     * @return Entity|Entity[]
      */
     public function find($params, $first = false);
+
+    /**
+     * @return Entity
+     */
+    public function findOne($params);
 
     /**
      * @return Entity

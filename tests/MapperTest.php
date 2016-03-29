@@ -19,6 +19,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager->save($post);
 
         $this->assertNotNull($post->getId());
+        $this->assertSame($post, $manager->get('post')->findOne(['slug' => 'hello-world']));
         $this->assertSame($post, $manager->get('post')->oneBySlug('hello-world'));
 
         $post->title .= '!';

@@ -56,6 +56,11 @@ class Repository implements Contracts\Repository
         throw new BadMethodCallException("Method $method not found");
     }
 
+    public function findOne($params)
+    {
+        return $this->find($params, true);
+    }
+
     public function find($params = [], $oneItem = false)
     {
         if (is_int($params)) {

@@ -65,9 +65,10 @@ class Entity implements Contracts\Entity
     public function toArray()
     {
         $array = [];
-        foreach(array_keys($this->data) as $key) {
+        foreach (array_keys($this->data) as $key) {
             $array[$key] = $this->__get($key);
         }
+
         return $array;
     }
 
