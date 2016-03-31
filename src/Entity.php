@@ -77,6 +77,19 @@ class Entity implements Contracts\Entity
         return $array;
     }
 
+    public function getData()
+    {
+        $data = [];
+        foreach (array_keys($this->data) as $key) {
+            $data[$key] = $this->__get($key);
+            if ($data[$key] instanceof Contracts\Entity) {
+                $data[$key] = $data[$key]->id;
+            }
+        }
+
+        return $data;
+    }
+
     /**
      * @return array
      */
