@@ -48,7 +48,10 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $gift = $manager->make('document', ['type' => 'gift']);
 
         $manager->make('document_details', [$gift, $items[0]]);
-        $manager->make('document_details', [$items[1], $gift]);
+        $detail = $manager->make('document_details', [$items[1], $gift]);
+
+        $array = $detail->toArray(true);
+        $this->assertSame($array['item']['name'], $items[1]->name);
 
         $newManager = Helper::createManager(false);
         $details = $newManager->get('document_details')->byDocument($gift);

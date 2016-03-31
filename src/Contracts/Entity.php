@@ -17,7 +17,7 @@ interface Entity
     /**
      * @return array
      */
-    public function toArray();
+    public function toArray($recursive = false);
 
     /**
      * @return array

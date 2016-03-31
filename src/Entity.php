@@ -62,11 +62,16 @@ class Entity implements Contracts\Entity
     /**
      * @return array
      */
-    public function toArray()
+    public function toArray($recursive = false)
     {
         $array = [];
         foreach (array_keys($this->data) as $key) {
             $array[$key] = $this->__get($key);
+            if ($array[$key] instanceof Contracts\Entity) {
+                if ($recursive) {
+                    $array[$key] = $array[$key]->toArray(true);
+                }
+            }
         }
 
         return $array;
