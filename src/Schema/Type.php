@@ -193,6 +193,26 @@ class Type implements Contracts\Type
         return $output;
     }
 
+    public function getRequiredProperties()
+    {
+        if (!isset($this->requiredProperties)) {
+            $this->requiredProperties = ['id'];
+            foreach ($this->getReferences() as $property => $reference) {
+                $this->requiredProperties[] = $property;
+            }
+            foreach ($this->manager->getSchema()->listIndexes($this->getName()) as $name => $fields) {
+                foreach ($fields as $num) {
+                    $property = $this->properties[$num];
+                    if (!in_array($property, $this->requiredProperties)) {
+                        $this->requiredProperties[] = $property;
+                    }
+                }
+            }
+        }
+
+        return $this->requiredProperties;
+    }
+
     public function decode($input)
     {
         $output = [];

@@ -22,6 +22,14 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager(false);
         $recovery = $manager->get('recovery')->find($recovery->getId());
         $this->assertSame($person->getId(), $recovery->user->info->getId());
+
+        $this->assertSame(['id', 'user', 'token'], $manager->getMeta()->get('recovery')->getRequiredProperties());
+
+        $recovery = $manager->make('recovery', ['token' => md5('test')]);
+        $this->assertNull($recovery->user);
+
+        $recovery = $manager->make('recovery', [$recovery->user]);
+        $this->assertNull($recovery->token);
     }
     public function testTwoRelation()
     {

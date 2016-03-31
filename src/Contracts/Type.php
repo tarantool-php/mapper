@@ -24,6 +24,7 @@ interface Type
     public function addProperty($property);
     public function hasProperty($property);
     public function getProperties();
+    public function getRequiredProperties();
 
     public function encode($array);
     public function decode($array);

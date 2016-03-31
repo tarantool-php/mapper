@@ -136,6 +136,18 @@ class Repository implements Contracts\Repository
             $this->generateId($entity);
             $tuple = $this->type->encode($entity->toArray());
 
+            $required = $this->type->getRequiredProperties();
+
+            foreach ($this->type->getMapping() as $index => $field) {
+                if (in_array($field, $required) && !array_key_exists($index, $tuple)) {
+                    if ($this->type->isReference($field)) {
+                        $tuple[$index] = 0;
+                    } else {
+                        $tuple[$index] = '';
+                    }
+                }
+            }
+
             // normalize tuple
             if (array_values($tuple) != $tuple) {
                 // index was skipped

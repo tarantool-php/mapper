@@ -57,6 +57,21 @@ class Schema implements Contracts\Schema
         return !empty($response->getData());
     }
 
+    public function listIndexes($space)
+    {
+        $result = [];
+        $response = $this->indexSpace->select([$this->getSpaceId($space)], Index::INDEX_NAME);
+
+        foreach ($response->getData() as $row) {
+            $result[$row[2]] = [];
+            foreach ($row[5] as $f) {
+                $result[$row[2]][] = $f[0];
+            }
+        }
+
+        return $result;
+    }
+
     public function makeIndex($space, $index, array $arguments)
     {
         $config = [];
