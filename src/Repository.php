@@ -22,8 +22,16 @@ class Repository implements Contracts\Repository
         $this->type = $type;
     }
 
-    public function make(array $data = null)
+    public function make($data = null)
     {
+        if ($data && !is_array($data)) {
+            $properties = $this->getType()->getProperties();
+            if (count($properties) == 2) {
+                $data = [$properties[1] => $data];
+            } else {
+                throw new LogicException('Data should be array');
+            }
+        }
         if ($data) {
             $newData = [];
             foreach ($data as $k => $v) {

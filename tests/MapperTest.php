@@ -51,4 +51,13 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $mapping = $manager->getMeta()->get('sequences')->getMapping();
         $this->assertSame($map, $mapping);
     }
+
+    public function testEasyMake()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->make('company', ['name']);
+
+        $company = $manager->make('company', 'basis.company');
+        $this->assertSame($company->name, 'basis.company');
+    }
 }

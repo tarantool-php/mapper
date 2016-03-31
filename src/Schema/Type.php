@@ -158,7 +158,7 @@ class Type implements Contracts\Type
             }
         }
         if (!count($properties)) {
-            throw new LogicException('Type is not related with '.$type->getName());
+            throw new LogicException('Type '.$this->getName().' is not related with '.$type->getName());
         }
         if (count($properties) > 1) {
             throw new LogicException('Multiple type reference found');
