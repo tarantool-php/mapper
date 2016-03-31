@@ -219,14 +219,6 @@ class Type implements Contracts\Type
         foreach ($this->getMapping() as $index => $name) {
             if (array_key_exists($index, $input)) {
                 $output[$name] = $input[$index];
-                if ($this->isReference($name)) {
-                    $manager = $this->getManager();
-                    $type = $this->references[$name]->type;
-                    $id = $output[$name];
-                    $output[$name] = function () use ($manager, $type, $id) {
-                        return $manager->get($type)->find($id);
-                    };
-                }
             }
         }
 

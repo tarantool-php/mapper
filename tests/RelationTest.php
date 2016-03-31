@@ -20,7 +20,7 @@ class RelationTest extends PHPUnit_Framework_TestCase
 
         $manager = Helper::createManager(false);
         $recovery = $manager->get('recovery')->find($recovery->getId());
-        $this->assertSame($person->getId(), $recovery->user->info->getId());
+        $this->assertSame($person->getId(), $recovery->user);
 
         $this->assertSame(['id', 'user', 'token'], $manager->getMeta()->get('recovery')->getRequiredProperties());
 
@@ -54,7 +54,7 @@ class RelationTest extends PHPUnit_Framework_TestCase
 
         $newManager = Helper::createManager(false);
         $details = $newManager->get('document_details')->byDocument($gift);
-        $this->assertSame($details[0]->document->id, $gift->id);
+        $this->assertSame($details[0]->document, $gift->id);
 
         $detailsById = $newManager->get('document_details')->byDocument($gift->id);
         $this->assertSame($detailsById, $details);
