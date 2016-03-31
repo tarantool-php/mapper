@@ -74,7 +74,7 @@ class Repository implements Contracts\Repository
         }
 
         foreach ($params as $key => $value) {
-            if ($this->type->isReference($key)) {
+            if ($this->type->isReference($key) && $value instanceof Contracts\Entity) {
                 $params[$key] = $value->getId();
             }
         }

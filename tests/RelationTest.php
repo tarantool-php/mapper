@@ -1,6 +1,5 @@
 <?php
 
-
 class RelationTest extends PHPUnit_Framework_TestCase
 {
     public function testUsage()
@@ -56,6 +55,9 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $newManager = Helper::createManager(false);
         $details = $newManager->get('document_details')->byDocument($gift);
         $this->assertSame($details[0]->document->id, $gift->id);
+
+        $detailsById = $newManager->get('document_details')->byDocument($gift->id);
+        $this->assertSame($detailsById, $details);
 
         $newIds = [];
         foreach ($details as $row) {
