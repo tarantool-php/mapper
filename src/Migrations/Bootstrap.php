@@ -17,7 +17,7 @@ class Bootstrap implements Contracts\Migration
 
         $schema->makeSpace('sequence');
         $schema->makeIndex('sequence', 'id', ['parts' => [1, 'NUM']]);
-        $schema->makeIndex('sequence', 'name', ['parts' => [2, 'NUM']]);
+        $schema->makeIndex('sequence', 'space', ['parts' => [2, 'NUM']]);
 
         $schema->makeSpace('mapping');
         $schema->makeIndex('mapping', 'id', ['parts' => [1, 'NUM']]);
@@ -31,7 +31,7 @@ class Bootstrap implements Contracts\Migration
 
         $mapping = $client->getSpace('mapping');
         $mapping->insert([1, $sequenceSpaceId, 0, 'id']);
-        $mapping->insert([2, $sequenceSpaceId, 1, 'name']);
+        $mapping->insert([2, $sequenceSpaceId, 1, 'space']);
         $mapping->insert([3, $sequenceSpaceId, 2, 'value']);
         $mapping->insert([4, $mappingSpaceId, 0, 'id']);
         $mapping->insert([5, $mappingSpaceId, 1, 'space']);

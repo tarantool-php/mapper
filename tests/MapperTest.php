@@ -48,7 +48,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
         ksort($map);
 
         $this->assertCount(3, $map);
-        $this->assertSame($map, ['id', 'name', 'value']);
+        $this->assertSame($map, ['id', 'space', 'value']);
 
         $mapping = $manager->getMeta()->get('sequence')->getMapping();
         $this->assertSame($map, $mapping);
