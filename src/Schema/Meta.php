@@ -13,6 +13,21 @@ class Meta implements Contracts\Meta
     public function __construct(Contracts\Manager $manager)
     {
         $this->manager = $manager;
+        $this->mapping = [];
+        $this->references = [];
+
+        $client = $manager->getClient();
+        foreach ($client->getSpace('mapping')->select([], 'space')->getData() as $mapping) {
+            list($id, $spaceId, $line, $property) = $mapping;
+            if (!array_key_exists($spaceId, $this->mapping)) {
+                $this->mapping[$spaceId] = [];
+            }
+            $this->mapping[$spaceId][$line] = $property;
+        }
+        foreach ($this->mapping as $spaceId => $collection) {
+            ksort($collection);
+            $this->mapping[$spaceId] = $collection;
+        }
     }
 
     /**
@@ -21,19 +36,14 @@ class Meta implements Contracts\Meta
     public function get($type)
     {
         if (!array_key_exists($type, $this->types)) {
-            if (!$this->manager->getSchema()->hasSpace($type)) {
+            $spaceId = $this->manager->getSchema()->getSpaceId($type);
+            if (!$spaceId) {
                 throw new LogicException("Type $type not exists");
             }
-            $spaceId = $this->manager->getSchema()->getSpaceId($type);
 
-            $fields = [];
+            $fields = array_key_exists($spaceId, $this->mapping) ? $this->mapping[$spaceId] : [];
             $references = null;
             if ($type != 'mapping') {
-                $mapping = $this->manager->get('mapping')->bySpace($spaceId);
-                foreach ($mapping as $row) {
-                    $fields[$row->line] = $row->property;
-                }
-                ksort($fields);
                 if (!in_array($type, ['reference', 'sequence'])) {
                     $references = $this->manager->get('reference')->bySpace($spaceId);
                 }
