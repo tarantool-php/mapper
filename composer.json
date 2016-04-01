@@ -16,10 +16,12 @@
     "suggest": {
         "illuminate/support": "Laravel Integration"
     },
-    "autoload": {
+    "autoload-dev": {
         "classmap": [
             "tests"
-        ],
+        ]
+    },
+    "autoload": {
         "psr-4": {
             "Tarantool\\Mapper\\": "src/"
         }
