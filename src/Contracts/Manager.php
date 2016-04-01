@@ -19,7 +19,7 @@ interface Manager
     /**
      * @return Entity
      */
-    public function make($type, $data);
+    public function create($type, $data);
 
     public function findRepository(Entity $entity);
 

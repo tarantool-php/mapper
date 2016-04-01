@@ -56,9 +56,9 @@ class Manager implements Contracts\Manager
     /**
      * @return Contracts\Entity
      */
-    public function make($type, $data)
+    public function create($type, $data)
     {
-        return $this->save($this->get($type)->make($data));
+        return $this->save($this->get($type)->create($data));
     }
 
     /**

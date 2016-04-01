@@ -30,7 +30,7 @@ class Migrator implements Contracts\Migration
             if (!$manager->get('migrations')->oneByName($migration)) {
                 $instance = new $migration();
                 $instance->migrate($manager);
-                $manager->make('migrations', $migration);
+                $manager->create('migrations', $migration);
             }
         }
     }

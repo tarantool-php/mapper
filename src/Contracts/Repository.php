@@ -7,7 +7,7 @@ interface Repository
     /**
      * @return Entity
      */
-    public function make($data);
+    public function create($data);
 
     /**
      * @return Entity|Entity[]

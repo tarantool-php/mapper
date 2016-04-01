@@ -12,7 +12,7 @@ class MultipleIndexTest extends PHPUnit_Framework_TestCase
         $migrator->registerMigration(CreatePosts::class);
         $migrator->migrate($manager);
 
-        $manager->save($manager->get('posts')->make([
+        $manager->save($manager->get('posts')->create([
             'title' => 'a',
             'slug' => 'a',
             'body' => 'a',
@@ -20,7 +20,7 @@ class MultipleIndexTest extends PHPUnit_Framework_TestCase
             'month' => 'March',
         ]));
 
-        $manager->save($manager->get('posts')->make([
+        $manager->save($manager->get('posts')->create([
             'title' => 'b',
             'slug' => 'b',
             'body' => 'b',
@@ -28,7 +28,7 @@ class MultipleIndexTest extends PHPUnit_Framework_TestCase
             'month' => 'March',
         ]));
 
-        $manager->save($manager->get('posts')->make([
+        $manager->save($manager->get('posts')->create([
             'title' => 'c',
             'slug' => 'c',
             'body' => 'c',
@@ -55,7 +55,7 @@ class MultipleIndexTest extends PHPUnit_Framework_TestCase
         $this->assertCount(1, $posts);
 
         // skip body
-        $emptyPost = $manager->save($manager->get('posts')->make([
+        $emptyPost = $manager->save($manager->get('posts')->create([
             'slug' => 'a-post-without-title-and-body',
             'author' => 'Dmitry Krokhin',
             'month' => 'December',

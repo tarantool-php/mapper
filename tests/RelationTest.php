@@ -7,16 +7,16 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager();
         $meta = $manager->getMeta();
 
-        $person = $meta->make('person', ['firstName', 'lastName']);
-        $user = $meta->make('user', ['login', 'password'])->reference($person, 'info');
-        $recovery = $meta->make('recovery', ['token'])->reference($user)->addIndex('token');
+        $person = $meta->create('person', ['firstName', 'lastName']);
+        $user = $meta->create('user', ['login', 'password'])->reference($person, 'info');
+        $recovery = $meta->create('recovery', ['token'])->reference($user)->addIndex('token');
 
         $this->assertSame($user->getReferences(), ['info' => 'person']);
         $this->assertSame($recovery->getReferences(), ['user' => 'user']);
 
-        $person = $manager->make('person', ['firstName' => 'Dmitry', 'lastName' => 'Krokhin']);
-        $user = $manager->make('user', ['login' => 'nekufa', 'password' => 'password', 'info' => $person]);
-        $recovery = $manager->make('recovery', ['token' => md5(time()), 'user' => $user]);
+        $person = $manager->create('person', ['firstName' => 'Dmitry', 'lastName' => 'Krokhin']);
+        $user = $manager->create('user', ['login' => 'nekufa', 'password' => 'password', 'info' => $person]);
+        $recovery = $manager->create('recovery', ['token' => md5(time()), 'user' => $user]);
 
         $manager = Helper::createManager(false);
         $recovery = $manager->get('recovery')->find($recovery->getId());
@@ -28,10 +28,10 @@ class RelationTest extends PHPUnit_Framework_TestCase
         sort($calcRequired);
         $this->assertSame($required, $calcRequired);
 
-        $recovery = $manager->make('recovery', ['token' => md5('test')]);
+        $recovery = $manager->create('recovery', ['token' => md5('test')]);
         $this->assertNull($recovery->user);
 
-        $recovery = $manager->make('recovery', [$recovery->user]);
+        $recovery = $manager->create('recovery', [$recovery->user]);
         $this->assertNull($recovery->token);
     }
     public function testTwoRelation()
@@ -39,19 +39,19 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager();
         $meta = $manager->getMeta();
 
-        $doc = $meta->make('document', ['type']);
-        $item = $meta->make('item', ['name']);
-        $meta->make('document_details', [$doc, $item, 'qty']);
+        $doc = $meta->create('document', ['type']);
+        $item = $meta->create('item', ['name']);
+        $meta->create('document_details', [$doc, $item, 'qty']);
 
         $items = [
-            $manager->make('item', ['name' => 'Jack Daniels\' No.7']),
-            $manager->make('item', ['name' => 'Chivas Regal 18']),
+            $manager->create('item', ['name' => 'Jack Daniels\' No.7']),
+            $manager->create('item', ['name' => 'Chivas Regal 18']),
         ];
 
-        $gift = $manager->make('document', ['type' => 'gift']);
+        $gift = $manager->create('document', ['type' => 'gift']);
 
-        $manager->make('document_details', [$gift, $items[0]]);
-        $detail = $manager->make('document_details', [$items[1], $gift]);
+        $manager->create('document_details', [$gift, $items[0]]);
+        $detail = $manager->create('document_details', [$items[1], $gift]);
 
         $array = $detail->toArray(true);
         $this->assertSame($array['item']['name'], $items[1]->name);

@@ -15,14 +15,14 @@ class Bootstrap implements Contracts\Migration
 
         $schema = $manager->getSchema();
 
-        $schema->makeSpace('sequence');
-        $schema->makeIndex('sequence', 'id', ['parts' => [1, 'NUM']]);
-        $schema->makeIndex('sequence', 'space', ['parts' => [2, 'NUM']]);
+        $schema->createSpace('sequence');
+        $schema->createIndex('sequence', 'id', ['parts' => [1, 'NUM']]);
+        $schema->createIndex('sequence', 'space', ['parts' => [2, 'NUM']]);
 
-        $schema->makeSpace('mapping');
-        $schema->makeIndex('mapping', 'id', ['parts' => [1, 'NUM']]);
-        $schema->makeIndex('mapping', 'space', ['parts' => [2, 'NUM'], 'unique' => false]);
-        $schema->makeIndex('mapping', 'line_space', ['parts' => [3, 'NUM', 2, 'NUM']]);
+        $schema->createSpace('mapping');
+        $schema->createIndex('mapping', 'id', ['parts' => [1, 'NUM']]);
+        $schema->createIndex('mapping', 'space', ['parts' => [2, 'NUM'], 'unique' => false]);
+        $schema->createIndex('mapping', 'line_space', ['parts' => [3, 'NUM', 2, 'NUM']]);
 
         $client = $manager->getClient();
 

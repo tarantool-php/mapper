@@ -22,7 +22,7 @@ class Repository implements Contracts\Repository
         $this->type = $type;
     }
 
-    public function make($data = null)
+    public function create($data = null)
     {
         if ($data && !is_array($data)) {
             $properties = $this->getType()->getProperties();
@@ -204,7 +204,7 @@ class Repository implements Contracts\Repository
 
         $sequence = $manager->get('sequence')->oneBySpace($spaceId);
         if (!$sequence) {
-            $sequence = $manager->get('sequence')->make([
+            $sequence = $manager->get('sequence')->create([
                 'space' => $spaceId,
                 'value' => 0,
             ]);

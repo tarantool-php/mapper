@@ -82,7 +82,7 @@ class Type implements Contracts\Type
             }
         }
 
-        $schema->makeIndex($this->getName(), $indexName, $arguments);
+        $schema->createIndex($this->getName(), $indexName, $arguments);
 
         return $this;
     }
@@ -101,7 +101,7 @@ class Type implements Contracts\Type
                 throw new LogicException("Duplicate property $property");
             }
             $this->types[$property] = $this->manager->getMeta()->getConvention()->getType($property);
-            $this->manager->make('mapping', [
+            $this->manager->create('mapping', [
                 'space' => $this->spaceId,
                 'line' => count($this->properties),
                 'property' => $property,

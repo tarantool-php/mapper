@@ -12,15 +12,16 @@ class Schema implements Contracts\Schema
     protected $client;
     protected $spaceSpace;
     protected $indexSpace;
+    protected $spaceId = [];
 
     public function __construct(Client $client)
     {
         $this->client = $client;
-        $this->spaceSpace = new Space($client, Space::VSPACE);
-        $this->indexSpace = new Space($client, Space::VINDEX);
+
+        $this->spaceSpace = $client->getSpace('_space');
+        $this->indexSpace = $client->getSpace('_index');
     }
 
-    protected $spaceId = [];
     public function getSpaceId($space)
     {
         if (!array_key_exists($space, $this->spaceId)) {
@@ -55,7 +56,7 @@ class Schema implements Contracts\Schema
         return $this->getSpaceId($space) !== null;
     }
 
-    public function makeSpace($space)
+    public function createSpace($space)
     {
         $this->client->evaluate("box.schema.space.create('$space')");
     }
@@ -93,7 +94,7 @@ class Schema implements Contracts\Schema
         return $result;
     }
 
-    public function makeIndex($space, $index, array $arguments)
+    public function createIndex($space, $index, array $arguments)
     {
         $config = [];
         foreach ($arguments as $k => $v) {

@@ -12,7 +12,7 @@ interface Meta
     /**
      * @return Type
      */
-    public function make($type, array $fields = null);
+    public function create($type, array $fields = null);
 
     /**
      * @return Convention

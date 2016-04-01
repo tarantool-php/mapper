@@ -12,7 +12,7 @@ class MigrationTest extends PHPUnit_Framework_TestCase
         $migrator->registerMigration(CreatePosts::class);
         $migrator->migrate($manager);
 
-        $post = $manager->get('posts')->make([
+        $post = $manager->get('posts')->create([
             'title' => 'hello world',
             'slug' => 'hello-world',
             'body' => 'This is hello world post',

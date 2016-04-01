@@ -53,13 +53,13 @@ class Meta implements Contracts\Meta
     /**
      * @return Type
      */
-    public function make($type, array $fields = null)
+    public function create($type, array $fields = null)
     {
         if ($this->manager->getSchema()->hasSpace($type)) {
             throw new LogicException("Type $type exists");
         }
 
-        $this->manager->getSchema()->makeSpace($type);
+        $this->manager->getSchema()->createSpace($type);
 
         $instance = new Type($this->manager, $type, [], []);
 
