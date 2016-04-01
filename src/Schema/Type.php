@@ -7,32 +7,23 @@ use LogicException;
 
 class Type implements Contracts\Type
 {
+    protected $convention;
     protected $properties = [];
-    protected $references = [];
+    protected $types = [];
+
     protected $manager;
     protected $spaceId;
     protected $name;
 
-    public function __construct(Contracts\Manager $manager, $name,
-                                array $properties = null, array $references = null)
+    public function __construct(Contracts\Manager $manager, $name, array $properties, array $types)
     {
         $this->manager = $manager;
         $this->name = $name;
+        $this->convention = $manager->getMeta()->getConvention();
         $this->spaceId = $manager->getSchema()->getSpaceId($name);
 
-        if ($name == 'mapping') {
-            $properties = ['id', 'space', 'line', 'property'];
-        }
-
-        if ($properties) {
-            $this->properties = $properties;
-        }
-
-        if ($references) {
-            foreach ($references as $reference) {
-                $this->references[$reference->property] = $reference;
-            }
-        }
+        $this->properties = $properties;
+        $this->types = $types;
     }
 
     public function getSpace()
@@ -86,7 +77,7 @@ class Type implements Contracts\Type
             foreach ($this->getMapping() as $index => $name) {
                 if (in_array($name, $properties)) {
                     $arguments['parts'][] = $index + 1;
-                    $arguments['parts'][] = $name == 'id' || $this->isReference($name) ? 'NUM' : 'STR';
+                    $arguments['parts'][] = $this->convention->getTarantoolType($this->types[$name]);
                 }
             }
         }
@@ -109,11 +100,12 @@ class Type implements Contracts\Type
             if ($this->hasProperty($property)) {
                 throw new LogicException("Duplicate property $property");
             }
-
+            $this->types[$property] = $this->manager->getMeta()->getConvention()->getType($property);
             $this->manager->make('mapping', [
                 'space' => $this->spaceId,
                 'line' => count($this->properties),
                 'property' => $property,
+                'type' => $this->types[$property],
             ]);
 
             $this->properties[] = $property;
@@ -132,6 +124,26 @@ class Type implements Contracts\Type
         return $this->properties;
     }
 
+    public function getPropertyType($property)
+    {
+        return $this->types[$property];
+    }
+
+    public function setPropertyType($property, $type)
+    {
+        $this->types[$property] = $type;
+
+        // update entity
+        $row = $this->getManager()->get('mapping')->findOne([
+            'space' => $this->spaceId,
+            'line' => array_search($property, $this->properties),
+        ]);
+        $row->type = $type;
+        $this->getManager()->save($row);
+
+        return $this;
+    }
+
     public function reference(Contracts\Type $foreign, $property = null)
     {
         if (!$property) {
@@ -139,28 +151,22 @@ class Type implements Contracts\Type
         }
 
         $this->addProperty($property);
-
-        $this->references[$property] = $this->manager->make('reference', [
-            'space' => $this->spaceId,
-            'property' => $property,
-            'type' => $foreign->getName(),
-        ]);
-
+        $this->setPropertyType($property, $foreign->getName());
         $this->addIndex($property, ['unique' => false]);
 
         return $this;
     }
 
-    public function isReference($name)
+    public function isReference($property)
     {
-        return array_key_exists($name, $this->references);
+        return !$this->convention->isPrimitive($this->types[$property]);
     }
 
     public function getReferenceProperty(Contracts\Type $type)
     {
         $properties = [];
-        foreach ($this->references as $property => $reference) {
-            if ($reference->type == $type->getName()) {
+        foreach ($this->types as $property => $propertyType) {
+            if ($type->getName() == $propertyType) {
                 $properties[] = $property;
             }
         }
@@ -177,27 +183,14 @@ class Type implements Contracts\Type
     public function getReferences()
     {
         $references = [];
-        foreach ($this->references as $property => $config) {
-            $references[$property] = $config->type;
-        }
-
-        return $references;
-    }
-
-    public function encode($input)
-    {
-        $output = [];
-        foreach ($this->getMapping() as $index => $name) {
-            if (array_key_exists($name, $input)) {
-                $value = $input[$name];
-                if ($this->isReference($name)) {
-                    $value = $value->getId();
-                }
-                $output[$index] = $value;
+        $convention = $this->manager->getMeta()->getConvention();
+        foreach ($this->types as $property => $type) {
+            if (!$convention->isPrimitive($type)) {
+                $references[$property] = $type;
             }
         }
 
-        return $output;
+        return $references;
     }
 
     public function getRequiredProperties()
@@ -220,12 +213,33 @@ class Type implements Contracts\Type
         return $this->requiredProperties;
     }
 
+    public function encode($input)
+    {
+        $output = [];
+        foreach ($this->getMapping() as $index => $name) {
+            if (array_key_exists($name, $input)) {
+                $value = $input[$name];
+                if ($this->isReference($name)) {
+                    $value = $value->getId();
+                } elseif ($this->convention->isPrimitive($this->types[$name])) {
+                    $value = $this->convention->encode($this->types[$name], $value);
+                }
+                $output[$index] = $value;
+            }
+        }
+
+        return $output;
+    }
+
     public function decode($input)
     {
         $output = [];
         foreach ($this->getMapping() as $index => $name) {
             if (array_key_exists($index, $input)) {
                 $output[$name] = $input[$index];
+                if ($this->convention->isPrimitive($this->types[$name])) {
+                    $output[$name] = $this->convention->decode($this->types[$name], $output[$name]);
+                }
             }
         }
 

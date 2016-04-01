@@ -13,4 +13,14 @@ interface Meta
      * @return Type
      */
     public function make($type, array $fields = null);
+
+    /**
+     * @return Convention
+     */
+    public function getConvention();
+
+    /**
+     * @return Meta
+     */
+    public function setConvention(Convention $convention);
 }

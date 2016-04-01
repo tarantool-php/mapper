@@ -24,19 +24,13 @@ class Migrator implements Contracts\Migration
         if (!$manager->getSchema()->hasSpace('migrations')) {
             $instance = new Tracker();
             $instance->migrate($manager);
-            $manager->save($manager->get('migrations')->make(['name' => Migration::class]));
         }
 
-        $repository = $manager->get('migrations');
-
         foreach ($this->migrations as $migration) {
-            $row = [
-                'name' => $migration,
-            ];
-            if (!$repository->find($row, true)) {
+            if (!$manager->get('migrations')->oneByName($migration)) {
                 $instance = new $migration();
                 $instance->migrate($manager);
-                $manager->save($repository->make($row));
+                $manager->make('migrations', $migration);
             }
         }
     }

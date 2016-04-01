@@ -22,7 +22,11 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $recovery = $manager->get('recovery')->find($recovery->getId());
         $this->assertSame($person->getId(), $recovery->user);
 
-        $this->assertSame(['id', 'user', 'token'], $manager->getMeta()->get('recovery')->getRequiredProperties());
+        $required = ['id', 'user', 'token'];
+        sort($required);
+        $calcRequired = $manager->getMeta()->get('recovery')->getRequiredProperties();
+        sort($calcRequired);
+        $this->assertSame($required, $calcRequired);
 
         $recovery = $manager->make('recovery', ['token' => md5('test')]);
         $this->assertNull($recovery->user);

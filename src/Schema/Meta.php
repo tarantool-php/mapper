@@ -8,6 +8,7 @@ use LogicException;
 class Meta implements Contracts\Meta
 {
     protected $manager;
+    protected $mapping = [];
     protected $types = [];
 
     public function __construct(Contracts\Manager $manager)
@@ -18,11 +19,13 @@ class Meta implements Contracts\Meta
 
         $client = $manager->getClient();
         foreach ($client->getSpace('mapping')->select([], 'space')->getData() as $mapping) {
-            list($id, $spaceId, $line, $property) = $mapping;
+            list($id, $spaceId, $line, $property, $type) = $mapping;
             if (!array_key_exists($spaceId, $this->mapping)) {
                 $this->mapping[$spaceId] = [];
+                $this->types[$spaceId] = [];
             }
             $this->mapping[$spaceId][$line] = $property;
+            $this->types[$spaceId][$property] = $type;
         }
         foreach ($this->mapping as $spaceId => $collection) {
             ksort($collection);
@@ -41,14 +44,7 @@ class Meta implements Contracts\Meta
                 throw new LogicException("Type $type not exists");
             }
 
-            $fields = array_key_exists($spaceId, $this->mapping) ? $this->mapping[$spaceId] : [];
-            $references = null;
-            if ($type != 'mapping') {
-                if (!in_array($type, ['reference', 'sequence'])) {
-                    $references = $this->manager->get('reference')->bySpace($spaceId);
-                }
-            }
-            $this->types[$type] = new Type($this->manager, $type, array_values($fields), $references);
+            $this->types[$type] = new Type($this->manager, $type, $this->mapping[$spaceId], $this->types[$spaceId]);
         }
 
         return $this->types[$type];
@@ -65,7 +61,7 @@ class Meta implements Contracts\Meta
 
         $this->manager->getSchema()->makeSpace($type);
 
-        $instance = new Type($this->manager, $type);
+        $instance = new Type($this->manager, $type, [], []);
 
         $instance->addProperty('id');
         $instance->addIndex('id');
@@ -81,5 +77,21 @@ class Meta implements Contracts\Meta
         }
 
         return $this->types[$type] = $instance;
+    }
+
+    public function setConvention(Contracts\Convention $convention)
+    {
+        $this->convention = $convention;
+
+        return $this;
+    }
+
+    public function getConvention()
+    {
+        if (!isset($this->convention)) {
+            $this->convention = new Convention();
+        }
+
+        return $this->convention;
     }
 }

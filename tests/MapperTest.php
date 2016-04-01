@@ -5,13 +5,16 @@ class MapperTest extends PHPUnit_Framework_TestCase
     public function testUsage()
     {
         $manager = Helper::createManager();
-        $meta = $manager->getMeta()->make('post', ['title', 'slug', 'author']);
+        $meta = $manager->getMeta()->make('post', ['title', 'slug', 'author', 'created_at']);
         $meta->addIndex('slug');
+        $this->assertSame($meta->getPropertyType('id'), 'integer');
+        $this->assertSame($meta->getPropertyType('title'), 'string');
+        $this->assertSame($meta->getPropertyType('created_at'), 'integer');
 
         $postSpaceId = $manager->getSchema()->getSpaceId('post');
         $this->assertSame('post', $manager->getSchema()->getSpaceName($postSpaceId));
 
-        $this->assertSame($meta->getProperties(), ['id', 'title', 'slug', 'author']);
+        $this->assertSame($meta->getProperties(), ['id', 'title', 'slug', 'author', 'created_at']);
 
         $post = $manager->get('post')->make([
             'title' => 'Hello world',
