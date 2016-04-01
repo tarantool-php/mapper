@@ -200,11 +200,12 @@ class Repository implements Contracts\Repository
     {
         $manager = $this->type->getManager();
         $name = $this->type->getName();
+        $spaceId = $this->type->getSpaceId();
 
-        $sequence = $manager->get('sequence')->oneByName($name);
+        $sequence = $manager->get('sequence')->oneByName($spaceId);
         if (!$sequence) {
             $sequence = $manager->get('sequence')->make([
-                'name' => $name,
+                'name' => $spaceId,
                 'value' => 0,
             ]);
             $manager->save($sequence);

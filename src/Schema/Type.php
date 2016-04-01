@@ -10,6 +10,7 @@ class Type implements Contracts\Type
     protected $properties = [];
     protected $references = [];
     protected $manager;
+    protected $spaceId;
     protected $name;
 
     public function __construct(Contracts\Manager $manager, $name,
@@ -17,6 +18,7 @@ class Type implements Contracts\Type
     {
         $this->manager = $manager;
         $this->name = $name;
+        $this->spaceId = $manager->getSchema()->getSpaceId($name);
 
         if ($name == 'mapping') {
             $properties = ['id', 'space', 'line', 'property'];
@@ -36,6 +38,11 @@ class Type implements Contracts\Type
     public function getSpace()
     {
         return $this->getManager()->getClient()->getSpace($this->name);
+    }
+
+    public function getSpaceId()
+    {
+        return $this->spaceId;
     }
 
     public function getManager()
@@ -104,7 +111,7 @@ class Type implements Contracts\Type
             }
 
             $this->manager->make('mapping', [
-                'space' => $this->name,
+                'space' => $this->spaceId,
                 'line' => count($this->properties),
                 'property' => $property,
             ]);

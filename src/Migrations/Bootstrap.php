@@ -17,26 +17,29 @@ class Bootstrap implements Contracts\Migration
 
         $schema->makeSpace('sequence');
         $schema->makeIndex('sequence', 'id', ['parts' => [1, 'NUM']]);
-        $schema->makeIndex('sequence', 'name', ['parts' => [2, 'STR']]);
+        $schema->makeIndex('sequence', 'name', ['parts' => [2, 'NUM']]);
 
         $schema->makeSpace('mapping');
         $schema->makeIndex('mapping', 'id', ['parts' => [1, 'NUM']]);
-        $schema->makeIndex('mapping', 'space', ['parts' => [2, 'STR'], 'unique' => false]);
-        $schema->makeIndex('mapping', 'space_property', ['parts' => [2, 'STR', 3, 'NUM']]);
+        $schema->makeIndex('mapping', 'space', ['parts' => [2, 'NUM'], 'unique' => false]);
+        $schema->makeIndex('mapping', 'space_property', ['parts' => [2, 'NUM', 3, 'NUM']]);
 
         $client = $manager->getClient();
 
+        $sequenceSpaceId = $schema->getSpaceId('sequence');
+        $mappingSpaceId = $schema->getSpaceId('mapping');
+
         $mapping = $client->getSpace('mapping');
-        $mapping->insert([1, 'sequence', 0, 'id']);
-        $mapping->insert([2, 'sequence', 1, 'name']);
-        $mapping->insert([3, 'sequence', 2, 'value']);
-        $mapping->insert([4, 'mapping', 0, 'id']);
-        $mapping->insert([5, 'mapping', 1, 'space']);
-        $mapping->insert([6, 'mapping', 2, 'line']);
-        $mapping->insert([7, 'mapping', 3, 'property']);
+        $mapping->insert([1, $sequenceSpaceId, 0, 'id']);
+        $mapping->insert([2, $sequenceSpaceId, 1, 'name']);
+        $mapping->insert([3, $sequenceSpaceId, 2, 'value']);
+        $mapping->insert([4, $mappingSpaceId, 0, 'id']);
+        $mapping->insert([5, $mappingSpaceId, 1, 'space']);
+        $mapping->insert([6, $mappingSpaceId, 2, 'line']);
+        $mapping->insert([7, $mappingSpaceId, 3, 'property']);
 
         $sequence = $client->getSpace('sequence');
-        $sequence->insert([1, 'sequence', 2]);
-        $sequence->insert([2, 'mapping', 7]);
+        $sequence->insert([1, $sequenceSpaceId, 2]);
+        $sequence->insert([2, $mappingSpaceId, 7]);
     }
 }

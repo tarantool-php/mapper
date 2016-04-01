@@ -38,7 +38,9 @@ class MapperTest extends PHPUnit_Framework_TestCase
     {
         $manager = Helper::createManager();
 
-        $rows = $manager->get('mapping')->bySpace('sequence');
+        $spaceId = $manager->getSchema()->getSpaceId('sequence');
+
+        $rows = $manager->get('mapping')->bySpace($spaceId);
         $map = [];
         foreach ($rows as $row) {
             $map[$row->line] = $row->property;

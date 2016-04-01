@@ -24,11 +24,12 @@ class Meta implements Contracts\Meta
             if (!$this->manager->getSchema()->hasSpace($type)) {
                 throw new LogicException("Type $type not exists");
             }
+            $spaceId = $this->manager->getSchema()->getSpaceId($type);
 
             $fields = [];
             $references = null;
             if ($type != 'mapping') {
-                $mapping = $this->manager->get('mapping')->find(['space' => $type]);
+                $mapping = $this->manager->get('mapping')->find(['space' => $spaceId]);
                 foreach ($mapping as $row) {
                     $fields[$row->line] = $row->property;
                 }
