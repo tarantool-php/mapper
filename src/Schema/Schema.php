@@ -20,12 +20,33 @@ class Schema implements Contracts\Schema
         $this->indexSpace = new Space($client, Space::VINDEX);
     }
 
+    protected $spaceId = [];
     public function getSpaceId($space)
     {
-        $response = $this->spaceSpace->select([$space], Index::SPACE_NAME);
-        $data = $response->getData();
-        if (!empty($data)) {
-            return $data[0][0];
+        if (!array_key_exists($space, $this->spaceId)) {
+            $response = $this->spaceSpace->select([$space], Index::SPACE_NAME);
+            $data = $response->getData();
+            if (!empty($data)) {
+                $this->spaceId[$space] = $data[0][0];
+            }
+        }
+        if (array_key_exists($space, $this->spaceId)) {
+            return $this->spaceId[$space];
+        }
+    }
+
+    public function getSpaceName($spaceId)
+    {
+        if (!in_array($spaceId, $this->spaceId)) {
+            $response = $this->spaceSpace->select([$spaceId], 0);
+            $data = $response->getData();
+            if (!empty($data)) {
+                $this->spaceId[$data[0][2]] = $spaceId;
+            }
+        }
+
+        if (in_array($spaceId, $this->spaceId)) {
+            return array_search($spaceId, $this->spaceId);
         }
     }
 
