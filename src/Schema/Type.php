@@ -141,7 +141,7 @@ class Type implements Contracts\Type
         $this->addProperty($property);
 
         $this->references[$property] = $this->manager->make('reference', [
-            'space' => $this->name,
+            'space' => $this->spaceId,
             'property' => $property,
             'type' => $foreign->getName(),
         ]);

@@ -29,13 +29,13 @@ class Meta implements Contracts\Meta
             $fields = [];
             $references = null;
             if ($type != 'mapping') {
-                $mapping = $this->manager->get('mapping')->find(['space' => $spaceId]);
+                $mapping = $this->manager->get('mapping')->bySpace($spaceId);
                 foreach ($mapping as $row) {
                     $fields[$row->line] = $row->property;
                 }
                 ksort($fields);
                 if (!in_array($type, ['reference', 'sequence'])) {
-                    $references = $this->manager->get('reference')->find(['space' => $type]);
+                    $references = $this->manager->get('reference')->bySpace($spaceId);
                 }
             }
             $this->types[$type] = new Type($this->manager, $type, array_values($fields), $references);
