@@ -17,6 +17,6 @@ class Tracker implements Contracts\Migration
         $migration->addIndex(['name']);
 
         $manager->make('migrations', ['name' => Bootstrap::class]);
-        $manager->make('migrations', ['name' => Tracker::class]);
+        $manager->make('migrations', ['name' => self::class]);
     }
 }

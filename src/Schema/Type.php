@@ -218,13 +218,7 @@ class Type implements Contracts\Type
         $output = [];
         foreach ($this->getMapping() as $index => $name) {
             if (array_key_exists($name, $input)) {
-                $value = $input[$name];
-                if ($this->isReference($name)) {
-                    $value = $value->getId();
-                } elseif ($this->convention->isPrimitive($this->types[$name])) {
-                    $value = $this->convention->encode($this->types[$name], $value);
-                }
-                $output[$index] = $value;
+                $output[$index] = $this->convention->encode($this->types[$name], $input[$name]);
             }
         }
 
@@ -236,10 +230,7 @@ class Type implements Contracts\Type
         $output = [];
         foreach ($this->getMapping() as $index => $name) {
             if (array_key_exists($index, $input)) {
-                $output[$name] = $input[$index];
-                if ($this->convention->isPrimitive($this->types[$name])) {
-                    $output[$name] = $this->convention->decode($this->types[$name], $output[$name]);
-                }
+                $output[$name] = $this->convention->decode($this->types[$name], $input[$index]);
             }
         }
 
