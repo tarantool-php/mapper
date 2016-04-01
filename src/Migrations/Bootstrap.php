@@ -23,6 +23,7 @@ class Bootstrap implements Contracts\Migration
         $schema->createIndex('mapping', 'id', ['parts' => [1, 'NUM']]);
         $schema->createIndex('mapping', 'space', ['parts' => [2, 'NUM'], 'unique' => false]);
         $schema->createIndex('mapping', 'line_space', ['parts' => [3, 'NUM', 2, 'NUM']]);
+        $schema->createIndex('mapping', 'type', ['parts' => [5, 'STR'], 'unique' => false]);
 
         $client = $manager->getClient();
 
