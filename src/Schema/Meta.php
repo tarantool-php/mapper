@@ -33,7 +33,7 @@ class Meta implements Contracts\Meta
                     $fields[$row->line] = $row->property;
                 }
                 ksort($fields);
-                if (!in_array($type, ['reference', 'sequences'])) {
+                if (!in_array($type, ['reference', 'sequence'])) {
                     $references = $this->manager->get('reference')->find(['space' => $type]);
                 }
             }

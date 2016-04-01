@@ -201,9 +201,9 @@ class Repository implements Contracts\Repository
         $manager = $this->type->getManager();
         $name = $this->type->getName();
 
-        $sequence = $manager->get('sequences')->oneByName($name);
+        $sequence = $manager->get('sequence')->oneByName($name);
         if (!$sequence) {
-            $sequence = $manager->get('sequences')->make([
+            $sequence = $manager->get('sequence')->make([
                 'name' => $name,
                 'value' => 0,
             ]);
@@ -211,7 +211,7 @@ class Repository implements Contracts\Repository
         }
 
         $nextValue = $manager->getClient()
-            ->getSpace('sequences')
+            ->getSpace('sequence')
             ->update($sequence->id, [['+', 2, 1]])
             ->getData()[0][2];
 
