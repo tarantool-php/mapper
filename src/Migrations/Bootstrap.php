@@ -22,6 +22,7 @@ class Bootstrap implements Contracts\Migration
         $schema->makeSpace('mapping');
         $schema->makeIndex('mapping', 'id', ['parts' => [1, 'NUM']]);
         $schema->makeIndex('mapping', 'space', ['parts' => [2, 'STR'], 'unique' => false]);
+        $schema->makeIndex('mapping', 'space_property', ['parts' => [2, 'STR', 3, 'NUM']]);
 
         $client = $manager->getClient();
 
