@@ -43,7 +43,7 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $item = $meta->create('item', ['name']);
         $meta->create('document_details', [$doc, $item, 'qty']);
 
-        $itemMapping = $manager->get('mapping')->byType('item');
+        $itemMapping = $manager->get('property')->byType('item');
         $this->assertCount(1, $itemMapping);
         $this->assertSame($itemMapping[0]->space, $manager->getSchema()->getSpaceId('document_details'));
 

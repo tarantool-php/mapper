@@ -8,28 +8,28 @@ use LogicException;
 class Meta implements Contracts\Meta
 {
     protected $manager;
-    protected $mapping = [];
+    protected $property = [];
     protected $types = [];
 
     public function __construct(Contracts\Manager $manager)
     {
         $this->manager = $manager;
-        $this->mapping = [];
+        $this->property = [];
         $this->references = [];
 
         $client = $manager->getClient();
-        foreach ($client->getSpace('mapping')->select([], 'space')->getData() as $mapping) {
-            list($id, $spaceId, $line, $property, $type) = $mapping;
-            if (!array_key_exists($spaceId, $this->mapping)) {
-                $this->mapping[$spaceId] = [];
+        foreach ($client->getSpace('property')->select([], 'space')->getData() as $property) {
+            list($id, $spaceId, $line, $name, $type) = $property;
+            if (!array_key_exists($spaceId, $this->property)) {
+                $this->property[$spaceId] = [];
                 $this->types[$spaceId] = [];
             }
-            $this->mapping[$spaceId][$line] = $property;
-            $this->types[$spaceId][$property] = $type;
+            $this->property[$spaceId][$line] = $name;
+            $this->types[$spaceId][$name] = $type;
         }
-        foreach ($this->mapping as $spaceId => $collection) {
+        foreach ($this->property as $spaceId => $collection) {
             ksort($collection);
-            $this->mapping[$spaceId] = $collection;
+            $this->property[$spaceId] = $collection;
         }
     }
 
@@ -44,7 +44,7 @@ class Meta implements Contracts\Meta
                 throw new LogicException("Type $type not exists");
             }
 
-            $this->types[$type] = new Type($this->manager, $type, $this->mapping[$spaceId], $this->types[$spaceId]);
+            $this->types[$type] = new Type($this->manager, $type, $this->property[$spaceId], $this->types[$spaceId]);
         }
 
         return $this->types[$type];

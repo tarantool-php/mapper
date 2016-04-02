@@ -7,7 +7,7 @@ interface Type
     public function getManager();
     public function getName();
     public function getSpaceId();
-    public function getMapping();
+    public function getproperty();
     public function getSpace();
 
     /**

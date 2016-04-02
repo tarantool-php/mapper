@@ -46,7 +46,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
 
         $spaceId = $manager->getSchema()->getSpaceId('sequence');
 
-        $rows = $manager->get('mapping')->bySpace($spaceId);
+        $rows = $manager->get('property')->bySpace($spaceId);
         $map = [];
         foreach ($rows as $row) {
             $map[$row->line] = $row->property;
@@ -56,8 +56,8 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $this->assertCount(3, $map);
         $this->assertSame($map, ['id', 'space', 'value']);
 
-        $mapping = $manager->getMeta()->get('sequence')->getMapping();
-        $this->assertSame($map, $mapping);
+        $property = $manager->getMeta()->get('sequence')->getProperties();
+        $this->assertSame($map, $property);
     }
 
     public function testEasycreate()

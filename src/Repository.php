@@ -146,7 +146,7 @@ class Repository implements Contracts\Repository
 
             $required = $this->type->getRequiredProperties();
 
-            foreach ($this->type->getMapping() as $index => $field) {
+            foreach ($this->type->getproperty() as $index => $field) {
                 if (in_array($field, $required) && !array_key_exists($index, $tuple)) {
                     if ($this->type->isReference($field)) {
                         $tuple[$index] = 0;

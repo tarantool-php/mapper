@@ -46,7 +46,7 @@ class Type implements Contracts\Type
         return $this->name;
     }
 
-    public function getMapping()
+    public function getproperty()
     {
         return $this->properties;
     }
@@ -74,7 +74,7 @@ class Type implements Contracts\Type
 
         if (!array_key_exists('parts', $arguments) || !count($arguments['parts'])) {
             $arguments['parts'] = [];
-            foreach ($this->getMapping() as $index => $name) {
+            foreach ($this->getproperty() as $index => $name) {
                 if (in_array($name, $properties)) {
                     $arguments['parts'][] = $index + 1;
                     $arguments['parts'][] = $this->convention->getTarantoolType($this->types[$name]);
@@ -101,7 +101,7 @@ class Type implements Contracts\Type
                 throw new LogicException("Duplicate property $property");
             }
             $this->types[$property] = $this->manager->getMeta()->getConvention()->getType($property);
-            $this->manager->create('mapping', [
+            $this->manager->create('property', [
                 'space' => $this->spaceId,
                 'line' => count($this->properties),
                 'property' => $property,
@@ -134,7 +134,7 @@ class Type implements Contracts\Type
         $this->types[$property] = $type;
 
         // update entity
-        $row = $this->getManager()->get('mapping')->findOne([
+        $row = $this->getManager()->get('property')->findOne([
             'space' => $this->spaceId,
             'line' => array_search($property, $this->properties),
         ]);
@@ -212,7 +212,7 @@ class Type implements Contracts\Type
     public function encode($input)
     {
         $output = [];
-        foreach ($this->getMapping() as $index => $name) {
+        foreach ($this->getproperty() as $index => $name) {
             if (array_key_exists($name, $input)) {
                 $output[$index] = $this->convention->encode($this->types[$name], $input[$name]);
             }
@@ -224,7 +224,7 @@ class Type implements Contracts\Type
     public function decode($input)
     {
         $output = [];
-        foreach ($this->getMapping() as $index => $name) {
+        foreach ($this->getproperty() as $index => $name) {
             if (array_key_exists($index, $input)) {
                 $output[$name] = $this->convention->decode($this->types[$name], $input[$index]);
             }
