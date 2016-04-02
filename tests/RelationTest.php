@@ -64,7 +64,7 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $details = $newManager->get('document_details')->byDocument($gift);
         $this->assertSame($details[0]->document, $gift->id);
 
-        $detailsById = $newManager->get('document_details')->byDocument($gift->id);
+        $detailsById = $newManager->get('document_details')->byDocument("".$gift->id);
         $this->assertSame($detailsById, $details);
 
         $newIds = [];

@@ -46,11 +46,6 @@ class Type implements Contracts\Type
         return $this->name;
     }
 
-    public function getproperty()
-    {
-        return $this->properties;
-    }
-
     public function addIndex($properties, array $arguments = null)
     {
         $properties = (array) $properties;
@@ -74,7 +69,7 @@ class Type implements Contracts\Type
 
         if (!array_key_exists('parts', $arguments) || !count($arguments['parts'])) {
             $arguments['parts'] = [];
-            foreach ($this->getproperty() as $index => $name) {
+            foreach ($this->getProperties() as $index => $name) {
                 if (in_array($name, $properties)) {
                     $arguments['parts'][] = $index + 1;
                     $arguments['parts'][] = $this->convention->getTarantoolType($this->types[$name]);
@@ -212,7 +207,7 @@ class Type implements Contracts\Type
     public function encode($input)
     {
         $output = [];
-        foreach ($this->getproperty() as $index => $name) {
+        foreach ($this->getProperties() as $index => $name) {
             if (array_key_exists($name, $input)) {
                 $output[$index] = $this->convention->encode($this->types[$name], $input[$name]);
             }
@@ -224,7 +219,7 @@ class Type implements Contracts\Type
     public function decode($input)
     {
         $output = [];
-        foreach ($this->getproperty() as $index => $name) {
+        foreach ($this->getProperties() as $index => $name) {
             if (array_key_exists($index, $input)) {
                 $output[$name] = $this->convention->decode($this->types[$name], $input[$index]);
             }

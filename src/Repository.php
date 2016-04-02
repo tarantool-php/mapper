@@ -87,8 +87,12 @@ class Repository implements Contracts\Repository
         }
 
         foreach ($params as $key => $value) {
-            if ($this->type->isReference($key) && $value instanceof Contracts\Entity) {
-                $params[$key] = $value->getId();
+            if ($this->type->isReference($key)) {
+                if($value instanceof Contracts\Entity) {
+                    $params[$key] = $value->getId();
+                } else {
+                    $params[$key] = +$value;
+                }
             }
         }
 
@@ -151,7 +155,7 @@ class Repository implements Contracts\Repository
 
             $required = $this->type->getRequiredProperties();
 
-            foreach ($this->type->getproperty() as $index => $field) {
+            foreach ($this->type->getProperties() as $index => $field) {
                 if (in_array($field, $required) && !array_key_exists($index, $tuple)) {
                     if ($this->type->isReference($field)) {
                         $tuple[$index] = 0;
