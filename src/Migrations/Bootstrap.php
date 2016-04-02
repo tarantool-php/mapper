@@ -22,7 +22,7 @@ class Bootstrap implements Contracts\Migration
         $schema->createSpace('property');
         $schema->createIndex('property', 'id', ['parts' => [1, 'NUM']]);
         $schema->createIndex('property', 'space', ['parts' => [2, 'NUM'], 'unique' => false]);
-        $schema->createIndex('property', 'line_space', ['parts' => [3, 'NUM', 2, 'NUM']]);
+        $schema->createIndex('property', 'index_space', ['parts' => [3, 'NUM', 2, 'NUM']]);
         $schema->createIndex('property', 'type', ['parts' => [5, 'STR'], 'unique' => false]);
 
         $client = $manager->getClient();
@@ -36,8 +36,8 @@ class Bootstrap implements Contracts\Migration
         $property->insert([3, $sequenceSpaceId, 2, 'value', 'integer']);
         $property->insert([4, $propertySpaceId, 0, 'id', 'integer']);
         $property->insert([5, $propertySpaceId, 1, 'space', 'integer']);
-        $property->insert([6, $propertySpaceId, 2, 'line', 'integer']);
-        $property->insert([7, $propertySpaceId, 3, 'property', 'string']);
+        $property->insert([6, $propertySpaceId, 2, 'index', 'integer']);
+        $property->insert([7, $propertySpaceId, 3, 'name', 'string']);
         $property->insert([8, $propertySpaceId, 4, 'type', 'string']);
 
         $sequence = $client->getSpace('sequence');

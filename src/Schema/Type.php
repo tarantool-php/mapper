@@ -96,19 +96,19 @@ class Type implements Contracts\Type
     {
         $properties = is_array($first) ? $first : func_get_args();
 
-        foreach ($properties as $property) {
-            if ($this->hasProperty($property)) {
-                throw new LogicException("Duplicate property $property");
+        foreach ($properties as $name) {
+            if ($this->hasProperty($name)) {
+                throw new LogicException("Duplicate property $name");
             }
-            $this->types[$property] = $this->manager->getMeta()->getConvention()->getType($property);
+            $this->types[$name] = $this->manager->getMeta()->getConvention()->getType($name);
             $this->manager->create('property', [
                 'space' => $this->spaceId,
-                'line' => count($this->properties),
-                'property' => $property,
-                'type' => $this->types[$property],
+                'index' => count($this->properties),
+                'name' => $name,
+                'type' => $this->types[$name],
             ]);
 
-            $this->properties[] = $property;
+            $this->properties[] = $name;
         }
 
         return $this;
@@ -136,7 +136,7 @@ class Type implements Contracts\Type
         // update entity
         $row = $this->getManager()->get('property')->findOne([
             'space' => $this->spaceId,
-            'line' => array_search($property, $this->properties),
+            'index' => array_search($property, $this->properties),
         ]);
         $row->type = $type;
         $this->getManager()->save($row);

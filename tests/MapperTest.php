@@ -48,8 +48,8 @@ class MapperTest extends PHPUnit_Framework_TestCase
 
         $rows = $manager->get('property')->bySpace($spaceId);
         $map = [];
-        foreach ($rows as $row) {
-            $map[$row->line] = $row->property;
+        foreach ($rows as $property) {
+            $map[$property->index] = $property->name;
         }
         ksort($map);
 
