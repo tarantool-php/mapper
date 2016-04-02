@@ -18,8 +18,8 @@ class Schema implements Contracts\Schema
     {
         $this->client = $client;
 
-        $this->spaceSpace = $client->getSpace('_space');
-        $this->indexSpace = $client->getSpace('_index');
+        $this->spaceSpace = $client->getSpace('_vspace');
+        $this->indexSpace = $client->getSpace('_vindex');
     }
 
     public function getSpaceId($space)
