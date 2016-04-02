@@ -13,7 +13,8 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager->create('rules', $data);
 
         $manager = Helper::createManager(false);
-        $rules = $manager->get('rules', 1);
+
+        $rules = $manager->get('rules', "1");
         $this->assertSame($rules->list, $data['list']);
     }
     public function testUsage()

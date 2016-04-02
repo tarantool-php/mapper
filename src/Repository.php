@@ -71,6 +71,11 @@ class Repository implements Contracts\Repository
 
     public function find($params = [], $oneItem = false)
     {
+        if(is_string($params)) {
+            if(1 * $params == $params) {
+                $params = 1 * $params;
+            }
+        }
         if (is_int($params)) {
             if (array_key_exists($params, $this->keyMap)) {
                 return $this->entities[$this->keyMap[$params]];
