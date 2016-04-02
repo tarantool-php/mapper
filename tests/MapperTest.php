@@ -2,6 +2,20 @@
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testArrayStorage()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('rules', ['nick', 'list']);
+        $data = [
+            'nick' => 'test',
+            'list' => ['first', 'second', 'q' => 'third'],
+        ];
+        $manager->create('rules', $data);
+
+        $manager = Helper::createManager(false);
+        $rules = $manager->get('rules', 1);
+        $this->assertSame($rules->list, $data['list']);
+    }
     public function testUsage()
     {
         $manager = Helper::createManager();
