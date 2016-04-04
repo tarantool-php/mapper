@@ -47,6 +47,12 @@ class Repository implements Contracts\Repository
             $data = $newData;
         }
 
+        foreach($data as $k => $v) {
+            if(!$this->type->hasProperty($k)) {
+                throw new \Exception("Unknown property $k");
+            }
+        }
+
         return $this->register(new Entity($data));
     }
 
@@ -77,7 +83,7 @@ class Repository implements Contracts\Repository
             }
         }
         if (is_int($params)) {
-            if (array_key_exists($params, $this->keyMap)) {
+            if (isset($this->keyMap[$params])) {
                 return $this->entities[$this->keyMap[$params]];
             }
             $params = [
@@ -228,7 +234,7 @@ class Repository implements Contracts\Repository
             $manager->save($sequence);
         }
 
-        $nextValue = $manager->getClient()
+        $nextValue = +$manager->getClient()
             ->getSpace('sequence')
             ->update($sequence->id, [['+', 2, 1]])
             ->getData()[0][2];

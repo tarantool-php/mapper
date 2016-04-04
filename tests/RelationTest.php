@@ -83,4 +83,32 @@ class RelationTest extends PHPUnit_Framework_TestCase
         sort($originalIds);
         $this->assertSame($newIds, $originalIds);
     }
+
+    public function testNoReference()
+    {
+        $manager = Helper::createManager();
+        $person = $manager->getMeta()->create('person', ['name']);
+        $manager->getMeta()->create('post', ['title']);
+
+        $this->setExpectedException(LogicException::class);
+        $manager->create('post', [
+            'title' => 'Hello world!',
+            $manager->create('person', 'Dmitry'),
+        ]);
+    }
+
+    public function testMultipleReference()
+    {
+        $manager = Helper::createManager();
+        $person = $manager->getMeta()->create('person', ['name']);
+        $manager->getMeta()->create('post', ['reviewer' => $person, 'author' => $person]);
+
+        $manager->create('post', [
+            'reviewer' => $manager->create('person', 'Alexander'),
+            'author' => $manager->create('person', 'Dmitry'),
+        ]);
+
+        $this->setExpectedException(LogicException::class);
+        $manager->create('post', [$manager->create('person', 'superman')]);
+    }
 }

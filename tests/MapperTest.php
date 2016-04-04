@@ -2,6 +2,22 @@
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testEntityPropertiesCheck()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('person', ['firstName', 'lastName']);
+        $this->setExpectedException(Exception::class);
+        $manager->create('person', ['name' => 'Dmitry Krokhin']);
+
+    }
+    public function testEntityConstructorCheck()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('rules', ['nick', 'list']);
+
+        $this->setExpectedException(Exception::class);
+        $manager->get('rules')->create('test');
+    }
     public function testArrayStorage()
     {
         $manager = Helper::createManager();
@@ -164,5 +180,14 @@ class MapperTest extends PHPUnit_Framework_TestCase
 
         $newManager = Helper::createManager(false);
         $this->assertNull($newManager->get('company', $company->id));
+    }
+
+    public function testById()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('company', ['name']);
+
+        $company = $manager->create('company', 'basis.company');
+        $manager->get('company')->find(1);
     }
 }
