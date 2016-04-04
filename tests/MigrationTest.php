@@ -19,6 +19,9 @@ class MigrationTest extends PHPUnit_Framework_TestCase
         $migrator = new Migrator();
         $migrator->migrate($manager);
         $migrator->migrate($manager);
+
+        $boo = new Tarantool\Mapper\Migrations\Bootstrap();
+        $boo->migrate($manager);
     }
     public function testUsage()
     {

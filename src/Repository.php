@@ -47,8 +47,8 @@ class Repository implements Contracts\Repository
             $data = $newData;
         }
 
-        foreach($data as $k => $v) {
-            if(!$this->type->hasProperty($k)) {
+        foreach ($data as $k => $v) {
+            if (!$this->type->hasProperty($k)) {
                 throw new \Exception("Unknown property $k");
             }
         }

@@ -69,7 +69,7 @@ class Meta implements Contracts\Meta
         if ($fields) {
             foreach ($fields as $index => $field) {
                 if ($field instanceof Contracts\Type) {
-                    if(!is_numeric($index)) {
+                    if (!is_numeric($index)) {
                         $instance->reference($field, $index);
                     } else {
                         $instance->reference($field);

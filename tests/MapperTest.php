@@ -8,7 +8,6 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager->getMeta()->create('person', ['firstName', 'lastName']);
         $this->setExpectedException(Exception::class);
         $manager->create('person', ['name' => 'Dmitry Krokhin']);
-
     }
     public function testEntityConstructorCheck()
     {
@@ -189,5 +188,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
 
         $company = $manager->create('company', 'basis.company');
         $manager->get('company')->find(1);
+
+        $this->assertSame($company->getData(), ['name' => 'basis.company', 'id' => 1]);
     }
 }

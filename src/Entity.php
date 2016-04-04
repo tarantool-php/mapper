@@ -2,7 +2,6 @@
 
 namespace Tarantool\Mapper;
 
-use Closure;
 use LogicException;
 
 class Entity implements Contracts\Entity
@@ -33,10 +32,6 @@ class Entity implements Contracts\Entity
     public function __get($key)
     {
         if (array_key_exists($key, $this->data)) {
-            if ($this->data[$key] instanceof Closure) {
-                $this->data[$key] = $this->data[$key]();
-            }
-
             return $this->data[$key];
         }
     }
