@@ -14,7 +14,7 @@ class MapperTest extends PHPUnit_Framework_TestCase
 
         $manager = Helper::createManager(false);
 
-        $rules = $manager->get('rules', "1");
+        $rules = $manager->get('rules', '1');
         $this->assertSame($rules->list, $data['list']);
     }
     public function testUsage()
@@ -82,5 +82,12 @@ class MapperTest extends PHPUnit_Framework_TestCase
 
         $company = $manager->create('company', 'basis.company');
         $this->assertSame($company->name, 'basis.company');
+
+        $manager->remove($company);
+
+        $this->assertNull($manager->get('company', $company->id));
+
+        $newManager = Helper::createManager(false);
+        $this->assertNull($newManager->get('company', $company->id));
     }
 }

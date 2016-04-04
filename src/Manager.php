@@ -43,6 +43,14 @@ class Manager implements Contracts\Manager
         return $this->findRepository($entity)->save($entity);
     }
 
+    /**
+     * @return Contracts\Entity
+     */
+    public function remove(Contracts\Entity $entity)
+    {
+        return $this->findRepository($entity)->remove($entity);
+    }
+
     public function findRepository(Contracts\Entity $entity)
     {
         foreach ($this->repositores as $repository) {

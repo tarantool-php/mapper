@@ -25,6 +25,11 @@ interface Repository
     public function save(Entity $entity);
 
     /**
+     * @return Entity
+     */
+    public function remove(Entity $entity);
+
+    /**
      * @return Type
      */
     public function getType();

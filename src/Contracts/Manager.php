@@ -19,6 +19,11 @@ interface Manager
     /**
      * @return Entity
      */
+    public function remove(Entity $entity);
+
+    /**
+     * @return Entity
+     */
     public function create($type, $data);
 
     public function findRepository(Entity $entity);

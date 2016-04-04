@@ -71,8 +71,8 @@ class Repository implements Contracts\Repository
 
     public function find($params = [], $oneItem = false)
     {
-        if(is_string($params)) {
-            if(1 * $params == $params) {
+        if (is_string($params)) {
+            if (1 * $params == $params) {
                 $params = 1 * $params;
             }
         }
@@ -88,7 +88,7 @@ class Repository implements Contracts\Repository
 
         foreach ($params as $key => $value) {
             if ($this->type->isReference($key)) {
-                if($value instanceof Contracts\Entity) {
+                if ($value instanceof Contracts\Entity) {
                     $params[$key] = $value->getId();
                 } else {
                     $params[$key] = +$value;
@@ -141,6 +141,14 @@ class Repository implements Contracts\Repository
     public function knows(Contracts\Entity $entity)
     {
         return in_array($entity, $this->entities);
+    }
+
+    public function remove(Contracts\Entity $entity)
+    {
+        unset($this->entities[$this->keyMap[$entity->id]]);
+        unset($this->keyMap[$entity->id]);
+
+        $this->type->getSpace()->delete([$entity->id]);
     }
 
     public function save(Contracts\Entity $entity)
