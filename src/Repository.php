@@ -194,7 +194,7 @@ class Repository implements Contracts\Repository
                     $operations[] = ['=', $key, $value];
                 }
 
-                $result = $this->type->getSpace()->update($entity->getId(), $operations);
+                $this->type->getSpace()->update($entity->getId(), $operations);
             }
         }
 

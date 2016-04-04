@@ -17,6 +17,81 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $rules = $manager->get('rules', '1');
         $this->assertSame($rules->list, $data['list']);
     }
+
+    public function testNoType()
+    {
+        $this->setExpectedException(Exception::class);
+        $meta = Helper::createManager()->getMeta();
+        $comments = $meta->get('comments');
+    }
+    public function testDuplicateType()
+    {
+        $meta = Helper::createManager()->getMeta();
+        $comments = $meta->create('comments', ['author', 'name']);
+        $this->setExpectedException(Exception::class);
+        $comments = $meta->create('comments', ['author', 'name']);
+    }
+    public function testDuplicateProperty()
+    {
+        $meta = Helper::createManager()->getMeta();
+        $comments = $meta->create('comments');
+        $comments->addProperty('author');
+        $this->setExpectedException(Exception::class);
+        $comments->addProperty('author');
+    }
+    public function testNoIndexProperty()
+    {
+        $meta = Helper::createManager()->getMeta();
+        $comments = $meta->create('comments', ['author', 'name']);
+        $this->setExpectedException(Exception::class);
+        $comments->addIndex('document_id');
+    }
+    public function testDuplicateIndex()
+    {
+        $meta = Helper::createManager()->getMeta();
+        $comments = $meta->create('comments', ['author', 'name']);
+        $comments->addIndex('author');
+        $this->setExpectedException(Exception::class);
+        $comments->addIndex('author');
+    }
+
+    public function testIdUpdate()
+    {
+        $post = new Tarantool\Mapper\Entity([
+            'title' => 'testing',
+        ]);
+        $this->assertNull($post->getId());
+        $post->setId(1);
+        $this->setExpectedException(Exception::class);
+        $post->setId(2);
+    }
+
+    public function testNoMethod()
+    {
+        $manager = Helper::createManager();
+        $comments = $manager->getMeta()->create('comments', ['author', 'name']);
+        $this->setExpectedException(Exception::class);
+        $manager->get('comments')->flyToTheMoon();
+    }
+
+    public function testRepositoryCreationOnly()
+    {
+        $manager = Helper::createManager();
+        $comments = $manager->getMeta()->create('comments', ['author', 'name']);
+        $this->setExpectedException(Exception::class);
+        $manager->get('comments')->save(new Tarantool\Mapper\Entity());
+    }
+
+    public function testNoEntityRelation()
+    {
+        $manager = Helper::createManager();
+        $post = new Tarantool\Mapper\Entity([
+            'title' => 'testing',
+        ]);
+        $this->setExpectedException(Exception::class);
+        $manager->save($post);
+    }
+
     public function testUsage()
     {
         $manager = Helper::createManager();

@@ -61,16 +61,6 @@ class Schema implements Contracts\Schema
         $this->client->evaluate("box.schema.space.create('$space')");
     }
 
-    public function getIndexId($space, $index)
-    {
-        $response = $this->indexSpace->select([$this->getSpaceId($space), $index], Index::INDEX_NAME);
-        $data = $response->getData();
-
-        if (!empty($data)) {
-            return $data[0][0];
-        }
-    }
-
     public function hasIndex($space, $index)
     {
         $spaceId = $this->getSpaceId($space);

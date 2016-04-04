@@ -4,6 +4,22 @@ use Tarantool\Mapper\Migrations\Migrator;
 
 class MigrationTest extends PHPUnit_Framework_TestCase
 {
+    public function testMigrationClasses()
+    {
+        $migrator = new Migrator();
+
+        $this->setExpectedException(Exception::class);
+        $migrator->registerMigration(self::class);
+    }
+
+    public function testSecondMigration()
+    {
+        $manager = Helper::createManager();
+
+        $migrator = new Migrator();
+        $migrator->migrate($manager);
+        $migrator->migrate($manager);
+    }
     public function testUsage()
     {
         $manager = Helper::createManager();
