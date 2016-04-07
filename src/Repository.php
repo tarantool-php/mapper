@@ -7,11 +7,12 @@ use LogicException;
 
 class Repository implements Contracts\Repository
 {
-    protected $type;
-    protected $entities = [];
-    protected $keyMap = [];
+    private $type;
+    private $entities = [];
+    private $keyMap = [];
+    private $findCache = [];
 
-    protected $magicMethodRules = [
+    private $magicMethodRules = [
         'by' => false,
         'firstBy' => true,
         'oneBy' => true,
@@ -77,6 +78,10 @@ class Repository implements Contracts\Repository
 
     public function find($params = [], $oneItem = false)
     {
+        $findKey = md5(json_encode(func_get_args()));
+        if(array_key_exists($findKey, $this->findCache)) {
+            return $this->findCache[$findKey];
+        }
         if (is_string($params)) {
             if (1 * $params == $params) {
                 $params = 1 * $params;
@@ -131,13 +136,13 @@ class Repository implements Contracts\Repository
                     $this->register($entity);
                 }
                 if ($oneItem) {
-                    return $entity;
+                    return $this->findCache[$findKey] = $entity;
                 }
                 $result[] = $entity;
             }
         }
         if (!$oneItem) {
-            return $result;
+            return $this->findCache[$findKey] = $result;
         }
     }
 
@@ -207,7 +212,7 @@ class Repository implements Contracts\Repository
         return $entity;
     }
 
-    protected function register(Contracts\Entity $entity)
+    private function register(Contracts\Entity $entity)
     {
         if (!$this->knows($entity)) {
             $this->entities[] = $entity;
@@ -219,7 +224,7 @@ class Repository implements Contracts\Repository
         return $entity;
     }
 
-    protected function generateId(Contracts\Entity $entity)
+    private function generateId(Contracts\Entity $entity)
     {
         $manager = $this->type->getManager();
         $name = $this->type->getName();
