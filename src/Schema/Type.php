@@ -29,9 +29,10 @@ class Type implements Contracts\Type
 
     public function getSpace()
     {
-        if(!$this->space) {
+        if (!$this->space) {
             $this->space = $this->getManager()->getClient()->getSpace($this->name);
         }
+
         return $this->space;
     }
 
@@ -73,7 +74,7 @@ class Type implements Contracts\Type
 
         if (!array_key_exists('parts', $arguments) || !count($arguments['parts'])) {
             $arguments['parts'] = [];
-            foreach($properties as $name) {
+            foreach ($properties as $name) {
                 $index = array_search($name, $this->properties);
                 $arguments['parts'][] = $index + 1;
                 $arguments['parts'][] = $this->convention->getTarantoolType($this->types[$name]);

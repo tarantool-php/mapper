@@ -79,7 +79,7 @@ class Repository implements Contracts\Repository
     public function find($params = [], $oneItem = false)
     {
         $findKey = md5(json_encode(func_get_args()));
-        if(array_key_exists($findKey, $this->findCache)) {
+        if (array_key_exists($findKey, $this->findCache)) {
             return $this->findCache[$findKey];
         }
         if (is_string($params)) {
