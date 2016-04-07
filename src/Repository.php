@@ -121,7 +121,7 @@ class Repository implements Contracts\Repository
             $index = 'id';
         }
 
-        $space = $this->type->getManager()->getClient()->getSpace($this->type->getName());
+        $space = $this->type->getSpace($this->type->getName());
         $data = $space->select($values, $index);
 
         $result = [];
@@ -239,8 +239,9 @@ class Repository implements Contracts\Repository
             $manager->save($sequence);
         }
 
-        $nextValue = +$manager->getClient()
-            ->getSpace('sequence')
+        $nextValue = +$manager->getMeta()
+            ->get('sequence')
+            ->getSpace()
             ->update($sequence->id, [['+', 2, 1]])
             ->getData()[0][2];
 

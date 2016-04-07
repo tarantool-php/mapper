@@ -7,13 +7,14 @@ use LogicException;
 
 class Type implements Contracts\Type
 {
-    protected $convention;
-    protected $properties = [];
-    protected $types = [];
+    private $convention;
+    private $properties = [];
+    private $types = [];
 
-    protected $manager;
-    protected $spaceId;
-    protected $name;
+    private $manager;
+    private $space;
+    private $spaceId;
+    private $name;
 
     public function __construct(Contracts\Manager $manager, $name, array $properties, array $types)
     {
@@ -28,7 +29,10 @@ class Type implements Contracts\Type
 
     public function getSpace()
     {
-        return $this->getManager()->getClient()->getSpace($this->name);
+        if(!$this->space) {
+            $this->space = $this->getManager()->getClient()->getSpace($this->name);
+        }
+        return $this->space;
     }
 
     public function getSpaceId()
