@@ -69,11 +69,10 @@ class Type implements Contracts\Type
 
         if (!array_key_exists('parts', $arguments) || !count($arguments['parts'])) {
             $arguments['parts'] = [];
-            foreach ($this->getProperties() as $index => $name) {
-                if (in_array($name, $properties)) {
-                    $arguments['parts'][] = $index + 1;
-                    $arguments['parts'][] = $this->convention->getTarantoolType($this->types[$name]);
-                }
+            foreach($properties as $name) {
+                $index = array_search($name, $this->properties);
+                $arguments['parts'][] = $index + 1;
+                $arguments['parts'][] = $this->convention->getTarantoolType($this->types[$name]);
             }
         }
 
