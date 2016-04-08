@@ -121,7 +121,7 @@ class Repository implements Contracts\Repository
             $index = 'id';
         }
 
-        $space = $this->type->getSpace($this->type->getName());
+        $space = $this->type->getSpace();
         $data = $space->select($values, $index);
 
         $result = [];
