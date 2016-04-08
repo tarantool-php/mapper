@@ -30,7 +30,7 @@ class Type implements Contracts\Type
     public function getSpace()
     {
         if (!$this->space) {
-            $this->space = $this->getManager()->getClient()->getSpace($this->name);
+            $this->space = $this->getManager()->getClient()->getSpace($this->spaceId);
         }
 
         return $this->space;
