@@ -21,7 +21,7 @@ class Schema implements Contracts\Schema
         $this->spaceSpace = $client->getSpace('_vspace');
         $this->indexSpace = $client->getSpace('_vindex');
         $spaces = $this->spaceSpace->select([])->getData();
-        foreach($spaces as $row) {
+        foreach ($spaces as $row) {
             list($id, $sys, $name) = $row;
             $this->spaceId[$name] = $id;
         }
