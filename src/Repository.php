@@ -78,48 +78,51 @@ class Repository implements Contracts\Repository
 
     public function find($params = [], $oneItem = false)
     {
-        $findKey = md5(json_encode(func_get_args()));
-        if (array_key_exists($findKey, $this->findCache)) {
-            return $this->findCache[$findKey];
-        }
+        $query = [];
 
         if (is_string($params)) {
             if (1 * $params == $params) {
                 $params = 1 * $params;
             }
         }
+
         if (is_int($params)) {
             if (isset($this->keyMap[$params])) {
                 return $this->entities[$this->keyMap[$params]];
             }
-            $params = [
+            $query = [
                 'id' => $params,
             ];
             $oneItem = true;
         }
 
-        foreach ($params as $key => $value) {
-            if ($this->type->isReference($key)) {
-                if ($value instanceof Contracts\Entity) {
-                    $params[$key] = $value->getId();
-                } else {
-                    $params[$key] = +$value;
+        if (is_array($params)) {
+            foreach ($params as $key => $value) {
+                if (is_numeric($key) && $value instanceof Contracts\Entity) {
+                    $key = $this->type->getReferenceProperty($value);
+                }
+                if ($this->type->hasProperty($key)) {
+                    $query[$key] = $this->type->encodeProperty($key, $value);
                 }
             }
         }
 
-        $fields = array_keys($params);
+        $fields = array_keys($query);
         $values = [];
 
         sort($fields);
         foreach ($fields as $field) {
-            $values[] = $params[$field];
+            $values[] = $query[$field];
         }
 
         $index = implode('_', $fields);
 
         if (!$index) {
             $index = 'id';
+        }
+        $findKey = md5(json_encode($query));
+        if (array_key_exists($findKey, $this->findCache)) {
+            return $this->findCache[$findKey];
         }
 
         $space = $this->type->getSpace();

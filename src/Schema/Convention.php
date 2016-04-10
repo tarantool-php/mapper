@@ -29,7 +29,7 @@ class Convention implements Contracts\Convention
 
     public function isPrimitive($type)
     {
-        return in_array($type, ['integer', 'string']);
+        return in_array($type, ['integer', 'string', 'array']);
     }
 
     public function encode($type, $value)
@@ -38,6 +38,8 @@ class Convention implements Contracts\Convention
             if ($value instanceof Contracts\Entity) {
                 return $value->getId();
             }
+
+            return +$value;
         }
         if ($type == 'integer') {
             return +$value;
