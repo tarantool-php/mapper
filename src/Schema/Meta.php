@@ -35,10 +35,10 @@ class Meta implements Contracts\Meta
             if (!isset($this->indexes[$spaceId])) {
                 $this->indexes[$spaceId] = [];
             }
-            $this->indexes[$spaceId][$name] = [];
+            $this->indexes[$spaceId][$num] = [];
             foreach ($properties as $row) {
                 list($part, $type) = $row;
-                $this->indexes[$spaceId][$name][] = $this->property[$spaceId][$part];
+                $this->indexes[$spaceId][$num][] = $this->property[$spaceId][$part];
             }
         }
         foreach ($this->property as $spaceId => $collection) {

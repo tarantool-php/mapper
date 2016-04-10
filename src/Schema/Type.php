@@ -82,8 +82,8 @@ class Type implements Contracts\Type
             }
         }
 
-        $schema->createIndex($this->getName(), $indexName, $arguments);
-        $this->indexes[$indexName] = $properties;
+        $num = $schema->createIndex($this->getName(), $indexName, $arguments);
+        $this->indexes[$num] = $properties;
 
         return $this;
     }
@@ -212,7 +212,7 @@ class Type implements Contracts\Type
     public function findIndex($query)
     {
         if (!count($query)) {
-            return 'id';
+            return 0;
         }
 
         sort($query);

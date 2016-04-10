@@ -104,5 +104,10 @@ class Schema implements Contracts\Schema
         }
         $config = '{'.implode(', ', $config).'}';
         $this->client->evaluate("box.space.$space:create_index('$index', $config)");
+
+        $schema = $this->client->getSpace(Space::VINDEX);
+        $response = $schema->select([$this->getSpaceId($space), $index], Index::INDEX_NAME);
+
+        return $response->getData()[0][1];
     }
 }
