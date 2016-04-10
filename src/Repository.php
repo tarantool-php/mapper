@@ -41,7 +41,7 @@ class Repository implements Contracts\Repository
                 } else {
                     if ($v instanceof Contracts\Entity) {
                         $type = $this->type->getManager()->findRepository($v)->getType();
-                        $newData[$this->type->getReferenceProperty($type)] = $v;
+                        $newData[$this->type->getReferenceProperty($type)] = $v->getId();
                     }
                 }
             }
@@ -94,10 +94,15 @@ class Repository implements Contracts\Repository
             $oneItem = true;
         }
 
+        if ($params instanceof Contracts\Entity) {
+            $params = [$params];
+        }
+
         if (is_array($params)) {
             foreach ($params as $key => $value) {
                 if (is_numeric($key) && $value instanceof Contracts\Entity) {
-                    $key = $this->type->getReferenceProperty($value);
+                    $type = $this->type->getManager()->findRepository($value)->getType();
+                    $key = $this->type->getReferenceProperty($type);
                 }
                 if ($this->type->hasProperty($key)) {
                     $query[$key] = $this->type->encodeProperty($key, $value);

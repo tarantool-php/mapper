@@ -58,10 +58,13 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $manager->create('document_details', [$gift, $items[0]]);
         $detail = $manager->create('document_details', [$items[1], $gift]);
 
+        $manager->create('document_details', ['item' => 100500, 'document' => 100500]);
+
         $array = $detail->toArray(true);
-        $this->assertSame($array['item']['name'], $items[1]->name);
+        $this->assertSame($array['item'], $items[1]->id);
 
         $newManager = Helper::createManager(false);
+        $gift = $newManager->get('document', $gift->id);
         $details = $newManager->get('document_details')->byDocument($gift);
         $this->assertSame($details[0]->document, $gift->id);
 
@@ -86,6 +89,9 @@ class RelationTest extends PHPUnit_Framework_TestCase
 
         $detailsByEntity = $newManager->get('document_details', $gift);
         $this->assertCount(2, $detailsByEntity);
+
+        $detailsByArrayWithEntity = $newManager->get('document_details', [$gift]);
+        $this->assertCount(2, $detailsByArrayWithEntity);
     }
 
     public function testNoReference()
