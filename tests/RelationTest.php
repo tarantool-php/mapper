@@ -82,6 +82,11 @@ class RelationTest extends PHPUnit_Framework_TestCase
         sort($newIds);
         sort($originalIds);
         $this->assertSame($newIds, $originalIds);
+
+        $detailsByEntity = $newManager->get('document_details', $gift);
+        $this->assertCount(2, $detailsByEntity);
+
+        $this->assertSame($detailsByEntity, $detailsById);
     }
 
     public function testNoReference()
