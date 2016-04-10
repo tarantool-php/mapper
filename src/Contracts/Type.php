@@ -34,6 +34,9 @@ interface Type
     public function encodeProperty($name, $value);
     public function decodeProperty($name, $value);
 
+    public function findIndex($fields);
+    public function getIndexTuple($index, $params);
+
     /**
      * @param $type Type
      * @param $property string

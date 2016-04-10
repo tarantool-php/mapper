@@ -207,6 +207,26 @@ class Type implements Contracts\Type
         return $this->requiredProperties;
     }
 
+    public function findIndex($fields)
+    {
+        sort($fields);
+
+        return implode('_', $fields) ?: 'id';
+    }
+
+    public function getIndexTuple($name, $params)
+    {
+        $fields = array_keys($params);
+        $values = [];
+
+        sort($fields);
+        foreach ($fields as $field) {
+            $values[] = $params[$field];
+        }
+
+        return $values;
+    }
+
     public function getTuple($input)
     {
         $output = [];

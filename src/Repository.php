@@ -80,10 +80,8 @@ class Repository implements Contracts\Repository
     {
         $query = [];
 
-        if (is_string($params)) {
-            if (1 * $params == $params) {
-                $params = 1 * $params;
-            }
+        if (is_string($params) && 1 * $params == $params) {
+            $params = 1 * $params;
         }
 
         if (is_int($params)) {
@@ -107,23 +105,13 @@ class Repository implements Contracts\Repository
             }
         }
 
-        $fields = array_keys($query);
-        $values = [];
-
-        sort($fields);
-        foreach ($fields as $field) {
-            $values[] = $query[$field];
-        }
-
-        $index = implode('_', $fields);
-
-        if (!$index) {
-            $index = 'id';
-        }
         $findKey = md5(json_encode($query));
         if (array_key_exists($findKey, $this->findCache)) {
             return $this->findCache[$findKey];
         }
+
+        $index = $this->type->findIndex(array_keys($query));
+        $values = $this->type->getIndexTuple($index, $query);
 
         $space = $this->type->getSpace();
         $data = $space->select($values, $index);

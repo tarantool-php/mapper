@@ -34,6 +34,7 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $recovery = $manager->create('recovery', [$recovery->user]);
         $this->assertNull($recovery->token);
     }
+
     public function testTwoRelation()
     {
         $manager = Helper::createManager();
@@ -85,8 +86,6 @@ class RelationTest extends PHPUnit_Framework_TestCase
 
         $detailsByEntity = $newManager->get('document_details', $gift);
         $this->assertCount(2, $detailsByEntity);
-
-        $this->assertSame($detailsByEntity, $detailsById);
     }
 
     public function testNoReference()
