@@ -1,5 +1,7 @@
 <?php
 
+use Tarantool\Mapper\Contracts\Entity;
+
 class RelationTest extends PHPUnit_Framework_TestCase
 {
     public function testUsage()
@@ -120,5 +122,57 @@ class RelationTest extends PHPUnit_Framework_TestCase
 
         $this->setExpectedException(LogicException::class);
         $manager->create('post', [$manager->create('person', 'superman')]);
+    }
+
+    public function testRelationQuery()
+    {
+        $manager = Helper::createManager();
+        $meta = $manager->getMeta();
+        $meta->create('unit_param', [
+            $meta->create('unit', ['name']),
+            $meta->create('param', ['name']),
+            'value',
+        ])->setPropertyType('value', 'integer');
+
+        $meta->get('unit_param')->addIndex(['unit', 'value']);
+        $meta->get('unit')->addIndex('name');
+
+        $unit = $manager->create('unit', ['vm310']);
+
+        $manager->create('unit_param', [
+            $unit,
+            $manager->create('param', 'height'),
+            'value' => 310,
+        ]);
+
+        $manager->create('unit_param', [
+            $unit,
+            $manager->create('param', 'levels'),
+            'value' => 13,
+        ]);
+
+        $manager->create('unit_param', [
+            $manager->create('unit', 'road to nowhere'),
+            $manager->create('param', 'length'),
+            'value' => 65,
+        ]);
+
+        $manager->create('unit_param', [
+            $manager->create('unit', 'Baba Valya'),
+            $manager->create('param', 'age'),
+            'value' => 65,
+        ]);
+
+        $this->assertCount(4, $manager->get('unit_param')->find());
+        $this->assertCount(2, $manager->get('unit_param', $unit));
+        $this->assertCount(1, $manager->get('unit_param', [$unit, 'value' => 310]));
+
+        $valya = $manager->get('unit')->find(['name' => 'Baba Valya'])[0];
+        $this->assertInstanceOf(Entity::class, $valya);
+        $this->assertCount(1, $manager->get('unit_param', $valya));
+        $this->assertCount(1, $manager->get('unit_param')->find([
+            $valya,
+            'value' => 65,
+        ]));
     }
 }
