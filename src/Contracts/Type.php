@@ -29,8 +29,8 @@ interface Type
     public function getPropertyType($property);
     public function setPropertyType($property, $type);
 
-    public function encode($array);
-    public function decode($array);
+    public function getTuple($array);
+    public function fromTuple($array);
     public function encodeProperty($name, $value);
     public function decodeProperty($name, $value);
 

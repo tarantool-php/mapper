@@ -207,7 +207,7 @@ class Type implements Contracts\Type
         return $this->requiredProperties;
     }
 
-    public function encode($input)
+    public function getTuple($input)
     {
         $output = [];
         foreach ($this->getProperties() as $index => $name) {
@@ -219,7 +219,7 @@ class Type implements Contracts\Type
         return $output;
     }
 
-    public function decode($input)
+    public function fromTuple($input)
     {
         $output = [];
         foreach ($this->getProperties() as $index => $name) {

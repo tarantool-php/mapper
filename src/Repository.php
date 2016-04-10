@@ -131,7 +131,7 @@ class Repository implements Contracts\Repository
         $result = [];
         if (!empty($data->getData())) {
             foreach ($data->getData() as $tuple) {
-                $data = $this->type->decode($tuple);
+                $data = $this->type->fromTuple($tuple);
                 if (isset($data['id']) && array_key_exists($data['id'], $this->keyMap)) {
                     $entity = $this->entities[$this->keyMap[$data['id']]];
                     $entity->update($data);
@@ -174,7 +174,7 @@ class Repository implements Contracts\Repository
 
         if (!$entity->getId()) {
             $this->generateId($entity);
-            $tuple = $this->type->encode($entity->toArray());
+            $tuple = $this->type->getTuple($entity->toArray());
 
             $required = $this->type->getRequiredProperties();
 
@@ -205,7 +205,7 @@ class Repository implements Contracts\Repository
             $changes = $entity->pullChanges();
             if (count($changes)) {
                 $operations = [];
-                foreach ($this->type->encode($changes) as $key => $value) {
+                foreach ($this->type->getTuple($changes) as $key => $value) {
                     $operations[] = ['=', $key, $value];
                 }
 
