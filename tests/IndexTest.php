@@ -10,6 +10,9 @@ class IndexTest extends PHPUnit_Framework_TestCase
 
         $manager->getMeta()
             ->create('unit_param', ['unit', 'param', 'value'])
+            ->setPropertyType('unit', 'integer')
+            ->setPropertyType('param', 'integer')
+            ->setPropertyType('value', 'integer')
             ->addIndex(['unit', 'param']);
 
         $manager->create('unit_param', [
@@ -20,8 +23,8 @@ class IndexTest extends PHPUnit_Framework_TestCase
 
         $manager->create('unit_param', [
             'unit' => '1',
-            'param' => '2',
-            'value' => '12',
+            'param' => 2,
+            'value' => 12,
         ]);
 
         $manager->create('unit_param', [
@@ -32,8 +35,9 @@ class IndexTest extends PHPUnit_Framework_TestCase
 
         $manager = Helper::createManager(false);
         $unitParam = $manager->get('unit_param');
-        $this->assertSame($unitParam->findOne(['unit' => '1', 'param' => '2'])->value, '12');
-        $this->assertSame($unitParam->findOne(['unit' => '2', 'param' => '1'])->value, '21');
+        $this->assertSame($unitParam->findOne(['param' => '2', 'unit' => '1'])->value, 12);
+        $this->assertSame($unitParam->findOne(['unit' => '1', 'param' => '2'])->value, 12);
+        $this->assertSame($unitParam->findOne(['unit' => '2', 'param' => 1])->value, 21);
     }
 
     public function testMiltiple()
@@ -100,5 +104,29 @@ class IndexTest extends PHPUnit_Framework_TestCase
         $newEmptyPost = $newManager->get('posts')->find($emptyPost->id);
         $this->assertNull($newEmptyPost->header);
         $this->assertNull($newEmptyPost->body);
+    }
+
+    public function testPartial()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()
+            ->create('task')
+            ->addProperty('year', 'integer')
+            ->addProperty('month', 'integer')
+            ->addProperty('day', 'integer')
+            ->addIndex(['year', 'month', 'day']);
+
+        $manager->create('task', ['year' => 2015, 'month' => 4, 'day' => 1]);
+        $manager->create('task', ['year' => 2016, 'month' => 4, 'day' => 1]);
+        $manager->create('task', ['year' => 2016, 'month' => 4, 'day' => 2]);
+        $manager->create('task', ['year' => 2016, 'month' => 4, 'day' => 3]);
+        $manager->create('task', ['year' => 2016, 'month' => 4, 'day' => 4]);
+        $manager->create('task', ['year' => 2016, 'month' => 4, 'day' => 5]);
+        $manager->create('task', ['year' => 2016, 'month' => 5, 'day' => 1]);
+
+        $this->assertCount(1, $manager->get('task', ['year' => 2015]));
+        $this->assertCount(6, $manager->get('task', ['year' => 2016]));
+        $this->assertCount(5, $manager->get('task', ['year' => 2016, 'month' => 4]));
+        $this->assertCount(1, $manager->get('task', ['year' => 2016, 'month' => 4, 'day' => 3]));
     }
 }

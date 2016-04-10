@@ -9,6 +9,7 @@ class Type implements Contracts\Type
 {
     private $convention;
     private $properties = [];
+    private $indexes = [];
     private $types = [];
 
     private $manager;
@@ -16,7 +17,7 @@ class Type implements Contracts\Type
     private $spaceId;
     private $name;
 
-    public function __construct(Contracts\Manager $manager, $name, array $properties, array $types)
+    public function __construct(Contracts\Manager $manager, $name, array $properties, array $types, array $indexes)
     {
         $this->manager = $manager;
         $this->name = $name;
@@ -24,6 +25,7 @@ class Type implements Contracts\Type
         $this->spaceId = $manager->getSchema()->getSpaceId($name);
 
         $this->properties = $properties;
+        $this->indexes = $indexes;
         $this->types = $types;
     }
 
@@ -62,26 +64,26 @@ class Type implements Contracts\Type
 
         $schema = $this->manager->getSchema();
 
-        sort($properties);
         $indexName = implode('_', $properties);
 
         if ($schema->hasIndex($this->getName(), $indexName)) {
             throw new LogicException("Index $indexName already exists!");
         }
+
         if (!$arguments) {
             $arguments = [];
         }
 
         if (!array_key_exists('parts', $arguments) || !count($arguments['parts'])) {
             $arguments['parts'] = [];
-            foreach ($properties as $name) {
-                $index = array_search($name, $this->properties);
-                $arguments['parts'][] = $index + 1;
-                $arguments['parts'][] = $this->convention->getTarantoolType($this->types[$name]);
+            foreach ($properties as $property) {
+                $arguments['parts'][] = array_search($property, $this->properties) + 1;
+                $arguments['parts'][] = $this->convention->getTarantoolType($this->types[$property]);
             }
         }
 
         $schema->createIndex($this->getName(), $indexName, $arguments);
+        $this->indexes[$indexName] = $properties;
 
         return $this;
     }
@@ -207,24 +209,43 @@ class Type implements Contracts\Type
         return $this->requiredProperties;
     }
 
-    public function findIndex($fields)
+    public function findIndex($query)
     {
-        sort($fields);
-
-        return implode('_', $fields) ?: 'id';
-    }
-
-    public function getIndexTuple($name, $params)
-    {
-        $fields = array_keys($params);
-        $values = [];
-
-        sort($fields);
-        foreach ($fields as $field) {
-            $values[] = $params[$field];
+        if (!count($query)) {
+            return 'id';
         }
 
-        return $values;
+        sort($query);
+        foreach ($this->indexes as $name => $fields) {
+            if ($fields == $query) {
+                return $name;
+            }
+        }
+
+        // cast partial index
+        $casting = [];
+
+        foreach ($this->indexes as $name => $fields) {
+            if (!count(array_diff($query, $fields))) {
+                $casting[count(array_diff($fields, $query))] = $name;
+            }
+        }
+        ksort($casting);
+
+        return array_shift($casting);
+    }
+
+    public function getIndexTuple($index, $params)
+    {
+        $tuple = [];
+        foreach ($this->indexes[$index] as $property) {
+            $value = array_key_exists($property, $params) ? $params[$property] : null;
+            if ($value) {
+                $tuple[array_search($property, $this->indexes[$index])] = $value;
+            }
+        }
+
+        return $tuple;
     }
 
     public function getTuple($input)

@@ -111,10 +111,9 @@ class Repository implements Contracts\Repository
         }
 
         $index = $this->type->findIndex(array_keys($query));
-        $values = $this->type->getIndexTuple($index, $query);
+        $values = count($query) ? $this->type->getIndexTuple($index, $query) : [];
 
-        $space = $this->type->getSpace();
-        $data = $space->select($values, $index);
+        $data = $this->type->getSpace()->select($values, $index);
 
         $result = [];
         if (!empty($data->getData())) {
