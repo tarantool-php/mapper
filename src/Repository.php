@@ -82,6 +82,7 @@ class Repository implements Contracts\Repository
         if (array_key_exists($findKey, $this->findCache)) {
             return $this->findCache[$findKey];
         }
+
         if (is_string($params)) {
             if (1 * $params == $params) {
                 $params = 1 * $params;

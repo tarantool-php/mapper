@@ -31,6 +31,8 @@ interface Type
 
     public function encode($array);
     public function decode($array);
+    public function encodeProperty($name, $value);
+    public function decodeProperty($name, $value);
 
     /**
      * @param $type Type

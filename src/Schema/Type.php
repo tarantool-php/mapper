@@ -96,7 +96,7 @@ class Type implements Contracts\Type
         if ($this->hasProperty($name)) {
             throw new LogicException("Duplicate property $name");
         }
-        if(!$type) {
+        if (!$type) {
             $type = $this->manager->getMeta()->getConvention()->getType($name);
         }
         $this->types[$name] = $type;
@@ -212,7 +212,7 @@ class Type implements Contracts\Type
         $output = [];
         foreach ($this->getProperties() as $index => $name) {
             if (array_key_exists($name, $input)) {
-                $output[$index] = $this->convention->encode($this->types[$name], $input[$name]);
+                $output[$index] = $this->encodeProperty($name, $input[$name]);
             }
         }
 
@@ -224,10 +224,20 @@ class Type implements Contracts\Type
         $output = [];
         foreach ($this->getProperties() as $index => $name) {
             if (array_key_exists($index, $input)) {
-                $output[$name] = $this->convention->decode($this->types[$name], $input[$index]);
+                $output[$name] = $this->decodeProperty($name, $input[$index]);
             }
         }
 
         return $output;
+    }
+
+    public function encodeProperty($name, $value)
+    {
+        return $this->convention->encode($this->types[$name], $value);
+    }
+
+    public function decodeProperty($name, $value)
+    {
+        return $this->convention->decode($this->types[$name], $value);
     }
 }
