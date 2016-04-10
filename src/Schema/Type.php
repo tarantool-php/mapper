@@ -91,24 +91,23 @@ class Type implements Contracts\Type
      *
      * @return Type
      */
-    public function addProperty($first)
+    public function addProperty($name, $type = null)
     {
-        $properties = is_array($first) ? $first : func_get_args();
-
-        foreach ($properties as $name) {
-            if ($this->hasProperty($name)) {
-                throw new LogicException("Duplicate property $name");
-            }
-            $this->types[$name] = $this->manager->getMeta()->getConvention()->getType($name);
-            $this->manager->create('property', [
-                'space' => $this->spaceId,
-                'index' => count($this->properties),
-                'name' => $name,
-                'type' => $this->types[$name],
-            ]);
-
-            $this->properties[] = $name;
+        if ($this->hasProperty($name)) {
+            throw new LogicException("Duplicate property $name");
         }
+        if(!$type) {
+            $type = $this->manager->getMeta()->getConvention()->getType($name);
+        }
+        $this->types[$name] = $type;
+        $this->manager->create('property', [
+            'space' => $this->spaceId,
+            'index' => count($this->properties),
+            'name' => $name,
+            'type' => $this->types[$name],
+        ]);
+
+        $this->properties[] = $name;
 
         return $this;
     }
