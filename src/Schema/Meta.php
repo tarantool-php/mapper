@@ -69,6 +69,22 @@ class Meta implements Contracts\Meta
         return $this->types[$type];
     }
 
+    public function has($type)
+    {
+        // was created
+        if (array_key_exists($type, $this->types)) {
+            return true;
+        }
+
+        // can be created
+        $spaceId = $this->manager->getSchema()->getSpaceId($type);
+        if (array_key_exists($spaceId, $this->property)) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @return Type
      */

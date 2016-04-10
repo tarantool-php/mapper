@@ -4,6 +4,8 @@ namespace Tarantool\Mapper\Contracts;
 
 interface Meta
 {
+    public function has($type);
+
     /**
      * @return Type
      */
