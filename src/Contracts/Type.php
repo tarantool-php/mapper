@@ -10,13 +10,6 @@ interface Type
     public function getSpace();
 
     /**
-     * @param $field string|array
-     *
-     * @return Type
-     */
-    public function addIndex($field, array $arguments = null);
-
-    /**
      * @param $property string
      *
      * @return Type
@@ -34,7 +27,14 @@ interface Type
     public function encodeProperty($name, $value);
     public function decodeProperty($name, $value);
 
+    /**
+     * @param $field string|array
+     *
+     * @return Type
+     */
+    public function addIndex($field, array $arguments = null);
     public function findIndex($fields);
+    public function getIndex($index);
     public function getIndexTuple($index, $params);
 
     /**

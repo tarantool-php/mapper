@@ -209,6 +209,11 @@ class Type implements Contracts\Type
         return $this->requiredProperties;
     }
 
+    public function getIndex($num)
+    {
+        return $this->indexes[$num];
+    }
+
     public function findIndex($query)
     {
         if (!count($query)) {

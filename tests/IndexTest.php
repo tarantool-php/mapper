@@ -15,6 +15,8 @@ class IndexTest extends PHPUnit_Framework_TestCase
             ->setPropertyType('value', 'integer')
             ->addIndex(['unit', 'param']);
 
+        $this->assertSame(['unit', 'param'], $manager->getMeta()->get('unit_param')->getIndex(1));
+
         $manager->create('unit_param', [
             'unit' => '1',
             'param' => '1',
