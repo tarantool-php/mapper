@@ -23,35 +23,31 @@ class Repository implements Contracts\Repository
         $this->type = $type;
     }
 
-    public function create($data = null)
+    public function create($params = null)
     {
-        if ($data && !is_array($data)) {
-            $properties = $this->getType()->getProperties();
-            if (count($properties) == 2) {
-                $data = [$properties[1] => $data];
-            } else {
-                throw new LogicException('Data should be array');
-            }
+        if ($params && !is_array($params)) {
+            $params = [$params];
         }
-        if ($data) {
-            $newData = [];
-            foreach ($data as $k => $v) {
-                if (!is_numeric($k)) {
-                    $newData[$k] = $v;
+
+        $data = [];
+        foreach ($params as $k => $v) {
+            if (is_numeric($k)) {
+                if ($v instanceof Contracts\Entity) {
+                    $type = $this->type->getManager()->findRepository($v)->getType();
+                    $k = $this->type->getReferenceProperty($type);
                 } else {
-                    if ($v instanceof Contracts\Entity) {
-                        $type = $this->type->getManager()->findRepository($v)->getType();
-                        $newData[$this->type->getReferenceProperty($type)] = $v->getId();
+                    $properties = $this->getType()->getProperties();
+                    if (count($properties) == 2) {
+                        $k = $properties[1];
+                    } else {
+                        throw new \Exception("Can't calculate key name");
                     }
                 }
             }
-            $data = $newData;
-        }
-
-        foreach ($data as $k => $v) {
             if (!$this->type->hasProperty($k)) {
                 throw new \Exception("Unknown property $k");
             }
+            $data[$k] = $this->type->encodeProperty($k, $v);
         }
 
         return $this->register(new Entity($data));

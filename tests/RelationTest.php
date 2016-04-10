@@ -33,7 +33,7 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $recovery = $manager->create('recovery', ['token' => md5('test')]);
         $this->assertNull($recovery->user);
 
-        $recovery = $manager->create('recovery', [$recovery->user]);
+        $recovery = $manager->create('recovery', ['user' => 1]);
         $this->assertNull($recovery->token);
     }
 
@@ -57,10 +57,11 @@ class RelationTest extends PHPUnit_Framework_TestCase
 
         $gift = $manager->create('document', 'gift');
 
-        $manager->create('document_details', [$gift, $items[0]]);
-        $detail = $manager->create('document_details', [$items[1], $gift]);
+        $manager->create('document_details', [$gift, 'item' => $items[0]]);
+        $detail = $manager->create('document_details', [$items[1], 'document' => $gift]);
 
         $manager->create('document_details', ['item' => 100500, 'document' => 100500]);
+        $manager->create('document_details', ['item' => '100500', 'document' => '100500']);
 
         $array = $detail->toArray(true);
         $this->assertSame($array['item'], $items[1]->id);
