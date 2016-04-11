@@ -143,25 +143,25 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $manager->create('unit_param', [
             $unit,
             $manager->create('param', 'height'),
-            'value' => 310,
+            310,
         ]);
 
         $manager->create('unit_param', [
             $unit,
             $manager->create('param', 'levels'),
-            'value' => 13,
+            13,
         ]);
 
         $manager->create('unit_param', [
             $manager->create('unit', 'road to nowhere'),
             $manager->create('param', 'length'),
-            'value' => 65,
+            65,
         ]);
 
         $manager->create('unit_param', [
             $manager->create('unit', 'Baba Valya'),
             $manager->create('param', 'age'),
-            'value' => 65,
+            65,
         ]);
 
         $this->assertCount(4, $manager->get('unit_param')->find());

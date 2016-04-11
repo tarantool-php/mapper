@@ -36,9 +36,14 @@ class Repository implements Contracts\Repository
                     $type = $this->type->getManager()->findRepository($v)->getType();
                     $k = $this->type->getReferenceProperty($type);
                 } else {
-                    $properties = $this->getType()->getProperties();
-                    if (count($properties) == 2) {
-                        $k = $properties[1];
+                    $primitive = [];
+                    foreach ($this->type->getProperties() as $property) {
+                        if (!$this->type->isReference($property)) {
+                            $primitive[] = $property;
+                        }
+                    }
+                    if (count($primitive) == 2) {
+                        $k = $primitive[1];
                     } else {
                         throw new \Exception("Can't calculate key name");
                     }
