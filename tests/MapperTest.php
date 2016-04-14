@@ -2,6 +2,15 @@
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testMultiplePropertyType()
+    {
+        $manager = Helper::createManager();
+        $task = $manager->getMeta()->create('task', ['year', 'month', 'day']);
+        $task->setPropertyType(['year', 'month', 'day'], 'integer');
+        $this->assertSame('integer', $task->getPropertyType('year'));
+        $this->assertSame('integer', $task->getPropertyType('month'));
+        $this->assertSame('integer', $task->getPropertyType('day'));
+    }
     public function testEntityPropertiesCheck()
     {
         $manager = Helper::createManager();

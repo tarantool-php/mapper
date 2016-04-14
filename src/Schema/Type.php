@@ -131,6 +131,14 @@ class Type implements Contracts\Type
 
     public function setPropertyType($property, $type)
     {
+        if (is_array($property)) {
+            foreach ($property as $prop) {
+                $this->setPropertyType($prop, $type);
+            }
+
+            return $this;
+        }
+
         $this->types[$property] = $type;
 
         // update entity
