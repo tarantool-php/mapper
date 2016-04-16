@@ -2,6 +2,35 @@
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testAddProperty()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('unit', ['name']);
+        $manager->create('unit', 'tester');
+
+        $manager->getMeta()->get('unit')->addProperty('rating', 'integer');
+        $unit = $manager->get('unit', 1);
+        $unit->rating = 5;
+        $manager->save($unit);
+
+        $this->assertSame(5, $unit->rating);
+    }
+
+    public function testAddPropertyLater()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('unit', ['name']);
+        $manager->create('unit', 'tester');
+
+        $anotherManager = Helper::createManager(false);
+        $anotherManager->getMeta()->get('unit')->addProperty('note');
+        $anotherManager->getMeta()->get('unit')->addProperty('rating', 'integer');
+        $unit = $anotherManager->get('unit', 1);
+        $unit->rating = 15;
+        $anotherManager->save($unit);
+        $this->assertSame($unit->rating, 15);
+    }
+
     public function testMultiplePropertyType()
     {
         $manager = Helper::createManager();

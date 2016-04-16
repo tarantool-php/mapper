@@ -261,6 +261,35 @@ class Type implements Contracts\Type
         return $tuple;
     }
 
+    public function getCompleteTuple($input)
+    {
+        $tuple = $this->getTuple($input);
+        $required = $this->getRequiredProperties();
+
+        foreach ($this->getProperties() as $index => $field) {
+            if (in_array($field, $required) && !array_key_exists($index, $tuple)) {
+                if ($this->isReference($field)) {
+                    $tuple[$index] = 0;
+                } else {
+                    $tuple[$index] = '';
+                }
+            }
+        }
+
+        // normalize tuple
+        if (array_values($tuple) != $tuple) {
+            // index was skipped
+            $max = max(array_keys($tuple));
+            foreach (range(0, $max) as $index) {
+                if (!array_key_exists($index, $tuple)) {
+                    $tuple[$index] = null;
+                }
+            }
+            ksort($tuple);
+        }
+        return $tuple;
+    }
+
     public function getTuple($input)
     {
         $output = [];

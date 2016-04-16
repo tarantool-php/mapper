@@ -167,32 +167,7 @@ class Repository implements Contracts\Repository
 
         if (!$entity->getId()) {
             $this->generateId($entity);
-            $tuple = $this->type->getTuple($entity->toArray());
-
-            $required = $this->type->getRequiredProperties();
-
-            foreach ($this->type->getProperties() as $index => $field) {
-                if (in_array($field, $required) && !array_key_exists($index, $tuple)) {
-                    if ($this->type->isReference($field)) {
-                        $tuple[$index] = 0;
-                    } else {
-                        $tuple[$index] = '';
-                    }
-                }
-            }
-
-            // normalize tuple
-            if (array_values($tuple) != $tuple) {
-                // index was skipped
-                $max = max(array_keys($tuple));
-                foreach (range(0, $max) as $index) {
-                    if (!array_key_exists($index, $tuple)) {
-                        $tuple[$index] = null;
-                    }
-                }
-                ksort($tuple);
-            }
-
+            $tuple = $this->type->getCompleteTuple($entity->toArray());
             $this->type->getSpace()->insert($tuple);
         } else {
             $changes = $entity->pullChanges();
@@ -201,8 +176,13 @@ class Repository implements Contracts\Repository
                 foreach ($this->type->getTuple($changes) as $key => $value) {
                     $operations[] = ['=', $key, $value];
                 }
-
-                $this->type->getSpace()->update($entity->getId(), $operations);
+                try {
+                    $this->type->getSpace()->update($entity->getId(), $operations);
+                } catch(\Exception $e) {
+                    $this->type->getSpace()->delete([$entity->getId()]);
+                    $tuple = $this->type->getCompleteTuple($entity->toArray());
+                    $this->type->getSpace()->insert($tuple);
+                }
             }
         }
 

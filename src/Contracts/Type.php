@@ -24,6 +24,7 @@ interface Type
 
     public function getTuple($array);
     public function fromTuple($array);
+    public function getCompleteTuple($array);
     public function encodeProperty($name, $value);
     public function decodeProperty($name, $value);
 
