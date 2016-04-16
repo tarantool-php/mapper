@@ -117,6 +117,9 @@ class Repository implements Contracts\Repository
         }
 
         $index = $this->type->findIndex(array_keys($query));
+        if(!is_numeric($index)) {
+            throw new \Exception("No index found for " . json_encode(array_keys($query)));
+        }
         $values = count($query) ? $this->type->getIndexTuple($index, $query) : [];
 
         $data = $this->type->getSpace()->select($values, $index);

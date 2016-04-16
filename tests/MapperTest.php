@@ -2,6 +2,15 @@
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testNoIndex()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('portal', ['name', 'routing']);
+        $manager->create('portal', ['name' => 'developer', 'routing' => ['/' => 'web@index']]);
+        $this->setExpectedException(Exception::class);
+        $manager->get('portal')->find(['name' => 'developer']);
+    }
+
     public function testAddProperty()
     {
         $manager = Helper::createManager();
