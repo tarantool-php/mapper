@@ -28,6 +28,8 @@ interface Manager
 
     public function findRepository(Entity $entity);
 
+    public function forgetRepository($type);
+
     /**
      * @return Client
      */

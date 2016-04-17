@@ -152,6 +152,21 @@ class Type implements Contracts\Type
         return $this;
     }
 
+    public function removeProperty($name)
+    {
+        if (!$this->hasProperty($name)) {
+            throw new LogicException("Unknown property $name");
+        }
+        $query = [
+            'space' => $this->spaceId,
+            'index' => array_search($name, $this->properties),
+        ];
+        $property = $this->manager->get('property')->findOne($query);
+        $this->manager->remove($property);
+        unset($this->properties[$name]);
+        unset($this->types[$name]);
+    }
+
     public function reference(Contracts\Type $foreign, $property = null)
     {
         if (!$property) {
@@ -222,6 +237,15 @@ class Type implements Contracts\Type
         return $this->indexes[$num];
     }
 
+    public function dropIndex($num)
+    {
+    }
+
+    public function getIndexes()
+    {
+        return $this->indexes;
+    }
+
     public function findIndex($query)
     {
         if (!count($query)) {
@@ -252,9 +276,8 @@ class Type implements Contracts\Type
     {
         $tuple = [];
         foreach ($this->indexes[$index] as $property) {
-            $value = array_key_exists($property, $params) ? $params[$property] : null;
-            if ($value) {
-                $tuple[array_search($property, $this->indexes[$index])] = $value;
+            if (array_key_exists($property, $params)) {
+                $tuple[array_search($property, $this->indexes[$index])] = $params[$property];
             }
         }
 
@@ -287,6 +310,7 @@ class Type implements Contracts\Type
             }
             ksort($tuple);
         }
+
         return $tuple;
     }
 

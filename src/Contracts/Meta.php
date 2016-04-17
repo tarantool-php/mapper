@@ -16,6 +16,8 @@ interface Meta
      */
     public function create($type, array $fields = null);
 
+    public function remove($type);
+
     /**
      * @return Convention
      */

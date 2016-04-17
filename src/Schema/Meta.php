@@ -3,6 +3,7 @@
 namespace Tarantool\Mapper\Schema;
 
 use Tarantool\Mapper\Contracts;
+use Exception;
 use LogicException;
 
 class Meta implements Contracts\Meta
@@ -85,6 +86,39 @@ class Meta implements Contracts\Meta
         return false;
     }
 
+    public function remove($type)
+    {
+        $other = $this->manager->get('property')->find(['type' => $type]);
+        if (count($other)) {
+            $name = $this->manager->getSchema()->getSpaceName($other[0]->space);
+            throw new Exception("Space $name references ".$type);
+        }
+        $instance = $this->get($type);
+        $rows = $instance->getSpace()->select([])->getData();
+        if (count($rows)) {
+            throw new Exception("Can't remove non-empty space $type");
+        }
+
+        foreach (array_reverse($instance->getProperties()) as $property) {
+            $instance->removeProperty($property);
+        }
+
+        foreach (array_keys($instance->getIndexes()) as $index) {
+            $instance->dropIndex($index);
+        }
+
+        $sq = $this->manager->get('sequence')->findOne(['space' => $instance->getSpaceId()]);
+        if ($sq) {
+            $this->manager->remove($sq);
+            $this->manager->get('sequence')->flushCache();
+        }
+
+        $this->manager->getSchema()->dropSpace($type);
+        unset($this->types[$type]);
+
+        $this->manager->forgetRepository($type);
+    }
+
     /**
      * @return Type
      */
@@ -114,8 +148,9 @@ class Meta implements Contracts\Meta
                 }
             }
         }
+        $this->types[$type] = $instance;
 
-        return $this->types[$type] = $instance;
+        return $instance;
     }
 
     public function setConvention(Contracts\Convention $convention)

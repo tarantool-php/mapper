@@ -66,6 +66,12 @@ class Schema implements Contracts\Schema
         $this->client->evaluate("box.schema.space.create('$space')");
     }
 
+    public function dropSpace($space)
+    {
+        $this->client->evaluate('box.schema.space.drop('.$this->getSpaceId($space).')');
+        unset($this->spaceId[$space]);
+    }
+
     public function hasIndex($space, $index)
     {
         $spaceId = $this->getSpaceId($space);

@@ -4,6 +4,17 @@ use Tarantool\Mapper\Contracts\Entity;
 
 class RelationTest extends PHPUnit_Framework_TestCase
 {
+    public function testRemove()
+    {
+        $manager = Helper::createManager();
+        $meta = $manager->getMeta();
+        $sector_type = $meta->create('sector_type', ['name']);
+        $meta->create('sector', [$sector_type]);
+
+        $this->setExpectedException(Exception::class);
+        $meta->remove('sector_type');
+    }
+
     public function testUsage()
     {
         $manager = Helper::createManager();

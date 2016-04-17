@@ -35,6 +35,13 @@ class Manager implements Contracts\Manager
         return $this->repositores[$type];
     }
 
+    public function forgetRepository($type)
+    {
+        if (array_key_exists($type, $this->repositores)) {
+            unset($this->repositores[$type]);
+        }
+    }
+
     /**
      * @return Contracts\Entity
      */

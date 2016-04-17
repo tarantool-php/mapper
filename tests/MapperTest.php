@@ -2,6 +2,34 @@
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testRemoveValidation()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('person', ['name']);
+        $manager->create('person', 'Dmitry');
+        $this->setExpectedException(Exception::class);
+        $manager->getMeta()->remove('person');
+    }
+
+    public function testRemove()
+    {
+        $manager = Helper::createManager();
+        $person = $manager->getMeta()->create('person', ['name']);
+        $spaceId = $person->getSpaceId();
+        $dmitry = $manager->create('person', 'Dmitry');
+        $manager->remove($dmitry);
+        $manager->getMeta()->remove('person');
+
+        $this->assertCount(0, $manager->get('property')->bySpace($spaceId));
+        $this->assertCount(0, $manager->getClient()->getSpace('_vindex')->select([$spaceId], 'primary')->getData());
+
+        $this->assertFalse($manager->getMeta()->has('person'));
+
+        $newPerson = $manager->getMeta()->create('person', ['login']);
+        $this->assertNotSame($person, $newPerson);
+        $nekufa = $manager->create('person', ['login' => 'nekufa']);
+        $this->assertSame($nekufa->id, 1);
+    }
     public function testNoIndex()
     {
         $manager = Helper::createManager();

@@ -18,6 +18,7 @@ interface Type
     public function hasProperty($property);
     public function getProperties();
     public function getRequiredProperties();
+    public function removeProperty($property);
 
     public function getPropertyType($property);
     public function setPropertyType($property, $type);
@@ -36,7 +37,9 @@ interface Type
     public function addIndex($field, array $arguments = null);
     public function findIndex($fields);
     public function getIndex($index);
+    public function getIndexes();
     public function getIndexTuple($index, $params);
+    public function dropIndex($index);
 
     /**
      * @param $type Type

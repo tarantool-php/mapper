@@ -117,11 +117,11 @@ class Repository implements Contracts\Repository
         }
 
         $index = $this->type->findIndex(array_keys($query));
-        if(!is_numeric($index)) {
-            throw new \Exception("No index found for " . json_encode(array_keys($query)));
+        if (!is_numeric($index)) {
+            throw new \Exception('No index found for '.json_encode(array_keys($query)));
         }
-        $values = count($query) ? $this->type->getIndexTuple($index, $query) : [];
 
+        $values = count($query) ? $this->type->getIndexTuple($index, $query) : [];
         $data = $this->type->getSpace()->select($values, $index);
 
         $result = [];
@@ -162,6 +162,11 @@ class Repository implements Contracts\Repository
         $this->type->getSpace()->delete([$entity->id]);
     }
 
+    public function flushCache()
+    {
+        $this->findCache = [];
+    }
+
     public function save(Contracts\Entity $entity)
     {
         if (!$this->knows($entity)) {
@@ -181,7 +186,7 @@ class Repository implements Contracts\Repository
                 }
                 try {
                     $this->type->getSpace()->update($entity->getId(), $operations);
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     $this->type->getSpace()->delete([$entity->getId()]);
                     $tuple = $this->type->getCompleteTuple($entity->toArray());
                     $this->type->getSpace()->insert($tuple);
