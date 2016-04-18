@@ -29,6 +29,8 @@ interface Repository
      */
     public function remove(Entity $entity);
 
+    public function removeAll();
+
     /**
      * @return Type
      */

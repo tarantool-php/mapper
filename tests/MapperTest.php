@@ -11,6 +11,19 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager->getMeta()->remove('person');
     }
 
+    public function testClearSpace()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('item', ['name']);
+        $manager->create('item', 'ferrari');
+        $manager->create('item', 'bugatti');
+        $manager->create('item', 'lada');
+
+        $this->assertCount(3, $manager->get('item')->find([]));
+        $manager->get('item')->removeAll();
+        $this->assertCount(0, $manager->get('item')->find([]));
+    }
+
     public function testRemove()
     {
         $manager = Helper::createManager();
