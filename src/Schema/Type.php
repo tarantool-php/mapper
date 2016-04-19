@@ -102,14 +102,14 @@ class Type implements Contracts\Type
             $type = $this->manager->getMeta()->getConvention()->getType($name);
         }
         $this->types[$name] = $type;
-        $this->manager->create('property', [
+        $property = $this->manager->create('property', [
             'space' => $this->spaceId,
             'index' => count($this->properties),
             'name' => $name,
             'type' => $this->types[$name],
         ]);
 
-        $this->properties[] = $name;
+        $this->properties[$property->index] = $name;
 
         return $this;
     }
@@ -157,13 +157,13 @@ class Type implements Contracts\Type
         if (!$this->hasProperty($name)) {
             throw new LogicException("Unknown property $name");
         }
-        $query = [
+        $index = array_search($name, $this->properties);
+        $property = $this->manager->get('property')->findOne([
             'space' => $this->spaceId,
-            'index' => array_search($name, $this->properties),
-        ];
-        $property = $this->manager->get('property')->findOne($query);
+            'index' => $index,
+        ]);
         $this->manager->remove($property);
-        unset($this->properties[$name]);
+        unset($this->properties[$index]);
         unset($this->types[$name]);
     }
 

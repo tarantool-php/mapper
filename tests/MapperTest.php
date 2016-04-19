@@ -2,6 +2,19 @@
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testPropertyAddRemove()
+    {
+        $manager = Helper::createManager();
+        $meta = $manager->getMeta();
+        $person = $meta->create('person', ['firstName', 'lastName', 'status']);
+        $person->removeProperty('status');
+
+        $this->assertSame($person->getProperties(), ['id', 'firstName', 'lastName']);
+
+        $person->addProperty('status');
+        $this->assertSame($person->getProperties(), ['id', 'firstName', 'lastName', 'status']);
+    }
+
     public function testRemoveValidation()
     {
         $manager = Helper::createManager();
