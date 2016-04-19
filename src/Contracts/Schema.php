@@ -12,4 +12,5 @@ interface Schema
 
     public function createIndex($space, $index, array $arguments);
     public function listIndexes($space);
+    public function dropIndex($spaceId, $index);
 }

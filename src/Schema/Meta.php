@@ -99,12 +99,13 @@ class Meta implements Contracts\Meta
             throw new Exception("Can't remove non-empty space $type");
         }
 
-        foreach (array_reverse($instance->getProperties()) as $property) {
-            $instance->removeProperty($property);
+        $indexes = array_reverse(array_keys($instance->getIndexes()));
+        foreach ($indexes as $index) {
+            $instance->dropIndex($index);
         }
 
-        foreach (array_keys($instance->getIndexes()) as $index) {
-            $instance->dropIndex($index);
+        foreach (array_reverse($instance->getProperties()) as $property) {
+            $instance->removeProperty($property);
         }
 
         $sq = $this->manager->get('sequence')->findOne(['space' => $instance->getSpaceId()]);

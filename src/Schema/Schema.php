@@ -116,4 +116,13 @@ class Schema implements Contracts\Schema
 
         return $response->getData()[0][1];
     }
+
+    public function dropIndex($spaceId, $index)
+    {
+        $space = $this->client->getSpace('_vindex');
+        $row = $space->select([$spaceId, $index])->getData();
+        $spaceName = $this->getSpaceName($spaceId);
+        $indexName = $row[0][2];
+        $this->client->evaluate("box.space.$spaceName.index.$indexName:drop{}");
+    }
 }

@@ -3,6 +3,14 @@
 
 class SchemaTest extends PHPUnit_Framework_TestCase
 {
+    public function testPropertyFromMultiIndexShouldBeRemovedWhenRemoveWholeType()
+    {
+        $manager = Helper::createManager();
+        $post = $manager->getMeta()->create('post', ['date', 'status']);
+        $post->addIndex(['date', 'status']);
+        $manager->getMeta()->remove('post');
+    }
+
     public function testPropertyFromMultiIndexShouldNotBeRemoved()
     {
         $manager = Helper::createManager();
