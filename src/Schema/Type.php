@@ -157,20 +157,30 @@ class Type implements Contracts\Type
         if (!$this->hasProperty($name)) {
             throw new LogicException("Unknown property $name");
         }
+
+        foreach ($this->indexes as $index => $fields) {
+            if ($fields != [$name] && in_array($name, $fields)) {
+                throw new LogicException("Property is used by composite index $index");
+            }
+        }
+
+        foreach ($this->indexes as $index => $fields) {
+            if ($fields == [$name]) {
+                unset($this->indexes[$index]);
+            }
+        }
+
         $index = array_search($name, $this->properties);
+
+        unset($this->properties[$index]);
+        unset($this->types[$name]);
+
         $property = $this->manager->get('property')->findOne([
             'space' => $this->spaceId,
             'index' => $index,
         ]);
-        $this->manager->remove($property);
-        unset($this->properties[$index]);
-        unset($this->types[$name]);
 
-        foreach($this->indexes as $index => $fields) {
-            if($fields == [$name]) {
-                unset($this->indexes[$index]);
-            }
-        }
+        $this->manager->remove($property);
     }
 
     public function reference(Contracts\Type $foreign, $property = null)

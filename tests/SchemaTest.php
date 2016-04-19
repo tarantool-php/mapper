@@ -3,6 +3,15 @@
 
 class SchemaTest extends PHPUnit_Framework_TestCase
 {
+    public function testPropertyFromMultiIndexShouldNotBeRemoved()
+    {
+        $manager = Helper::createManager();
+        $post = $manager->getMeta()->create('post', ['date', 'status']);
+        $post->addIndex(['date', 'status']);
+        $this->setExpectedException(Exception::class);
+        $post->removeProperty('status');
+    }
+
     public function testSpaceName()
     {
         $manager = Helper::createManager();
