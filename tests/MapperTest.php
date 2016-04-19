@@ -2,6 +2,15 @@
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testPropertyRemoveRemovesIndex()
+    {
+        $manager = Helper::createManager();
+        $person = $manager->getMeta()->create('person', ['name', 'status']);
+        $person->addIndex('status');
+        $person->removeProperty('status');
+        $this->assertSame($person->getIndexes(), [['id']]);
+    }
+
     public function testPropertyAddRemove()
     {
         $manager = Helper::createManager();

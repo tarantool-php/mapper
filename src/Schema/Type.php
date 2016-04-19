@@ -165,6 +165,12 @@ class Type implements Contracts\Type
         $this->manager->remove($property);
         unset($this->properties[$index]);
         unset($this->types[$name]);
+
+        foreach($this->indexes as $index => $fields) {
+            if($fields == [$name]) {
+                unset($this->indexes[$index]);
+            }
+        }
     }
 
     public function reference(Contracts\Type $foreign, $property = null)
