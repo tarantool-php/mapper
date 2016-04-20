@@ -27,10 +27,11 @@ class Migrator implements Contracts\Migration
         }
 
         foreach ($this->migrations as $migration) {
-            if (!$manager->get('migrations')->oneByName($migration)) {
-                $instance = new $migration();
+            $name = is_object($migration) ? get_class($migration) : $migration;
+            if (!$manager->get('migrations')->oneByName($name)) {
+                $instance = is_object($migration) ? $migration : new $migration();
                 $instance->migrate($manager);
-                $manager->create('migrations', $migration);
+                $manager->create('migrations', $name);
             }
         }
     }
