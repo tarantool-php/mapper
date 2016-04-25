@@ -4,6 +4,15 @@ use Tarantool\Mapper\Migrations\Migrator;
 
 class IndexTest extends PHPUnit_Framework_TestCase
 {
+    public function testDrop()
+    {
+        $manager = Helper::createManager();
+
+        $task = $manager->getMeta()->create('task', ['sector', 'year', 'month']);
+        $task->addIndex(['sector', 'year', 'month']);
+        $task->dropindex(['sector', 'year', 'month']);
+    }
+
     public function testSimple()
     {
         $manager = Helper::createManager();

@@ -255,6 +255,9 @@ class Type implements Contracts\Type
 
     public function dropIndex($num)
     {
+        if (is_array($num)) {
+            $num = $this->findIndex($num);
+        }
         $this->getManager()->getSchema()->dropIndex($this->spaceId, $num);
         unset($this->indexes[$num]);
     }
