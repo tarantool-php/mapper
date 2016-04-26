@@ -1,7 +1,36 @@
 <?php
 
+use Tarantool\Mapper\Contracts\Entity;
+
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testFindOneCache()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('document_type', ['nick'])->addIndex('nick');
+
+        $manager->create('document_type', 'lost');
+        $manager->create('document_type', 'received');
+
+        $this->assertCount(1, $manager->get('document_type')->find(['nick' => 'lost']));
+
+        $this->assertInstanceOf(Entity::class, $manager->get('document_type')->findOne(['nick' => 'lost']));
+    }
+
+    public function testLaterReference()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('sector', ['a', 'v', 'qqqq'])->addIndex(['v', 'qqqq']);
+        $t = $manager->getMeta()->create('task', ['q', 'w', 'e', 'r', 't'])->addIndex(['q', 'w']);
+        $t->addProperty('test');
+        $t->setPropertyType('test', 'integer');
+
+        $laterManager = Helper::createManager(false);
+        $meta = $laterManager->getMeta();
+        $sector = $meta->get('sector');
+        $meta->get('task')->reference($sector);
+    }
+
     public function testPropertyRemoveRemovesIndex()
     {
         $manager = Helper::createManager();

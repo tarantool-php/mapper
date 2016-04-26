@@ -111,7 +111,7 @@ class Repository implements Contracts\Repository
             }
         }
 
-        $findKey = md5(json_encode($query));
+        $findKey = md5(json_encode($query).($oneItem ? 'x' : ''));
         if (array_key_exists($findKey, $this->findCache)) {
             return $this->findCache[$findKey];
         }
