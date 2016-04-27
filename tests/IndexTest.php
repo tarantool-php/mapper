@@ -7,7 +7,7 @@ class IndexTest extends PHPUnit_Framework_TestCase
     public function testLongIndexName()
     {
         $manager = Helper::createManager();
-        $properties = ['client_id', 'sector_id', 'year', 'month', 'task_status_id'];
+        $properties = ['sector', 'month', 'year', 'day', 'task_status'];
         $task = $manager->getMeta()->create('task', $properties)->addIndex($properties);
         $this->assertNotNull($task->findIndex($properties));
     }

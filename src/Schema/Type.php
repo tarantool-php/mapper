@@ -65,8 +65,11 @@ class Type implements Contracts\Type
         $schema = $this->manager->getSchema();
 
         $indexName = implode('_', $properties);
-        if(strlen($indexName) > 32) {
+        if (strlen($indexName) > 32) {
             $indexName = md5($indexName);
+            while (is_numeric($indexName[0])) {
+                $indexName = md5($indexName);
+            }
         }
 
         if ($schema->hasIndex($this->getName(), $indexName)) {
