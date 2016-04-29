@@ -55,6 +55,8 @@ class Repository implements Contracts\Repository
             $data[$k] = $this->type->encodeProperty($k, $v);
         }
 
+        $this->flushCache();
+
         return $this->register(new Entity($data));
     }
 
