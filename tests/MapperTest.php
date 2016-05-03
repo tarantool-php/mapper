@@ -4,6 +4,18 @@ use Tarantool\Mapper\Contracts\Entity;
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testInstanceRemoveFlushCache()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('person', ['firstName', 'lastName'])->addIndex('firstName', ['unique' => false]);
+
+        $person = $manager->create('person', ['firstName' => 'Dmitry', 'lastName' => 'Krokhin']);
+        $this->assertCount(1, $manager->get('person', ['name' => 'Dmitry']));
+
+        $manager->remove($person);
+        $this->assertCount(0, $manager->get('person', ['name' => 'Dmitry']));
+    }
+
     public function testInstanceCreationFlushCache()
     {
         $manager = Helper::createManager();

@@ -160,6 +160,7 @@ class Repository implements Contracts\Repository
     {
         unset($this->entities[$this->keyMap[$entity->id]]);
         unset($this->keyMap[$entity->id]);
+        $this->flushCache();
 
         $this->type->getSpace()->delete([$entity->id]);
     }
