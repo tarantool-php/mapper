@@ -4,6 +4,15 @@ use Tarantool\Mapper\Contracts\Entity;
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testStringCasting()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('person', ['firstName', 'lastName'])->addIndex('firstName', ['unique' => false]);
+
+        $person = $manager->create('person', ['firstName' => 123, 'lastName' => 456]);
+        $this->assertSame($person->firstName, '123');
+        $this->assertSame($person->lastName, '456');
+    }
     public function testInstanceRemoveFlushCache()
     {
         $manager = Helper::createManager();

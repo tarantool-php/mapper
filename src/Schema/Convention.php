@@ -41,8 +41,13 @@ class Convention implements Contracts\Convention
 
             return +$value;
         }
+
         if ($type == 'integer') {
             return +$value;
+        }
+
+        if (!is_array($value)) {
+            return "$value";
         }
 
         return $value;
