@@ -7,8 +7,10 @@ class SchemaTest extends PHPUnit_Framework_TestCase
     {
         $manager = Helper::createManager();
         $post = $manager->getMeta()->create('post', ['date', 'status']);
+        $post->addIndex(['date', 'status']);
         $post->renameProperty('status', 'post_status');
         $this->assertSame($post->getProperties(), ['id', 'date', 'post_status']);
+        $this->assertSame(1, $post->findIndex(['post_status', 'date']));
 
         $manager = Helper::createManager(false);
         $post = $manager->getMeta()->get('post');
