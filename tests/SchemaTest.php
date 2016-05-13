@@ -21,6 +21,16 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         $this->assertSame($post->getProperties(), ['id', 'date', 'post_status', 'label']);
     }
 
+    public function testNewIndexProvidesCacheClean()
+    {
+        $manager = Helper::createManager();
+        $post = $manager->getMeta()->create('post', ['date', 'status', 'label']);
+        $post->addIndex(['date', 'status'], ['unique' => false]);
+        $this->assertNotNull($manager->create('post', ['date' => 1, 'status' => 2, 'label' => 3]));
+        $post->addIndex(['status', 'label'], ['unique' => false]);
+        $this->assertNotNull($manager->create('post', ['date' => 1, 'status' => 2]));
+    }
+
     public function testPropertyFromMultiIndexShouldBeRemovedWhenRemoveWholeType()
     {
         $manager = Helper::createManager();

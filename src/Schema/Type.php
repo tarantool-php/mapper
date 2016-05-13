@@ -91,6 +91,8 @@ class Type implements Contracts\Type
         $num = $schema->createIndex($this->getName(), $indexName, $arguments);
         $this->indexes[$num] = $properties;
 
+        unset($this->requiredProperties);
+
         return $this;
     }
 
