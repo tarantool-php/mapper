@@ -11,6 +11,7 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         $post->renameProperty('status', 'post_status');
         $this->assertSame($post->getProperties(), ['id', 'date', 'post_status']);
         $this->assertSame(1, $post->findIndex(['post_status', 'date']));
+        $this->assertSame('string', $post->getPropertyType('post_status'));
 
         $manager = Helper::createManager(false);
         $post = $manager->getMeta()->get('post');

@@ -175,8 +175,11 @@ class Type implements Contracts\Type
         $row->name = $new;
         $this->getManager()->save($row);
 
+        $this->types[$new] = $this->types[$name];
+        unset($this->types[$name]);
+
         foreach ($this->indexes as $index => $fields) {
-            if(in_array($name, $fields)) {
+            if (in_array($name, $fields)) {
                 $this->indexes[$index][array_search($name, $fields)] = $new;
             }
         }
