@@ -4,6 +4,18 @@ use Tarantool\Mapper\Migrations\Migrator;
 
 class IndexTest extends PHPUnit_Framework_TestCase
 {
+    public function testIncorrectPartialIndex()
+    {
+        $manager = Helper::createManager();
+        $properties = ['sector', 'year', 'month', 'day', 'task_status'];
+        $task = $manager->getMeta()->create('task', $properties)->addIndex($properties);
+        try {
+            $manager->get('task', ['sector' => 1, 'month' => 1]);
+        } catch (Exception $e) {
+            $this->assertNotSame('Tarantool\Exception\Exception', get_class($e));
+        }
+    }
+
     public function testLongIndexName()
     {
         $manager = Helper::createManager();

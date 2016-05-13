@@ -289,10 +289,18 @@ class Type implements Contracts\Type
         // cast partial index
         $casting = [];
 
-        foreach ($this->indexes as $name => $fields) {
+        foreach ($this->indexes as $indexId => $fields) {
             if (!count(array_diff($query, $fields))) {
-                $casting[count(array_diff($fields, $query))] = $name;
+                for ($i = 0; $i < count($query); ++$i) {
+                    if (!in_array($fields[$i], $query)) {
+                        break 2;
+                    }
+                }
+                $casting[count(array_diff($fields, $query))] = $indexId;
             }
+        }
+        if (!count($casting)) {
+            return;
         }
         ksort($casting);
 
