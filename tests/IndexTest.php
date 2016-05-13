@@ -9,7 +9,9 @@ class IndexTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager();
         $properties = ['sector', 'year', 'month', 'day', 'task_status'];
         $task = $manager->getMeta()->create('task', $properties)->addIndex($properties);
+
         $manager->create('task', ['sector' => 1, 'month' => 1]);
+
         try {
             $manager->get('task', ['sector' => 1, 'month' => 1]);
         } catch (Exception $e) {
