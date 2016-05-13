@@ -7,24 +7,36 @@ class IndexTest extends PHPUnit_Framework_TestCase
     public function testIncorrectPartialIndex()
     {
         $manager = Helper::createManager();
-        $properties = ['sector', 'year', 'month', 'day', 'task_status'];
-        $task = $manager->getMeta()->create('task', $properties)->addIndex($properties);
 
-        $manager->create('task', ['sector' => 1, 'month' => 1]);
+        $properties = ['sector', 'year', 'month', 'day'];
+
+        $task = $manager->getMeta()->create('task', $properties)
+            ->setPropertyType(['sector', 'year', 'month', 'day'], 'integer');
+
+        $manager->create('task', ['sector' => 1, 'month' => 1, 'year' => 1, 'month' => 1, 'day' => 1]);
 
         try {
-            $manager->get('task', ['sector' => 1, 'month' => 1]);
+            $manager->get('task', ['sector' => 1, 'year' => 1]);
         } catch (Exception $e) {
             $this->assertNotSame('Tarantool\Exception\Exception', get_class($e));
         }
 
-        $task->addIndex(['month', 'sector']);
+        $task->addIndex(['sector', 'year']);
 
-        $tasks = $manager->get('task', ['sector' => 1, 'month' => 1]);
+        $tasks = $manager->get('task', ['sector' => 1, 'year' => 1]);
         $this->assertCount(1, $tasks);
 
-        $tasks = $manager->get('task', ['sector' => 1, 'month' => 0]);
+        $tasks = $manager->get('task', ['sector' => 1, 'year' => 0]);
         $this->assertCount(0, $tasks);
+
+        try {
+            $manager->get('task', ['year' => 1]);
+        } catch (Exception $e) {
+            $this->assertNotSame('Tarantool\Exception\Exception', get_class($e));
+        }
+
+        $task->addIndex(['year', 'month']);
+        $this->assertCount(1, $manager->get('task', ['year' => 1]));
     }
 
     public function testLongIndexName()

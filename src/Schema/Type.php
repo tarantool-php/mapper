@@ -293,7 +293,7 @@ class Type implements Contracts\Type
             if (!count(array_diff($query, $fields))) {
                 for ($i = 0; $i < count($query); ++$i) {
                     if (!in_array($fields[$i], $query)) {
-                        break 2;
+                        continue 2;
                     }
                 }
                 $casting[count(array_diff($fields, $query))] = $indexId;
