@@ -6,16 +6,17 @@ class SchemaTest extends PHPUnit_Framework_TestCase
     public function testPropertyRename()
     {
         $manager = Helper::createManager();
-        $post = $manager->getMeta()->create('post', ['date', 'status']);
+        $post = $manager->getMeta()->create('post', ['date', 'status', 'label']);
         $post->addIndex(['date', 'status']);
         $post->renameProperty('status', 'post_status');
-        $this->assertSame($post->getProperties(), ['id', 'date', 'post_status']);
+        $this->assertSame($post->getProperties(), ['id', 'date', 'post_status', 'label']);
         $this->assertSame(1, $post->findIndex(['post_status', 'date']));
         $this->assertSame('string', $post->getPropertyType('post_status'));
+        $this->assertNotNull($manager->create('post', ['date' => 20160513, 'label' => 'oops']));
 
         $manager = Helper::createManager(false);
         $post = $manager->getMeta()->get('post');
-        $this->assertSame($post->getProperties(), ['id', 'date', 'post_status']);
+        $this->assertSame($post->getProperties(), ['id', 'date', 'post_status', 'label']);
     }
 
     public function testPropertyFromMultiIndexShouldBeRemovedWhenRemoveWholeType()

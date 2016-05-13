@@ -165,7 +165,6 @@ class Type implements Contracts\Type
         }
 
         $index = array_search($name, $this->properties);
-        unset($this->properties[$index]);
         $this->properties[$index] = $new;
 
         $row = $this->getManager()->get('property')->findOne([
