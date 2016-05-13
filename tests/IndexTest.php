@@ -9,11 +9,20 @@ class IndexTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager();
         $properties = ['sector', 'year', 'month', 'day', 'task_status'];
         $task = $manager->getMeta()->create('task', $properties)->addIndex($properties);
+        $manager->create('task', ['sector' => 1, 'month' => 1]);
         try {
             $manager->get('task', ['sector' => 1, 'month' => 1]);
         } catch (Exception $e) {
             $this->assertNotSame('Tarantool\Exception\Exception', get_class($e));
         }
+
+        $task->addIndex(['month', 'sector']);
+
+        $tasks = $manager->get('task', ['sector' => 1, 'month' => 1]);
+        $this->assertCount(1, $tasks);
+
+        $tasks = $manager->get('task', ['sector' => 1, 'month' => 0]);
+        $this->assertCount(0, $tasks);
     }
 
     public function testLongIndexName()
