@@ -7,12 +7,14 @@ class SchemaTest extends PHPUnit_Framework_TestCase
     {
         $manager = Helper::createManager();
         $post = $manager->getMeta()->create('post', ['date', 'status', 'label']);
-        $post->addIndex(['date', 'status']);
+        $post->addIndex(['date', 'status'], ['unique' => false]);
+        $this->assertNotNull($manager->create('post', ['date' => 20160513, 'status' => 1]));
         $post->renameProperty('status', 'post_status');
         $this->assertSame($post->getProperties(), ['id', 'date', 'post_status', 'label']);
         $this->assertSame(1, $post->findIndex(['post_status', 'date']));
         $this->assertSame('string', $post->getPropertyType('post_status'));
         $this->assertNotNull($manager->create('post', ['date' => 20160513, 'label' => 'oops']));
+        $this->assertNotNull($manager->create('post', ['date' => 20160513]));
 
         $manager = Helper::createManager(false);
         $post = $manager->getMeta()->get('post');
