@@ -158,6 +158,24 @@ class Type implements Contracts\Type
         return $this;
     }
 
+    public function renameProperty($name, $new)
+    {
+        if (!$this->hasProperty($name)) {
+            throw new LogicException("Unknown property $name");
+        }
+
+        $index = array_search($name, $this->properties);
+        unset($this->properties[$index]);
+        $this->properties[$index] = $new;
+
+        $row = $this->getManager()->get('property')->findOne([
+            'space' => $this->spaceId,
+            'index' => $index,
+        ]);
+        $row->name = $new;
+        $this->getManager()->save($row);
+    }
+
     public function removeProperty($name)
     {
         if (!$this->hasProperty($name)) {

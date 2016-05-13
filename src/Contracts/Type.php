@@ -19,6 +19,7 @@ interface Type
     public function getProperties();
     public function getRequiredProperties();
     public function removeProperty($property);
+    public function renameProperty($property, $new);
 
     public function getPropertyType($property);
     public function setPropertyType($property, $type);
