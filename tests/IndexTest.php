@@ -4,6 +4,25 @@ use Tarantool\Mapper\Migrations\Migrator;
 
 class IndexTest extends PHPUnit_Framework_TestCase
 {
+    public function testIndexColumnNulledShouldProvideCorrectValue()
+    {
+        $manager = Helper::createManager();
+        $type = $manager->getMeta()->create('person', ['name', 'login']);
+        $type->addIndex(['login']);
+
+        $person = $manager->create('person', ['name' => 'dmitry']);
+        $this->assertNotNull($person);
+        $this->assertSame('', $person->login);
+
+        $person->login = 'nekufa';
+        $this->assertSame('nekufa', $person->login);
+        $manager->save($person);
+
+        $person->login = null;
+        $manager->save($person);
+        $this->assertSame('', $person->login);
+    }
+
     public function testIncorrectPartialIndex()
     {
         $manager = Helper::createManager();

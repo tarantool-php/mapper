@@ -42,10 +42,10 @@ class RelationTest extends PHPUnit_Framework_TestCase
         $this->assertSame($required, $calcRequired);
 
         $recovery = $manager->create('recovery', ['token' => md5('test')]);
-        $this->assertNull($recovery->user);
+        $this->assertSame(0, $recovery->user);
 
         $recovery = $manager->create('recovery', ['user' => 1]);
-        $this->assertNull($recovery->token);
+        $this->assertSame('', $recovery->token);
     }
 
     public function testTwoRelation()

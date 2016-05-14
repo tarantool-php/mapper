@@ -370,11 +370,8 @@ class Type implements Contracts\Type
 
         foreach ($this->getProperties() as $index => $field) {
             if (in_array($field, $required) && !array_key_exists($index, $tuple)) {
-                if ($this->isReference($field)) {
-                    $tuple[$index] = 0;
-                } else {
-                    $tuple[$index] = '';
-                }
+                $propertyType = $this->getPropertyType($field);
+                $tuple[$index] = $this->convention->getDefaultValue($propertyType);
             }
         }
 
@@ -399,6 +396,10 @@ class Type implements Contracts\Type
         foreach ($this->getProperties() as $index => $name) {
             if (array_key_exists($name, $input)) {
                 $output[$index] = $this->encodeProperty($name, $input[$name]);
+                if (is_null($output[$index]) && in_array($name, $this->getRequiredProperties())) {
+                    $propertyType = $this->getPropertyType($name);
+                    $output[$index] = $this->convention->getDefaultValue($propertyType);
+                }
             }
         }
 

@@ -65,4 +65,13 @@ class Convention implements Contracts\Convention
 
         return $value;
     }
+
+    public function getDefaultValue($type)
+    {
+        if ($type == 'integer' || !$this->isPrimitive($type)) {
+            return 0;
+        }
+
+        return '';
+    }
 }

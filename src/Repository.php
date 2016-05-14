@@ -61,6 +61,13 @@ class Repository implements Contracts\Repository
             }
             $data[$k] = $this->type->encodeProperty($k, $v);
         }
+        foreach ($this->type->getRequiredProperties() as $property) {
+            if (!array_key_exists($property, $data)) {
+                $convention = $this->type->getManager()->getMeta()->getConvention();
+                $propertyType = $this->type->getPropertyType($property);
+                $data[$property] = $convention->getDefaultValue($propertyType);
+            }
+        }
 
         $this->flushCache();
 
@@ -230,7 +237,10 @@ class Repository implements Contracts\Repository
                     $operations[] = ['=', $key, $value];
                 }
                 try {
-                    $this->type->getSpace()->update($id, $operations);
+                    $result = $this->type->getSpace()->update($id, $operations);
+                    $current = $this->type->fromTuple($result->getData()[0]);
+                    $this->original[$id] = $current;
+                    $entity->update($current);
                 } catch (Exception $e) {
                     $this->type->getSpace()->delete([$id]);
                     $tuple = $this->type->getCompleteTuple($entity->toArray());

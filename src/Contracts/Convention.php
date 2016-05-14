@@ -8,6 +8,8 @@ interface Convention
     public function getType($property);
     public function getTarantoolType($type);
 
+    public function getDefaultValue($type);
+
     public function encode($type, $value);
     public function decode($type, $value);
 }
