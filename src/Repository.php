@@ -3,6 +3,7 @@
 namespace Tarantool\Mapper;
 
 use BadMethodCallException;
+use Exception;
 use LogicException;
 
 class Repository implements Contracts\Repository
@@ -50,12 +51,13 @@ class Repository implements Contracts\Repository
                     if (count($primitive) == 2) {
                         $k = $primitive[1];
                     } else {
-                        throw new \Exception("Can't calculate key name");
+                        throw new Exception("Can't calculate key name");
                     }
                 }
             }
             if (!$this->type->hasProperty($k)) {
-                throw new \Exception("Unknown property $k");
+                $name = $this->type->getName();
+                throw new Exception("Unknown property $name.$k");
             }
             $data[$k] = $this->type->encodeProperty($k, $v);
         }
@@ -132,7 +134,7 @@ class Repository implements Contracts\Repository
 
         $index = $this->type->findIndex(array_keys($query));
         if (!is_numeric($index)) {
-            throw new \Exception('No index found for '.json_encode(array_keys($query)));
+            throw new Exception('No index found for '.json_encode(array_keys($query)));
         }
 
         $values = count($query) ? $this->type->getIndexTuple($index, $query) : [];
@@ -214,6 +216,14 @@ class Repository implements Contracts\Repository
                     }
                 }
             }
+
+            foreach ($changes as $k => $v) {
+                if (!$this->type->hasProperty($k)) {
+                    $name = $this->type->getName();
+                    throw new Exception("Unknown property $name.$k");
+                }
+            }
+
             if (count($changes)) {
                 $operations = [];
                 foreach ($this->type->getTuple($changes) as $key => $value) {
@@ -221,7 +231,7 @@ class Repository implements Contracts\Repository
                 }
                 try {
                     $this->type->getSpace()->update($id, $operations);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->type->getSpace()->delete([$id]);
                     $tuple = $this->type->getCompleteTuple($entity->toArray());
                     $this->type->getSpace()->insert($tuple);

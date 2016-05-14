@@ -8,6 +8,36 @@ class Post extends Entity
 
 class SchemaTest extends PHPUnit_Framework_TestCase
 {
+    public function testPropertiesCheck()
+    {
+        $manager = Helper::createManager();
+
+        $manager->getMeta()->create('person', ['name']);
+
+        // create entity
+        try {
+            $manager->create('person', [
+                'name' => 'dmitry',
+                'email' => 'nekufa@gmail.com',
+            ]);
+            $this->assertNull('no exceptions when setting incorrect property');
+        } catch (Exception $e) {
+            $this->assertSame($e->getMessage(), 'Unknown property person.email');
+        }
+
+        // update entity
+        try {
+            $person = $manager->create('person', [
+                'name' => 'dmitry',
+            ]);
+            $person->email = 'nekufa@gmail.com';
+            $manager->save($person);
+            $this->assertNull('no exception when adding incorrect property');
+        } catch (Exception $e) {
+            $this->assertSame($e->getMessage(), 'Unknown property person.email');
+        }
+    }
+
     public function testEntityClass()
     {
         $manager = Helper::createManager();
