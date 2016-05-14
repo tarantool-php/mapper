@@ -250,6 +250,8 @@ class Repository implements Contracts\Repository
             }
         }
 
+        $this->flushCache();
+
         return $entity;
     }
 

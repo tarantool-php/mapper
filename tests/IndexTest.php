@@ -4,6 +4,22 @@ use Tarantool\Mapper\Migrations\Migrator;
 
 class IndexTest extends PHPUnit_Framework_TestCase
 {
+    public function testEntityUpdateProvidesCacheFlush()
+    {
+        $manager = Helper::createManager();
+        $type = $manager->getMeta()->create('person', ['login']);
+        $type->addIndex(['login']);
+
+        $person = $manager->create('person', 'nekufa');
+        $finded = $manager->get('person')->oneByLogin('nekufa');
+        $this->assertSame($finded, $person);
+
+        $person->login = 'vasily';
+        $manager->save($person);
+
+        $this->assertNull($manager->get('person')->oneByLogin('nekufa'));
+    }
+
     public function testIndexColumnNulledShouldProvideCorrectValue()
     {
         $manager = Helper::createManager();
