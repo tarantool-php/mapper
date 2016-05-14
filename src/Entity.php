@@ -6,18 +6,20 @@ use LogicException;
 
 class Entity implements Contracts\Entity
 {
-    protected $original = [];
-    protected $data = [];
+    private $id;
 
     public function __construct(array $data = null)
     {
-        $this->update($data);
+        if ($data) {
+            $this->update($data);
+        }
     }
 
     public function update($data)
     {
-        $this->original = $data;
-        $this->data = $data;
+        foreach ($data as $k => $v) {
+            $this->$k = $v;
+        }
     }
 
     public function __set($key, $value)
@@ -26,13 +28,13 @@ class Entity implements Contracts\Entity
             throw new LogicException('Id property is readonly');
         }
 
-        $this->data[$key] = $value;
+        $this->$key = $value;
     }
 
     public function __get($key)
     {
-        if (array_key_exists($key, $this->data)) {
-            return $this->data[$key];
+        if (property_exists($this, $key)) {
+            return $this->$key;
         }
     }
 
@@ -60,46 +62,13 @@ class Entity implements Contracts\Entity
     public function toArray($recursive = false)
     {
         $array = [];
-        foreach (array_keys($this->data) as $key) {
-            $array[$key] = $this->__get($key);
-            if ($array[$key] instanceof Contracts\Entity) {
-                if ($recursive) {
-                    $array[$key] = $array[$key]->toArray(true);
-                }
+        foreach (get_object_vars($this) as $k => $v) {
+            $array[$k] = $v;
+            if ($v instanceof Contracts\Entity) {
+                $array[$k] = $v->toArray($recursive);
             }
         }
 
         return $array;
-    }
-
-    public function getData()
-    {
-        $data = [];
-        foreach (array_keys($this->data) as $key) {
-            $data[$key] = $this->__get($key);
-            if ($data[$key] instanceof Contracts\Entity) {
-                $data[$key] = $data[$key]->id;
-            }
-        }
-
-        return $data;
-    }
-
-    /**
-     * @return array
-     */
-    public function pullChanges()
-    {
-        $changes = [];
-
-        foreach ($this->data as $key => $value) {
-            if (!array_key_exists($key, $this->original) || $this->original[$key] != $value) {
-                $changes[$key] = $value;
-            }
-        }
-
-        $this->original = $this->data;
-
-        return $changes;
     }
 }

@@ -71,7 +71,7 @@ class Manager implements Contracts\Manager
     /**
      * @return Contracts\Entity
      */
-    public function create($type, $data)
+    public function create($type, $data = null)
     {
         return $this->save($this->get($type)->create($data));
     }

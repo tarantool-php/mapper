@@ -22,7 +22,5 @@ interface Entity
     /**
      * @return array
      */
-    public function pullChanges();
-
     public function update($data);
 }

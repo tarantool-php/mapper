@@ -11,6 +11,7 @@ class Repository implements Contracts\Repository
     private $entities = [];
     private $keyMap = [];
     private $findCache = [];
+    private $original = [];
 
     private $magicMethodRules = [
         'by' => false,
@@ -27,6 +28,10 @@ class Repository implements Contracts\Repository
     {
         if ($params && !is_array($params)) {
             $params = [$params];
+        }
+
+        if (!is_array($params)) {
+            $params = [];
         }
 
         $data = [];
@@ -134,8 +139,7 @@ class Repository implements Contracts\Repository
                     $entity = $this->entities[$this->keyMap[$data['id']]];
                     $entity->update($data);
                 } else {
-                    $entity = new Entity($data);
-                    $this->register($entity);
+                    $entity = $this->create($data);
                 }
                 if ($oneItem) {
                     return $this->findCache[$findKey] = $entity;
@@ -189,19 +193,33 @@ class Repository implements Contracts\Repository
             $tuple = $this->type->getCompleteTuple($entity->toArray());
             $this->type->getSpace()->insert($tuple);
         } else {
-            $changes = $entity->pullChanges();
+            $array = $entity->toArray(false);
+            $changes = [];
+            $id = $entity->getId();
+            if (!array_key_exists($id, $this->original)) {
+                $changes = $array;
+            } else {
+                foreach ($array as $k => $v) {
+                    if (!array_key_exists($k, $this->original[$id])) {
+                        $changes[$k] = $v;
+                    } elseif ($v !== $this->original[$id][$k]) {
+                        $changes[$k] = $v;
+                    }
+                }
+            }
             if (count($changes)) {
                 $operations = [];
                 foreach ($this->type->getTuple($changes) as $key => $value) {
                     $operations[] = ['=', $key, $value];
                 }
                 try {
-                    $this->type->getSpace()->update($entity->getId(), $operations);
+                    $this->type->getSpace()->update($id, $operations);
                 } catch (\Exception $e) {
-                    $this->type->getSpace()->delete([$entity->getId()]);
+                    $this->type->getSpace()->delete([$id]);
                     $tuple = $this->type->getCompleteTuple($entity->toArray());
                     $this->type->getSpace()->insert($tuple);
                 }
+                $this->original[$id] = $entity->toArray();
             }
         }
 
@@ -215,6 +233,10 @@ class Repository implements Contracts\Repository
         }
         if ($entity->getId() && !array_key_exists($entity->getId(), $this->keyMap)) {
             $this->keyMap[$entity->getId()] = array_search($entity, $this->entities);
+        }
+
+        if ($entity->getId()) {
+            $this->original[$entity->getId()] = $entity->toArray();
         }
 
         return $entity;

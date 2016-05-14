@@ -362,6 +362,21 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $company = $manager->create('company', 'basis.company');
         $manager->get('company')->find(1);
 
-        $this->assertSame($company->getData(), ['name' => 'basis.company', 'id' => 1]);
+        $this->assertSame($company->toArray(), ['id' => 1, 'name' => 'basis.company']);
+    }
+
+    public function testCreateEmpty()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('company', ['name']);
+
+        $company = $manager->create('company');
+        $this->assertNotNull($company->id);
+        $this->assertNull($company->name);
+
+        $newManager = Helper::createManager(false);
+        $newCompany = $manager->get('company', $company->id);
+        $this->assertNotNull($newCompany->id);
+        $this->assertNull($newCompany->name);
     }
 }

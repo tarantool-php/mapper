@@ -46,6 +46,10 @@ class Convention implements Contracts\Convention
             return +$value;
         }
 
+        if (is_null($value)) {
+            return;
+        }
+
         if (!is_array($value)) {
             return "$value";
         }
