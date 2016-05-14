@@ -3,6 +3,7 @@
 namespace Tarantool\Mapper\Schema;
 
 use Tarantool\Mapper\Contracts;
+use Tarantool\Mapper\Entity;
 use LogicException;
 
 class Type implements Contracts\Type
@@ -16,6 +17,8 @@ class Type implements Contracts\Type
     private $space;
     private $spaceId;
     private $name;
+
+    private $entityClass = Entity::class;
 
     public function __construct(Contracts\Manager $manager, $name, array $properties, array $types, array $indexes)
     {
@@ -51,6 +54,16 @@ class Type implements Contracts\Type
     public function getName()
     {
         return $this->name;
+    }
+
+    public function setEntityClass($class)
+    {
+        $this->entityClass = $class;
+    }
+
+    public function getEntityClass()
+    {
+        return $this->entityClass;
     }
 
     public function addIndex($properties, array $arguments = null)

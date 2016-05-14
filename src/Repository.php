@@ -62,7 +62,14 @@ class Repository implements Contracts\Repository
 
         $this->flushCache();
 
-        return $this->register(new Entity($data));
+        return $this->createInstance($data);
+    }
+
+    private function createInstance($data)
+    {
+        $class = $this->getType()->getEntityClass();
+
+        return $this->register(new $class($data));
     }
 
     public function __call($method, $arguments)
@@ -139,7 +146,7 @@ class Repository implements Contracts\Repository
                     $entity = $this->entities[$this->keyMap[$data['id']]];
                     $entity->update($data);
                 } else {
-                    $entity = $this->create($data);
+                    $entity = $this->createInstance($data);
                 }
                 if ($oneItem) {
                     return $this->findCache[$findKey] = $entity;

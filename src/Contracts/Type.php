@@ -52,4 +52,7 @@ interface Type
     public function isReference($name);
     public function getReferenceProperty(Type $foreign);
     public function getReferences();
+
+    public function getEntityClass();
+    public function setEntityClass($class);
 }
