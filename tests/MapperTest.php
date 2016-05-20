@@ -4,6 +4,17 @@ use Tarantool\Mapper\Contracts\Entity;
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testIncorrectQueryParamsShouldProvideAnException()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()
+            ->create('person', ['firstName', 'lastName'])
+            ->addIndex('firstName', ['unique' => false]);
+
+        $this->setExpectedException(Exception::class);
+        $manager->get('person')->find(['reach' => true]);
+    }
+
     public function testStringCasting()
     {
         $manager = Helper::createManager();
@@ -19,10 +30,10 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager->getMeta()->create('person', ['firstName', 'lastName'])->addIndex('firstName', ['unique' => false]);
 
         $person = $manager->create('person', ['firstName' => 'Dmitry', 'lastName' => 'Krokhin']);
-        $this->assertCount(1, $manager->get('person', ['name' => 'Dmitry']));
+        $this->assertCount(1, $manager->get('person', ['firstName' => 'Dmitry']));
 
         $manager->remove($person);
-        $this->assertCount(0, $manager->get('person', ['name' => 'Dmitry']));
+        $this->assertCount(0, $manager->get('person', ['firstName' => 'Dmitry']));
     }
 
     public function testInstanceCreationFlushCache()
@@ -31,10 +42,10 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager->getMeta()->create('person', ['firstName', 'lastName'])->addIndex('firstName', ['unique' => false]);
 
         $manager->create('person', ['firstName' => 'Dmitry', 'lastName' => 'Krokhin']);
-        $this->assertCount(1, $manager->get('person', ['name' => 'Dmitry']));
+        $this->assertCount(1, $manager->get('person', ['firstName' => 'Dmitry']));
 
         $manager->create('person', ['firstName' => 'Dmitry', 'lastName' => 'Fedishin']);
-        $this->assertCount(2, $manager->get('person', ['name' => 'Dmitry']));
+        $this->assertCount(2, $manager->get('person', ['firstName' => 'Dmitry']));
     }
 
     public function testFindOneCache()

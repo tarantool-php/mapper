@@ -130,6 +130,9 @@ class Repository implements Contracts\Repository
                 }
                 if ($this->type->hasProperty($key)) {
                     $query[$key] = $this->type->encodeProperty($key, $value);
+                } else {
+                    $name = $this->getType()->getName();
+                    throw new Exception("Unknown property $name.$key");
                 }
             }
         }
