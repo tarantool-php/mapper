@@ -306,4 +306,22 @@ class Repository implements Contracts\Repository
     {
         return $this->type;
     }
+
+    public function evaluate($query)
+    {
+        $result = [];
+        $tuples = $this->type->getManager()->getClient()->evaluate($query)->getData()[0];
+        foreach ($tuples as $tuple) {
+            $data = $this->type->fromTuple($tuple);
+            if (isset($data['id']) && array_key_exists($data['id'], $this->keyMap)) {
+                $entity = $this->entities[$this->keyMap[$data['id']]];
+                $entity->update($data);
+            } else {
+                $entity = $this->createInstance($data);
+            }
+            $result[] = $entity;
+        }
+
+        return $result;
+    }
 }

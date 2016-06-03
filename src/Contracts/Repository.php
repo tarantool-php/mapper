@@ -35,4 +35,6 @@ interface Repository
      * @return Type
      */
     public function getType();
+
+    public function evaluate($query);
 }

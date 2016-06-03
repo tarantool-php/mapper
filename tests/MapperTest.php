@@ -4,6 +4,34 @@ use Tarantool\Mapper\Contracts\Entity;
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testEvalution()
+    {
+        $manager = Helper::createManager();
+        $person = $manager->getMeta()->create('person', ['name']);
+        $relation = $manager->getMeta()->create('person_sector', ['sector', $person]);
+        $relation->setPropertyType('sector', 'integer');
+        $relation->addIndex('sector', ['unique' => false]);
+        foreach (range(1, 10) as $number) {
+            $manager->create('person_sector', [
+                'sector' => $number % 2,
+                'person' => $manager->create('person', "Person $number"),
+            ]);
+        }
+
+        $persons = $manager->get('person')->evaluate('
+            local result = {}
+            for n, link in box.space.person_sector.index.sector:pairs(1) do
+                table.insert(result, box.space.person:get(link[3]))
+            end
+            return result
+        ');
+
+        $this->assertCount(5, $persons);
+        foreach ($persons as $person) {
+            $this->assertSame(1, substr($person->name, 7) % 2);
+        }
+    }
+
     public function testIncorrectQueryParamsShouldProvideAnException()
     {
         $manager = Helper::createManager();
