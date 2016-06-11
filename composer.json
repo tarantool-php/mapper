@@ -10,7 +10,7 @@
         "rybakit/msgpack": "^0.1.0"
     },
     "required-dev": {
-        "phpunit/phpunit": "^5.2"
+        "phpunit/phpunit": "^4.8"
     },
     "autoload-dev": {
         "classmap": [
