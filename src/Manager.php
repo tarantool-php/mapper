@@ -2,7 +2,6 @@
 
 namespace Tarantool\Mapper;
 
-use Tarantool\Client;
 use Tarantool\Mapper\Schema\Schema;
 use Tarantool\Mapper\Schema\Meta;
 use LogicException;

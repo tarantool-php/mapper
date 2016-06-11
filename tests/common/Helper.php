@@ -1,6 +1,6 @@
 <?php
 
-use Tarantool\Client;
+use Tarantool\Mapper\Client;
 use Tarantool\Mapper\Manager;
 use Tarantool\Mapper\Migrations\Migrator;
 use Tarantool\Connection\SocketConnection;

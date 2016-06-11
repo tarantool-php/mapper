@@ -1,0 +1,50 @@
+<?php
+
+namespace Tarantool\Mapper;
+
+use Tarantool\Connection\Connection;
+use Tarantool\Client as OriginalClient;
+use Tarantool\Request\Request;
+
+class Client extends OriginalClient
+{
+    private $logging = true;
+    private $log = [];
+
+    public function connect()
+    {
+        $start = microtime(1);
+
+        $result = parent::connect();
+        $this->log($start, Connection::class);
+
+        return $result;
+    }
+
+    public function sendRequest(Request $request)
+    {
+        $start = microtime(1);
+        $response = parent::sendRequest($request);
+
+        $this->log($start, get_class($request), $request->getBody(), $response->getData());
+
+        return $response;
+    }
+
+    private function log($start, $class, $request = [], $response = [])
+    {
+        if ($this->logging) {
+            $this->log[] = new Event(microtime(1) - $start, $class, $request, $response);
+        }
+    }
+
+    public function setLogging($logging)
+    {
+        $this->logging = $logging;
+    }
+
+    public function getLog()
+    {
+        return $this->log;
+    }
+}
