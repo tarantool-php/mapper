@@ -30,7 +30,7 @@ class Event
                 return 'Make connection';
 
             case EvaluateRequest::class:
-                return $this->request[39];
+                return trim($this->request[39]);
 
             case SelectRequest::class:
 
@@ -48,6 +48,7 @@ class Event
                 } else {
                     $data = $client->getSpace('_vindex')->select([$this->request[IProto::SPACE_ID], $index], 'primary')->getData();
                     $index = [];
+
                     foreach ($data[0][5] as $row) {
                         $index[] = $row[0];
                     }
