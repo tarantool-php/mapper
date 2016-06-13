@@ -57,7 +57,7 @@ class LoggingTest extends PHPUnit_Framework_TestCase
         $this->assertSame($lastEvent->getResponse(), []);
 
         // find in system space by primary with zero index
-        $manager->getClient()->getSpace("_space")->select([]);
+        $manager->getClient()->getSpace('_space')->select([]);
         $lastEvent = $this->lastLogEvent($client);
 
         // validate rendering
@@ -67,20 +67,20 @@ class LoggingTest extends PHPUnit_Framework_TestCase
         );
 
         // evaluate rendering test
-        $manager->get('person')->evaluate("
+        $manager->get('person')->evaluate('
             return box.space.person.index.id:select{1}
-        ");
+        ');
         $lastEvent = $this->lastLogEvent($client);
         $this->assertSame(
             'return box.space.person.index.id:select{1}',
             $lastEvent->render($manager)
         );
-
     }
 
     private function lastLogEvent($client)
     {
         $log = $client->getLog();
-        return $log[count($log)-1];
+
+        return $log[count($log) - 1];
     }
 }
