@@ -1,5 +1,5 @@
 # Tarantool Mapper
-[![License](https://poser.pugx.org/tarantool-php/mapper/license.png)](https://packagist.org/packages/tarantool-php/mapper)
+[![License](https://poser.pugx.org/tarantool/mapper/license.png)](https://packagist.org/packages/tarantool/mapper)
 [![Build Status](https://travis-ci.org/tarantool-php/mapper.svg?branch=master)](https://travis-ci.org/tarantool-php/mapper)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/tarantool-php/mapper/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/tarantool-php/mapper/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/tarantool-php/mapper/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/tarantool-php/mapper/?branch=master)
@@ -16,7 +16,7 @@ Install using composer.
 # Instantiate manager
 Usually, you manage dependencies in your service provider.
 To get started you should instantiate connection, packer, client and manager itself.
-In this example we use PurePacker and SocketConnection, to check other implementations please check [client documentation](https://github.com/tarantool-php/client#usage)
+In this example we use PurePacker and SocketConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#usage)
 
 ```php
 use Tarantool\Client;
@@ -195,7 +195,7 @@ You can store arrays as property without any serialization to string.
 ```php
 $manager->getMeta()->create('shift_pattern', ['title', 'pattern']);
 $manager->create('shift_pattern', [
-  'title' => 5 days week',
+  'title' => '5 days week',
   'pattern' => [
     ['work' => true],
     ['work' => true],
@@ -216,7 +216,7 @@ Mapper uses IdentityMap and query caching
 $dmitry = $manager->get('person')->findOne(['name' => 'Dmitry']); // person with id 1
 echo $dmitry == $manager->get('person', 1); // true
 
-// query result are caching until you create new entites
+// query result are cached until you create new entites
 $manager->get('person')->findOne(['name' => 'Dmitry']);
 
 // you can flush cache manually
