@@ -12,6 +12,7 @@ class MigrationTest extends PHPUnit_Framework_TestCase
 
         $migrator = new Migrator();
         $migrator->registerMigration($instance);
+        $this->assertCount(1, $migrator->getMigrations());
         $migrator->migrate($manager);
 
         $post = $manager->get('posts')->create([

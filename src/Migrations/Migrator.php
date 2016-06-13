@@ -19,6 +19,11 @@ class Migrator implements Contracts\Migration
         $this->migrations[] = $class;
     }
 
+    public function getMigrations()
+    {
+        return $this->migrations;
+    }
+
     public function migrate(Contracts\Manager $manager)
     {
         if (!$manager->getSchema()->hasSpace('migrations')) {
