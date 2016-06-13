@@ -103,6 +103,13 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager();
         $this->assertSame('_space', $manager->getSchema()->getSpaceName(280));
         $this->assertFalse($manager->getMeta()->has('_space'));
+
+        // manager updates space names online
+        $newManager = Helper::createManager(false);
+        $newManager->getMeta()->create('item', ['name']);
+
+        $spaceId = $manager->getClient()->getSpace('item')->getId();
+        $this->assertSame('item', $manager->getSchema()->getSpaceName($spaceId));
     }
 
     public function testTypeExistQuery()
