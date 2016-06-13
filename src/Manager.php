@@ -2,6 +2,7 @@
 
 namespace Tarantool\Mapper;
 
+use Tarantool\Client as TarantoolClient;
 use Tarantool\Mapper\Schema\Schema;
 use Tarantool\Mapper\Schema\Meta;
 use LogicException;
@@ -13,7 +14,7 @@ class Manager implements Contracts\Manager
     protected $client;
     protected $repositores = [];
 
-    public function __construct(Client $client)
+    public function __construct(TarantoolClient $client)
     {
         $this->client = $client;
     }

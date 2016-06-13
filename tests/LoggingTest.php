@@ -1,9 +1,22 @@
 <?php
 
+use Tarantool\Client as TarantoolClient;
 use Tarantool\Mapper\Client;
+use Tarantool\Mapper\Manager;
+use Tarantool\Connection\SocketConnection;
+use Tarantool\Packer\PurePacker;
 
 class LoggingTest extends PHPUnit_Framework_TestCase
 {
+    public function testBasicClientCanBeUsed()
+    {
+        // create client
+        $connection = new SocketConnection(getenv('TNT_CONN_HOST'));
+        $client = new TarantoolClient($connection, new PurePacker());
+        $manager = new Manager($client);
+        $this->assertSame($manager->getClient(), $client);
+    }
+
     public function testLoggingCanBeDisabled()
     {
         $manager = Helper::createManager();
