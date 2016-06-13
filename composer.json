@@ -1,6 +1,6 @@
 {
     "name": "tarantool/mapper",
-    "description": "PHP Object Layer for Tarantool.",
+    "description": "PHP Object Mapper for Tarantool.",
     "keywords": ["tarantool", "client", "pure", "nosql", "orm"],
     "type": "library",
     "license": "MIT",
