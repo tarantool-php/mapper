@@ -69,6 +69,9 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager(false);
         $post = $manager->getMeta()->get('post');
         $this->assertSame($post->getProperties(), ['id', 'date', 'post_status', 'label']);
+
+        $this->setExpectedException(Exception::class);
+        $post->renameProperty('unknown_property', 'new_name');
     }
 
     public function testNewIndexProvidesCacheClean()
