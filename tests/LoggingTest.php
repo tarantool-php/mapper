@@ -4,6 +4,17 @@ use Tarantool\Mapper\Client;
 
 class LoggingTest extends PHPUnit_Framework_TestCase
 {
+    public function testLoggingCanBeDisabled()
+    {
+        $manager = Helper::createManager();
+        $client = $manager->getClient();
+        $currentLog = $client->getLog();
+        $client->setLogging(false);
+        $client->ping();
+
+        $this->assertSame($client->getLog(), $currentLog);
+    }
+
     public function testClientLogsRequests()
     {
         $manager = Helper::createManager();
