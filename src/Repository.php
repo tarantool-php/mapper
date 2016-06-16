@@ -122,7 +122,20 @@ class Repository implements Contracts\Repository
             $params = [$params];
         }
 
+        $reject = [];
         if (is_array($params)) {
+
+            foreach($params as $key => $value) {
+                if(is_string($value)) {
+                    if(substr($value, 0, 1) == '!') {
+                        $reject[$key] = substr($value, 1);
+                    }
+                }
+            }
+            foreach(array_keys($reject) as $key) {
+                unset($params[$key]);
+            }
+
             foreach ($params as $key => $value) {
                 if (is_numeric($key) && $value instanceof Contracts\Entity) {
                     $type = $this->type->getManager()->findRepository($value)->getType();
@@ -137,7 +150,7 @@ class Repository implements Contracts\Repository
             }
         }
 
-        $findKey = md5(json_encode($query).($oneItem ? 'x' : ''));
+        $findKey = md5(json_encode([$query, $reject]).($oneItem ? 'x' : ''));
         if (array_key_exists($findKey, $this->findCache)) {
             return $this->findCache[$findKey];
         }
@@ -148,6 +161,26 @@ class Repository implements Contracts\Repository
         }
 
         $values = count($query) ? $this->type->getIndexTuple($index, $query) : [];
+
+        if (count($reject)) {
+            $if = [];
+            $properties = $this->type->getProperties();
+            foreach ($reject as $key => $value) {
+                $num = array_search($key, $properties) + 1;
+                if(!$num) {
+                    throw new Exception("Unknown property $key");
+                }
+                $if[] = "tuple[".$num.'] ~= '.(is_numeric($value) ? intval($value):"'$value'");
+            }
+
+            return $this->evaluate("
+                local result = {}
+                for _, tuple in box.space.".$this->type->getName().'.index['.$index.']:pairs{'.implode(',', $values)."} do
+                    if (" . implode(" && ", $if).") then table.insert(result, tuple) end
+                end
+                return result");
+        }
+
         $data = $this->type->getSpace()->select($values, $index);
 
         $result = [];

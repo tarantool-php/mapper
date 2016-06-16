@@ -4,6 +4,37 @@ use Tarantool\Mapper\Contracts\Entity;
 
 class MapperTest extends PHPUnit_Framework_TestCase
 {
+    public function testNotEquals()
+    {
+        $manager = Helper::createManager();
+        $person = $manager->getMeta()->create('person', ['name']);
+        $manager->create('person', 'dmitry');
+        $manager->create('person', 'vasiliy');
+        $manager->create('person', 'vladimir');
+
+        $this->assertCount(2, $manager->get('person')->find(['id' => '!2']));
+
+        $task = $manager->getMeta()->create('task', ['unit', 'sector', 'title']);
+        $task->setPropertyType(['unit', 'sector'], 'integer');
+        $task->addIndex(['unit'], ['unique' => false]);
+
+        $manager->create('task', ['unit' => 1, 'sector' => 1]);
+        $manager->create('task', ['unit' => 2, 'sector' => 2]);
+        $manager->create('task', ['unit' => 1, 'sector' => 2]);
+
+        $this->assertCount(2, $manager->get('task')->find([
+            'unit' => 1
+        ]));
+
+        $this->assertCount(1, $manager->get('task')->find([
+            'unit' => 1, 'sector' => '!2'
+        ]));
+
+        $this->assertCount(1, $manager->get('task')->find([
+            'unit' => "!1"
+        ]));
+    }
+
     public function testEvalution()
     {
         $manager = Helper::createManager();
