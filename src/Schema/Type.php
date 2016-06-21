@@ -3,7 +3,7 @@
 namespace Tarantool\Mapper\Schema;
 
 use Tarantool\Mapper\Contracts;
-use Tarantool\Mapper\Entity;
+use Tarantool\Mapper\Entities\Entity;
 use LogicException;
 
 class Type implements Contracts\Type

@@ -1,10 +1,10 @@
 <?php
 
-namespace Tarantool\Mapper;
+namespace Tarantool\Mapper\Entities;
 
 use LogicException;
 
-class Entity implements Contracts\Entity
+class Entity implements \Tarantool\Mapper\Contracts\Entity
 {
     private $id;
 
@@ -70,5 +70,19 @@ class Entity implements Contracts\Entity
         }
 
         return $array;
+    }
+
+    public function __call($name, $params)
+    {
+        if(strlen($name) > 3) {
+            $property = substr($name, 3);
+            $property[0] = strtolower($property[0]);
+            if(strpos($name, 'get') === 0) {
+                return $this->__get($property);
+            }
+            if(strpos($name, 'set') === 0) {
+                return $this->__set($property, $params[0]);
+            }
+        }
     }
 }

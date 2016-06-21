@@ -1,11 +1,5 @@
 <?php
 
-use Tarantool\Mapper\Entity;
-
-class Post extends Entity
-{
-}
-
 class SchemaTest extends PHPUnit_Framework_TestCase
 {
     public function testPropertiesCheck()
@@ -36,21 +30,6 @@ class SchemaTest extends PHPUnit_Framework_TestCase
         } catch (Exception $e) {
             $this->assertSame($e->getMessage(), 'Unknown property person.email');
         }
-    }
-
-    public function testEntityClass()
-    {
-        $manager = Helper::createManager();
-        $manager->getMeta()->create('person', ['name']);
-
-        $instance = $manager->create('person', 'dmitry');
-        $this->assertInstanceOf(Entity::class, $instance);
-
-        $type = $manager->getMeta()->create('post', ['title']);
-        $type->setEntityClass(Post::class);
-
-        $instance = $manager->create('post', 'user class for entity implemented');
-        $this->assertInstanceOf(Post::class, $instance);
     }
 
     public function testPropertyRename()

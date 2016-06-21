@@ -313,17 +313,6 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $comments->addIndex('author');
     }
 
-    public function testIdUpdate()
-    {
-        $post = new Tarantool\Mapper\Entity([
-            'title' => 'testing',
-        ]);
-        $this->assertNull($post->getId());
-        $post->setId(1);
-        $this->setExpectedException(Exception::class);
-        $post->setId(2);
-    }
-
     public function testNoMethod()
     {
         $manager = Helper::createManager();
@@ -337,13 +326,13 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $manager = Helper::createManager();
         $comments = $manager->getMeta()->create('comments', ['author', 'name']);
         $this->setExpectedException(Exception::class);
-        $manager->get('comments')->save(new Tarantool\Mapper\Entity());
+        $manager->get('comments')->save(new Tarantool\Mapper\Entities\Entity());
     }
 
     public function testNoEntityRelation()
     {
         $manager = Helper::createManager();
-        $post = new Tarantool\Mapper\Entity([
+        $post = new Tarantool\Mapper\Entities\Entity([
             'title' => 'testing',
         ]);
         $this->setExpectedException(Exception::class);
