@@ -209,7 +209,7 @@ class Repository implements Contracts\Repository
      */
     public function knows(Contracts\Entity $entity)
     {
-        return in_array($entity, $this->entities);
+        return array_key_exists(spl_object_hash($entity), $this->entities);
     }
 
     public function remove(Contracts\Entity $entity)
@@ -294,10 +294,10 @@ class Repository implements Contracts\Repository
     private function register(Contracts\Entity $entity)
     {
         if (!$this->knows($entity)) {
-            $this->entities[] = $entity;
+            $this->entities[spl_object_hash($entity)] = $entity;
         }
         if ($entity->getId() && !array_key_exists($entity->getId(), $this->keyMap)) {
-            $this->keyMap[$entity->getId()] = array_search($entity, $this->entities);
+            $this->keyMap[$entity->getId()] = spl_object_hash($entity);
         }
 
         if ($entity->getId()) {

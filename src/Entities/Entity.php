@@ -62,7 +62,7 @@ class Entity implements \Tarantool\Mapper\Contracts\Entity
     public function toArray($recursive = false)
     {
         $array = [];
-        foreach (get_object_vars($this) as $k => $v) {
+        foreach ($this as $k => $v) {
             $array[$k] = $v;
             if ($v instanceof Contracts\Entity) {
                 $array[$k] = $v->toArray($recursive);
