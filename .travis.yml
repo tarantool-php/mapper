@@ -11,7 +11,7 @@ services:
   - docker
 
 before_script:
-  - docker run -d -p 127.0.0.1:3301:3301/tcp -v $(pwd)/resources/lua/tarantool.lua:/opt/tarantool.lua tarantool/tarantool /usr/bin/tarantool /opt/tarantool.lua
+  - docker run -d --restart=always -p 3301:3301 --name tarantool tarantool/tarantool
   - composer self-update
   - composer dump-autoload
   - composer install --no-interaction --prefer-source --dev

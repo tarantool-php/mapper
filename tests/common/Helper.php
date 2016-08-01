@@ -13,7 +13,8 @@ abstract class Helper
     public static function createManager($flush = true)
     {
         // create client
-        $connection = new SocketConnection(getenv('TNT_CONN_HOST'));
+        $port = getenv('TNT_CONN_PORT') ?: 3301;
+        $connection = new SocketConnection(getenv('TNT_CONN_HOST'), $port);
         $client = new Client($connection, new PurePacker());
 
         // flush everything
