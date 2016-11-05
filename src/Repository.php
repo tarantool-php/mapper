@@ -223,8 +223,9 @@ class Repository implements Contracts\Repository
 
     public function removeAll()
     {
-        foreach ($this->find([]) as $entity) {
-            $this->remove($entity);
+        $space = $this->type->getSpace();
+        foreach($space->select([])->getData() as $row) {
+            $space->delete([$row[0]]);
         }
         $this->flushCache();
     }
