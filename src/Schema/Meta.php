@@ -12,6 +12,7 @@ class Meta implements Contracts\Meta
     protected $property = [];
     protected $indexes = [];
     protected $types = [];
+    protected $instances = [];
 
     public function __construct(Contracts\Manager $manager)
     {
@@ -53,13 +54,13 @@ class Meta implements Contracts\Meta
      */
     public function get($type)
     {
-        if (!array_key_exists($type, $this->types)) {
+        if (!array_key_exists($type, $this->instances)) {
             $spaceId = $this->manager->getSchema()->getSpaceId($type);
             if (!$spaceId) {
                 throw new LogicException("Type $type not exists");
             }
 
-            $this->types[$type] = new Type(
+            $this->instances[$type] = new Type(
                 $this->manager, $type,
                 $this->property[$spaceId],
                 $this->types[$spaceId],
@@ -67,13 +68,13 @@ class Meta implements Contracts\Meta
             );
         }
 
-        return $this->types[$type];
+        return $this->instances[$type];
     }
 
     public function has($type)
     {
         // was created
-        if (array_key_exists($type, $this->types)) {
+        if (array_key_exists($type, $this->instances)) {
             return true;
         }
 
@@ -115,7 +116,7 @@ class Meta implements Contracts\Meta
         }
 
         $this->manager->getSchema()->dropSpace($type);
-        unset($this->types[$type]);
+        unset($this->instances[$type]);
 
         $this->manager->forgetRepository($type);
     }
@@ -149,7 +150,7 @@ class Meta implements Contracts\Meta
                 }
             }
         }
-        $this->types[$type] = $instance;
+        $this->instances[$type] = $instance;
 
         return $instance;
     }
