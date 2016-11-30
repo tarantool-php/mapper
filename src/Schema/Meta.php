@@ -14,38 +14,17 @@ class Meta implements Contracts\Meta
     protected $types = [];
     protected $instances = [];
 
-    public function __construct(Contracts\Manager $manager)
+    public function __construct(Contracts\Manager $manager, array $data = null)
     {
         $this->manager = $manager;
 
-        $client = $manager->getClient();
-        foreach ($client->getSpace('property')->select([], 'space')->getData() as $property) {
-            list($id, $spaceId, $line, $name, $type) = $property;
-            if (!array_key_exists($spaceId, $this->property)) {
-                $this->property[$spaceId] = [];
-                $this->types[$spaceId] = [];
-            }
-            $this->property[$spaceId][$line] = $name;
-            $this->types[$spaceId][$name] = $type;
-        }
-        foreach ($client->getSpace('_vindex')->select([], 'primary')->getData() as $index) {
-            list($spaceId, $num, $name, $type, $params, $properties) = $index;
-            if (!array_key_exists($spaceId, $this->property)) {
-                // tarantool space index
-                continue;
-            }
-            if (!isset($this->indexes[$spaceId])) {
-                $this->indexes[$spaceId] = [];
-            }
-            $this->indexes[$spaceId][$num] = [];
-            foreach ($properties as $row) {
-                list($part, $type) = $row;
-                $this->indexes[$spaceId][$num][] = $this->property[$spaceId][$part];
-            }
-        }
-        foreach ($this->property as $spaceId => $collection) {
-            ksort($collection);
-            $this->property[$spaceId] = $collection;
+        if($data) {
+            $this->property = $data['property'];
+            $this->indexes = $data['indexes'];
+            $this->types = $data['types'];
+
+        } else {
+            $this->collectData();
         }
     }
 
@@ -169,5 +148,50 @@ class Meta implements Contracts\Meta
         }
 
         return $this->convention;
+    }
+
+    private function collectData()
+    {
+        $client = $this->manager->getClient();
+        foreach ($client->getSpace('property')->select([], 'space')->getData() as $property) {
+            list($id, $spaceId, $line, $name, $type) = $property;
+            if (!array_key_exists($spaceId, $this->property)) {
+                $this->property[$spaceId] = [];
+                $this->types[$spaceId] = [];
+            }
+            $this->property[$spaceId][$line] = $name;
+            $this->types[$spaceId][$name] = $type;
+        }
+        foreach ($client->getSpace('_vindex')->select([], 'primary')->getData() as $index) {
+            list($spaceId, $num, $name, $type, $params, $properties) = $index;
+            if (!array_key_exists($spaceId, $this->property)) {
+                // tarantool space index
+                continue;
+            }
+            if (!isset($this->indexes[$spaceId])) {
+                $this->indexes[$spaceId] = [];
+            }
+            $this->indexes[$spaceId][$num] = [];
+            foreach ($properties as $row) {
+                list($part, $type) = $row;
+                $this->indexes[$spaceId][$num][] = $this->property[$spaceId][$part];
+            }
+        }
+        foreach ($this->property as $spaceId => $collection) {
+            ksort($collection);
+            $this->property[$spaceId] = $collection;
+        }
+
+    }
+
+    public function toArray()
+    {
+        $this->collectData();
+
+        return [
+            'property' => $this->property,
+            'indexes' => $this->indexes,
+            'types' => $this->types,
+        ];
     }
 }

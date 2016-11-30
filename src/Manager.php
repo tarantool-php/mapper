@@ -97,6 +97,17 @@ class Manager implements Contracts\Manager
     }
 
     /**
+     * @param Schema
+     */
+    public function setSchema(Contracts\Schema $schema)
+    {
+        if (isset($this->schema)) {
+            throw new Exception("Schema is defined");
+        }
+        $this->schema = $schema;
+    }
+
+    /**
      * @return Meta
      */
     public function getMeta()
@@ -106,5 +117,16 @@ class Manager implements Contracts\Manager
         }
 
         return $this->meta;
+    }
+
+    /**
+     * @param Meta
+     */
+    public function setMeta(Contracts\Meta $meta)
+    {
+        if (isset($this->meta)) {
+            throw new Exception("Meta is defined");
+        }
+        $this->meta = $meta;
     }
 }

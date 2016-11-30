@@ -1,7 +1,30 @@
 <?php
 
+use Tarantool\Mapper\Client;
+use Tarantool\Mapper\Manager;
+use Tarantool\Mapper\Schema\Meta;
+use Tarantool\Mapper\Schema\Schema;
+use Tarantool\Client\Packer\PurePacker;
+
 class SchemaTest extends PHPUnit_Framework_TestCase
 {
+    public function testCachedMeta()
+    {
+        $manager = Helper::createManager();
+        $meta = $manager->getMeta()->toArray();
+        $schema = $manager->getSchema()->toArray();
+        $this->assertNotCount(0, $manager->getClient()->getLog());
+        $conn = $manager->getClient()->getConnection();
+
+        $manager = new Manager(new Client($conn, new PurePacker()));
+        $manager->setMeta(new Meta($manager, $meta));
+        $manager->setSchema(new Schema($manager->getClient(), $schema));
+        $manager->getMeta()->get('migrations');
+        $manager->getMeta()->get('sequence');
+        $manager->getMeta()->get('property');
+
+        $this->assertCount(0, $manager->getClient()->getLog());
+    }
     public function testPropertiesCheck()
     {
         $manager = Helper::createManager();

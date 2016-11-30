@@ -41,7 +41,17 @@ interface Manager
     public function getSchema();
 
     /**
+     * @param Schema
+     */
+    public function setSchema(Schema $schema);
+
+    /**
      * @return Meta
      */
     public function getMeta();
+
+    /**
+     * @param Meta
+     */
+    public function setMeta(Meta $meta);
 }

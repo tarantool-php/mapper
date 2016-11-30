@@ -14,17 +14,19 @@ class Schema implements Contracts\Schema
     protected $indexSpace;
     protected $spaceId = [];
 
-    public function __construct(Client $client)
+    public function __construct(Client $client, array $data = null)
     {
         $this->client = $client;
+        $this->spaceSpace = $client->getSpace(Space::VSPACE);
+        $this->indexSpace = $client->getSpace(Space::VINDEX);
 
-        $this->spaceSpace = $client->getSpace('_vspace');
-        $this->indexSpace = $client->getSpace('_vindex');
-        $spaces = $this->spaceSpace->select([])->getData();
-        foreach ($spaces as $row) {
-            list($id, $sys, $name) = $row;
-            $this->spaceId[$name] = $id;
+        if($data) {
+            $this->spaceId = $data;
+
+        } else {
+            $this->collectData();
         }
+
     }
 
     public function getSpaceId($space)
@@ -124,5 +126,20 @@ class Schema implements Contracts\Schema
         $spaceName = $this->getSpaceName($spaceId);
         $indexName = $row[0][2];
         $this->client->evaluate("box.space.$spaceName.index.$indexName:drop{}");
+    }
+
+    private function collectData()
+    {
+        $spaces = $this->spaceSpace->select([])->getData();
+        foreach ($spaces as $row) {
+            list($id, $sys, $name) = $row;
+            $this->spaceId[$name] = $id;
+        }
+    }
+
+    public function toArray()
+    {
+        $this->collectData();
+        return $this->spaceId;
     }
 }
