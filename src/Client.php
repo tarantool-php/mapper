@@ -2,9 +2,9 @@
 
 namespace Tarantool\Mapper;
 
-use Tarantool\Connection\Connection;
-use Tarantool\Client as OriginalClient;
-use Tarantool\Request\Request;
+use Tarantool\Client\Connection\Connection;
+use Tarantool\Client\Client as OriginalClient;
+use Tarantool\Client\Request\Request;
 
 class Client extends OriginalClient
 {

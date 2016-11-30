@@ -1,17 +1,18 @@
 <?php
 
-use Tarantool\Client as TarantoolClient;
+use Tarantool\Client\Client as TarantoolClient;
+use Tarantool\Client\Connection\StreamConnection;
+use Tarantool\Client\Packer\PurePacker;
 use Tarantool\Mapper\Client;
 use Tarantool\Mapper\Manager;
-use Tarantool\Connection\SocketConnection;
-use Tarantool\Packer\PurePacker;
 
 class LoggingTest extends PHPUnit_Framework_TestCase
 {
     public function testBasicClientCanBeUsed()
     {
         // create client
-        $connection = new SocketConnection(getenv('TNT_CONN_HOST'));
+        $port = getenv('TNT_CONN_PORT') ?: 3301;
+        $connection = new StreamConnection('tcp://'.getenv('TNT_CONN_HOST').':'.$port);
         $client = new TarantoolClient($connection, new PurePacker());
         $manager = new Manager($client);
         $this->assertSame($manager->getClient(), $client);

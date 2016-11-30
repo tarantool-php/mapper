@@ -3,10 +3,10 @@
 use Tarantool\Mapper\Client;
 use Tarantool\Mapper\Manager;
 use Tarantool\Mapper\Migrations\Migrator;
-use Tarantool\Connection\SocketConnection;
-use Tarantool\Packer\PurePacker;
-use Tarantool\Schema\Space;
-use Tarantool\Schema\Index;
+use Tarantool\Client\Connection\StreamConnection;
+use Tarantool\Client\Packer\PurePacker;
+use Tarantool\Client\Schema\Space;
+use Tarantool\Client\Schema\Index;
 
 abstract class Helper
 {
@@ -14,7 +14,7 @@ abstract class Helper
     {
         // create client
         $port = getenv('TNT_CONN_PORT') ?: 3301;
-        $connection = new SocketConnection(getenv('TNT_CONN_HOST'), $port);
+        $connection = new StreamConnection('tcp://'.getenv('TNT_CONN_HOST').':'.$port);
         $client = new Client($connection, new PurePacker());
 
         // flush everything

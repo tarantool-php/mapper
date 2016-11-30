@@ -2,10 +2,10 @@
 
 namespace Tarantool\Mapper\Schema;
 
-use Tarantool\Client;
+use Tarantool\Client\Client;
 use Tarantool\Mapper\Contracts;
-use Tarantool\Schema\Space;
-use Tarantool\Schema\Index;
+use Tarantool\Client\Schema\Space;
+use Tarantool\Client\Schema\Index;
 
 class Schema implements Contracts\Schema
 {

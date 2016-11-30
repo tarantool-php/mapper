@@ -2,11 +2,11 @@
 
 namespace Tarantool\Mapper;
 
-use Tarantool\Connection\Connection;
-use Tarantool\IProto;
-use Tarantool\Request\EvaluateRequest;
-use Tarantool\Request\Request;
-use Tarantool\Request\SelectRequest;
+use Tarantool\Client\Connection\Connection;
+use Tarantool\Client\IProto;
+use Tarantool\Client\Request\EvaluateRequest;
+use Tarantool\Client\Request\Request;
+use Tarantool\Client\Request\SelectRequest;
 
 class Event
 {
