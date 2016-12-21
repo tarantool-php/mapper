@@ -120,6 +120,19 @@ class MapperTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf(Entity::class, $manager->get('document_type')->findOne(['nick' => 'lost']));
     }
 
+    public function testNoResultCache()
+    {
+        $manager = Helper::createManager();
+        $manager->getMeta()->create('document_type', ['nick'])->addIndex('nick');
+        $manager->get('document_type')->findOne(['nick' => 'test']);
+
+        $client = $manager->getClient();
+        $currentLog = $client->getLog();
+
+        $manager->get('document_type')->findOne(['nick' => 'test']);
+        $this->assertSame($client->getLog(), $currentLog);
+    }
+
     public function testLaterReference()
     {
         $manager = Helper::createManager();

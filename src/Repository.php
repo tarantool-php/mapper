@@ -199,7 +199,9 @@ class Repository implements Contracts\Repository
                 $result[] = $entity;
             }
         }
-        if (!$oneItem) {
+        if ($oneItem) {
+            return $this->findCache[$findKey] = null;
+        } else {
             return $this->findCache[$findKey] = $result;
         }
     }
