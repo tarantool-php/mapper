@@ -24,7 +24,7 @@ class Convention implements Contracts\Convention
             return 'STR';
         }
 
-        return 'NUM';
+        return 'UNSIGNED';
     }
 
     public function isPrimitive($type)

@@ -16,13 +16,13 @@ class Bootstrap implements Contracts\Migration
         $schema = $manager->getSchema();
 
         $schema->createSpace('sequence');
-        $schema->createIndex('sequence', 'id', ['parts' => [1, 'NUM']]);
-        $schema->createIndex('sequence', 'space', ['parts' => [2, 'NUM']]);
+        $schema->createIndex('sequence', 'id', ['parts' => [1, 'UNSIGNED']]);
+        $schema->createIndex('sequence', 'space', ['parts' => [2, 'UNSIGNED']]);
 
         $schema->createSpace('property');
-        $schema->createIndex('property', 'id', ['parts' => [1, 'NUM']]);
-        $schema->createIndex('property', 'space', ['parts' => [2, 'NUM'], 'unique' => false]);
-        $schema->createIndex('property', 'index_space', ['parts' => [3, 'NUM', 2, 'NUM']]);
+        $schema->createIndex('property', 'id', ['parts' => [1, 'UNSIGNED']]);
+        $schema->createIndex('property', 'space', ['parts' => [2, 'UNSIGNED'], 'unique' => false]);
+        $schema->createIndex('property', 'index_space', ['parts' => [3, 'UNSIGNED', 2, 'UNSIGNED']]);
         $schema->createIndex('property', 'type', ['parts' => [5, 'STR'], 'unique' => false]);
 
         $client = $manager->getClient();
