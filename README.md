@@ -21,28 +21,26 @@ To get started you should instantiate connection, packer, client and manager its
 In this example we use PurePacker and SocketConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#usage)
 
 ```php
-use Tarantool\Client;
-use Tarantool\Connection\SocketConnection;
+use Tarantool\Client\Client;
+use Tarantool\Client\Connection\StreamConnection;
+use Tarantool\Client\Packer\PurePacker;
 use Tarantool\Mapper\Manager;
-use Tarantool\Packer\PurePacker;
 
-$connection = new SocketConnection('localhost');
-$packer = new PurePacker();
-$client = new Client($connection, $packer);
+$connection = new StreamConnection();
+$client = new Client($connection, new PurePacker());
 $manager = new Manager($client);
 ```
 
 # Logging
 By default, client does not logs tarantool requests, you can use mapper\client that supports logging.
 ```php
-use Tarantool\Connection\SocketConnection;
-use Tarantool\Mapper\Client;
+use Tarantool\Client\Connection\StreamConnection;
+use Tarantool\Client\Packer\PurePacker;
 use Tarantool\Mapper\Manager;
-use Tarantool\Packer\PurePacker;
+use Tarantool\Mapper\Client;
 
-$connection = new SocketConnection('localhost');
-$packer = new PurePacker();
-$client = new Client($connection, $packer);
+$connection = new StreamConnection();
+$client = new Client($connection, new PurePacker());
 $manager = new Manager($client);
 
 $result = $client->ping();
