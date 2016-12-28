@@ -145,6 +145,7 @@ class Meta implements Contracts\Meta
     {
         if (!isset($this->convention)) {
             $this->convention = new Convention();
+            $this->convention->setNumberType($this->manager->getSchema()->getNumberType());
         }
 
         return $this->convention;

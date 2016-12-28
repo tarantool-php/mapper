@@ -3,9 +3,17 @@
 namespace Tarantool\Mapper\Schema;
 
 use Tarantool\Mapper\Contracts;
+use Exception;
 
 class Convention implements Contracts\Convention
 {
+    private $numberType;
+
+    public function setNumberType($type)
+    {
+        $this->numberType = $type;
+    }
+
     public function getType($property)
     {
         if ($property == 'id') {
@@ -24,7 +32,10 @@ class Convention implements Contracts\Convention
             return 'STR';
         }
 
-        return 'UNSIGNED';
+        if(!$this->numberType) {
+            throw new Exception("numberType property is null", 1);
+        }
+        return $this->numberType;
     }
 
     public function isPrimitive($type)

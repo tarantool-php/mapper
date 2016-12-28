@@ -10,6 +10,7 @@ use Tarantool\Client\Schema\Index;
 class Schema implements Contracts\Schema
 {
     protected $client;
+    protected $numberType;
     protected $spaceSpace;
     protected $indexSpace;
     protected $spaceId = [];
@@ -21,12 +22,22 @@ class Schema implements Contracts\Schema
         $this->indexSpace = $client->getSpace(Space::VINDEX);
 
         if($data) {
-            $this->spaceId = $data;
+            $this->spaceId = $data[0];
+            $this->numberType = $data[1];
 
         } else {
             $this->collectData();
         }
 
+    }
+
+    public function getNumberType()
+    {
+        if(!$this->numberType) {
+            $version = $this->client->evaluate('return box.info.version')->getData()[0];
+            $this->numberType = $version >= '1.7' ? 'UNSIGNED' : 'NUM';
+        }
+        return $this->numberType;
     }
 
     public function getSpaceId($space)
@@ -140,6 +151,6 @@ class Schema implements Contracts\Schema
     public function toArray()
     {
         $this->collectData();
-        return $this->spaceId;
+        return [$this->spaceId, $this->numberType];
     }
 }
