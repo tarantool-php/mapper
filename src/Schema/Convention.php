@@ -43,7 +43,7 @@ class Convention implements Contracts\Convention
         }
 
         if ($type == 'integer') {
-            return +$value;
+            return $value ? +$value : 0;
         }
 
         if (is_null($value)) {
@@ -60,7 +60,7 @@ class Convention implements Contracts\Convention
     public function decode($type, $value)
     {
         if ($type == 'integer') {
-            return +$value;
+            return $value ? +$value : 0;
         }
 
         return $value;
