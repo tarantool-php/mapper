@@ -18,7 +18,7 @@ Install using composer.
 # Instantiate manager
 Usually, you manage dependencies in your service provider.
 To get started you should instantiate connection, packer, client and manager itself.
-In this example we use PurePacker and SocketConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#usage)
+In this example we use PurePacker and StreamConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#usage)
 
 ```php
 use Tarantool\Client\Client;
