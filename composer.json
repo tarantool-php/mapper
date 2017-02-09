@@ -5,7 +5,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^5.6|^7.1",
+        "php": "^5.6|^7.0",
         "tarantool/client": "dev-master",
         "rybakit/msgpack": "dev-master"
     },
