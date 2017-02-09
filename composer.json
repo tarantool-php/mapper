@@ -1,16 +1,16 @@
 {
     "name": "tarantool/mapper",
     "description": "PHP Object Mapper for Tarantool.",
-    "keywords": ["tarantool", "client", "pure", "nosql", "orm"],
+    "keywords": ["tarantool", "client", "pure", "nosql", "mapper"],
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^5.5|^7.0",
+        "php": "^5.6|^7.1",
         "tarantool/client": "dev-master",
         "rybakit/msgpack": "dev-master"
     },
-    "required-dev": {
-        "phpunit/phpunit": "^4.8"
+    "require-dev": {
+        "phpunit/phpunit": "^5.7"
     },
     "autoload-dev": {
         "classmap": [
@@ -27,8 +27,5 @@
             "name": "Dmitry Krokhin",
             "email": "nekufa@gmail.com"
         }
-    ],
-    "scripts": {
-        "cs": "php-cs-fixer fix . --level=psr2"
-    }
+    ]
 }
