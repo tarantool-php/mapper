@@ -11,10 +11,9 @@ services:
   - docker
 
 before_script:
-  - docker run -d --restart=always -p 3301:3301 --name tarantool tarantool/tarantool
+  - docker run -d --restart=always -p 3301:3301 --name tarantool tarantool/tarantool:latest
   - composer self-update
-  - composer dump-autoload
-  - composer install --no-interaction --prefer-source --dev
+  - composer install --no-interaction --prefer-source --optimize-autoloader
 
 after_script:
   - if [[ -f coverage.clover ]]; then
