@@ -45,8 +45,20 @@ class SchemaTest extends TestCase
             'unique' => false
         ]);
 
+        $person->createIndex([
+            'fields' => ['name', 'birthday'],
+            'type' => 'hash'
+        ]);
+
+
         $indexes = $mapper->find('_index', ['id' => $person->getId()]);
-        $this->assertCount(3, $indexes);
+        $this->assertCount(4, $indexes);
+
+        list($id, $name, $birthday, $nameBirthday) = $indexes;
+        $this->assertSame($id->iid, 0);
+        $this->assertSame($birthday->type, 'tree');
+        $this->assertSame($nameBirthday->type, 'hash');
+
 
         $person = $mapper->findOne('person', ['birthday' => '19840127']);
         $this->assertNull($person);
@@ -110,7 +122,7 @@ class SchemaTest extends TestCase
 
         $task->createIndex([
             'fields' => ['sector', 'year', 'month', 'day'],
-            'unique' => false
+            'unique' => false,
         ]);
 
         $id = 1;
@@ -133,5 +145,16 @@ class SchemaTest extends TestCase
         $this->assertCount(1, $mapper->find('task', ['year' => 2017, 'month' => 2]));
         $this->assertCount(3, $mapper->find('task', ['year' => 2017, 'month' => 1]));
         $this->assertCount(4, $mapper->find('task', ['year' => 2017]));
+
+        $anotherMapper = $this->createMapper();
+
+        $indexes = $anotherMapper->getSchema()->getSpace('task')->getIndexes();
+        $this->assertCount(3, $indexes);
+        list($id, $ymd, $symd) = $indexes;
+        $this->assertSame($id->name, 'id');
+        $this->assertSame($id->parts, [[0, 'unsigned']]);
+        $this->assertSame($ymd->name, 'year_month_day');
+        $this->assertSame($ymd->parts, [[1, 'unsigned'], [2, 'unsigned'], [3, 'unsigned']]);
+        $this->assertSame($symd->name, 'sector_year_month_day');
     }
 }

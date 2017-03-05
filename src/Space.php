@@ -56,9 +56,12 @@ class Space
                 $options[$k] = $v;
             }
         }
-        foreach($config['fields'] as $field) {
-            $options['parts'][] = $this->getPropertyIndex($field)+1;
-            $options['parts'][] = $this->getPropertyType($field);
+        foreach($config['fields'] as $property) {
+            if(!$this->getPropertyType($property)) {
+                throw new Exception("Unknown property $property", 1);
+            }
+            $options['parts'][] = $this->getPropertyIndex($property)+1;
+            $options['parts'][] = $this->getPropertyType($property);
         }
 
         $name = array_key_exists('name', $config) ? $config['name'] : implode('_', $config['fields']);
