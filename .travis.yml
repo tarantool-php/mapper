@@ -1,0 +1,16 @@
+language: php
+
+sudo: required
+
+php:
+  - 5.6
+  - 7.0
+  - 7.1
+
+services:
+  - docker
+
+before_script:
+  - docker run -d --restart=always -p 3301:3301 --name tarantool tarantool/tarantool:1.7.3
+  - composer self-update
+  - composer install --no-interaction --prefer-source --optimize-autoloader
