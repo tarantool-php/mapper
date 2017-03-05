@@ -72,7 +72,7 @@ class Repository
         }
 
 
-        $index = $this->space->getIndex($params);
+        $index = $this->space->castIndex($params);
         if(is_null($index)) {
             throw new Exception("No index for params ".json_encode($params));
         }

@@ -12,6 +12,9 @@ class Space
     private $format;
     private $indexes;
 
+    private $formatNamesHash = [];
+    private $formatTypesHash = [];
+
     private $repository;
 
     public function __construct(Mapper $mapper, $id)
@@ -26,6 +29,8 @@ class Space
         $format[] = compact('name', 'type');
         $this->format = $format;
         $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
+
+        $this->parseFormat();
     }
 
     public function createIndex($config)
@@ -96,37 +101,42 @@ class Space
             } else {
                 $this->format = $this->mapper->findOne('_space', ['id' => $this->id])->format;
             }
+            $this->parseFormat();
         }
 
         return $this->format;
     }
 
+    private function parseFormat()
+    {
+        $this->formatTypesHash = [];
+        $this->formatNamesHash = [];
+        foreach($this->format as $key => $row) {
+            $this->formatTypesHash[$row['name']] = $row['type'];
+            $this->formatNamesHash[$row['name']] = $key;
+        }
+    }
+
     public function hasProperty($name)
     {
-        foreach($this->getFormat() as $row) {
-            if($row['name'] == $name) {
-                return true;
-            }
-        }
-        return false;
+        $this->getFormat();
+        return array_key_exists($name, $this->formatNamesHash);
     }
 
     public function getPropertyType($name)
     {
-        foreach($this->getFormat() as $row) {
-            if($row['name'] == $name) {
-                return $row['type'];
-            }
+        if(!$this->hasProperty($name)) {
+            throw new Exception("No property $name");
         }
+        return $this->formatTypesHash[$name];
     }
 
     public function getPropertyIndex($name)
     {
-        foreach($this->getFormat() as $index => $row) {
-            if($row['name'] == $name) {
-                return $index;
-            }
+        if(!$this->hasProperty($name)) {
+            throw new Exception("No property $name");
         }
+        return $this->formatNamesHash[$name];
     }
 
     public function getIndexes()
@@ -151,7 +161,7 @@ class Space
         return $this->indexes;
     }
 
-    public function getIndex($params)
+    public function castIndex($params)
     {
         $keys = array_keys($params);
 
