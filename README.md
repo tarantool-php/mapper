@@ -48,6 +48,24 @@ $result = $client->ping();
 $log = $client->getLog();
 ```
 
+# Existing types
+You can start with your current configuration.
+Please, note - all instances are mapped to key-value objects.
+```php
+$globalSpace = $mapper->find('_space', ['name' => '_space']);
+echo $globalSpace->id; // 280
+
+$indexes = $mapper->find('_index', ['id' => $globalSpace->id]);
+var_dump($indexes); // indexes on _index space
+echo $indexes[0]->name;  // primary index
+echo $indexes[0]->type; // tree
+
+$guest = $mapper->find('_user', ['name' => 'guest']);
+echo $guest->id; // 0
+echo $guest->type; // user
+
+```
+
 # Describe entities
 To get started you should describe your types and fields using meta object.
 ```php
