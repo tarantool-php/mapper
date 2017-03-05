@@ -49,6 +49,21 @@ class Repository
             return $this->results[$cacheIndex];
         }
 
+        if(!is_array($params)) {
+            $params = [$params];
+        }
+        if(count($params) == 1 && array_key_exists(0, $params)) {
+            $primary = $this->space->getPrimaryIndex();
+            if(count($primary->parts) == 1) {
+                $formatted = $this->space->getMapper()->getSchema()->formatValue($primary->parts[0][1], $params[0]);
+                if($params[0] == $formatted) {
+                    $params = [
+                        $this->space->getFormat()[$primary->parts[0][0]]['name'] => $params[0]
+                    ];
+                }
+            }
+        }
+
         if(array_key_exists('id', $params)) {
             if(array_key_exists($params['id'], $this->persisted)) {
                 $instance = $this->persisted[$params['id']];

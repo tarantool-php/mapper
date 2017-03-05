@@ -48,6 +48,13 @@ class MapperTest extends TestCase
         $guests = $mapper->find('_user', ['name' => 'guest']);
         $this->assertCount(1, $guests);
         $this->assertSame($guests[0], $guest);
+
+        // validate get by id easy call
+        $user = $mapper->findOne('_user', [0]);
+        $this->assertSame($user, $guest);
+
+        $user = $mapper->findOne('_user', 0);
+        $this->assertSame($user, $guest);
     }
 
     public function testQueryCaching()
