@@ -16,3 +16,9 @@ before_script:
   - composer dumpautoload
 
 script: vendor/bin/phpunit
+
+after_script:
+  - if [[ -f coverage.clover ]]; then
+      curl -sSOL https://scrutinizer-ci.com/ocular.phar &&
+      php ocular.phar code-coverage:upload --format=php-clover coverage.clover;
+    fi
