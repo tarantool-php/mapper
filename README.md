@@ -15,16 +15,16 @@ Install using composer.
 }
 ```
 
-# Instantiate manager
+# Instantiate mapper
 Usually, you manage dependencies in your service provider.
-To get started you should instantiate connection, packer, client and manager itself.
+To get started you should instantiate connection, packer, client and mapper itself.
 In this example we use PurePacker and StreamConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#usage)
 
 ```php
 use Tarantool\Client\Client;
 use Tarantool\Client\Connection\StreamConnection;
 use Tarantool\Client\Packer\PurePacker;
-use Tarantool\Mapper\Manager;
+use Tarantool\Mapper\Mapper;
 
 $connection = new StreamConnection();
 $client = new Client($connection, new PurePacker());
@@ -36,7 +36,7 @@ By default, client does not logs tarantool requests, you can use mapper\client t
 ```php
 use Tarantool\Client\Connection\StreamConnection;
 use Tarantool\Client\Packer\PurePacker;
-use Tarantool\Mapper\Manager;
+use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Client;
 
 $connection = new StreamConnection();
@@ -99,7 +99,7 @@ $dmitry = $persons->create([
 // save
 $mapper->save($dmitry);
 
-// you can create entities using manager wrapper.
+// you can create entities using mapper wrapper.
 // this way entity will be created and saved in the tarantool
 $vasily = $mapper->create('person', [
   'id' => 2,
@@ -109,7 +109,7 @@ $vasily = $mapper->create('person', [
 // you can retreive entites by id from repository
 $helloWorld = $mapper->getRepository('post')->find(3);
 
-// or using manager wrapper
+// or using mapper wrapper
 $helloWorld = $mapper->find('post', 3);
 
 // updates are easy
