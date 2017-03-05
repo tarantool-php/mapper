@@ -13,9 +13,7 @@
         "phpunit/phpunit": "^6.0"
     },
     "autoload-dev": {
-        "classmap": [
-            "tests"
-        ]
+        "classmap": ["tests"]
     },
     "autoload": {
         "psr-4": {
