@@ -228,6 +228,23 @@ $pattern = $mapper->create('shift_pattern', [
 echo $pattern->id; // will be set when you create an instance
 ```
 
+# User-defined classes plugin
+If you want you can specify classes to use for repository and entity instances.
+Entity and repository class implementation are ommited, but you should just extend base classes.
+```php
+$userClasses = $mappr->addPlugin(Tarantool\Mapper\Plugins\UserClasses::class);
+$userClasses->mapEntity('person', Application\Models\Person::class);
+$userClasses->mapRepository('person', Application\Repositories\Person::class);
+
+$nekufa = $mapper->create('person', [
+  'email' => 'nekufa@gmail.com'
+]);
+
+get_class($nekufa); // Application\Models\Person;
+
+$mapper->getSchema()->getSpace('person')->getRepository(); // will be instance of Application\Repositories\Person
+```
+
 # Internals
 Mapper uses IdentityMap and query caching
 ```php
