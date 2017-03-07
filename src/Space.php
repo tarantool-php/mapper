@@ -9,6 +9,7 @@ class Space
     private $mapper;
     
     private $id;
+    private $name;
     private $format;
     private $indexes;
 
@@ -17,10 +18,11 @@ class Space
 
     private $repository;
 
-    public function __construct(Mapper $mapper, $id)
+    public function __construct(Mapper $mapper, $id, $name)
     {
         $this->mapper = $mapper;
         $this->id = $id;
+        $this->name = $name;
     }
 
     public function addProperty($name, $type)
@@ -81,11 +83,6 @@ class Space
         return $this->id == 280 || $this->id == 288;
     }
 
-    public function getMapper()
-    {
-        return $this->mapper;
-    }
-
     public function getId()
     {
         return $this->id;
@@ -105,6 +102,16 @@ class Space
         }
 
         return $this->format;
+    }
+
+    public function getMapper()
+    {
+        return $this->mapper;
+    }
+
+    public function getName()
+    {
+        return $this->name;
     }
 
     private function parseFormat()
@@ -263,6 +270,16 @@ class Space
 
     public function getRepository()
     {
-        return $this->repository ?: $this->repository = new Repository($this);
+        $class = Repository::class;
+        foreach($this->mapper->getPlugins() as $plugin) {
+            $repositoryClass = $plugin->getRepositoryClass($this);
+            if($repositoryClass) {
+                if($class != Repository::class) {
+                    throw new Exception('Repository class override');
+                }
+                $class = $repositoryClass;
+            }
+        }
+        return $this->repository ?: $this->repository = new $class($this);
     }
 }

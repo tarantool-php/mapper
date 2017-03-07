@@ -23,13 +23,27 @@ class Repository
 
     public function create($data)
     {
-        $instance = (object) [];
+        $class = Entity::class;
+        foreach($this->space->getMapper()->getPlugins() as $plugin) {
+            $entityClass = $plugin->getEntityClass($this->space);
+            if($entityClass) {
+                if($class != Entity::class) {
+                    throw new Exception('Entity class override');
+                }
+                $class = $entityClass;
+            }
+        }
+        $instance = new $class();
         foreach($this->space->getFormat() as $row) {
             if(array_key_exists($row['name'], $data)) {
                 $instance->{$row['name']} = $data[$row['name']];
             }
         }
         
+        foreach($this->space->getMapper()->getPlugins() as $plugin) {
+            $plugin->beforeCreate($instance, $this->space);
+        }
+
         // validate instance key
         $key = $this->space->getInstanceKey($instance);
 
@@ -109,7 +123,17 @@ class Repository
             return $this->persisted[$key];
         }
 
-        $instance = (object) [];
+        $class = Entity::class;
+        foreach($this->space->getMapper()->getPlugins() as $plugin) {
+            $entityClass = $plugin->getEntityClass($this->space);
+            if($entityClass) {
+                if($class != Entity::class) {
+                    throw new Exception('Entity class override');
+                }
+                $class = $entityClass;
+            }
+        }
+        $instance = new $class();
 
         $this->original[$key] = $tuple;
 
@@ -125,6 +149,34 @@ class Repository
     public function knows($instance)
     {
         return $this->keys->offsetExists($instance);
+    }
+
+    public function update(Entity $instance, $operations)
+    {
+        if(!count($operations)) {
+            return;
+        }
+
+        $tupleOperations = [];
+        foreach($operations as $operation) {
+            $tupleIndex = $this->space->getPropertyIndex($operation[1]);
+            $tupleOperations[] = [$operation[0], $tupleIndex, $operation[2]];
+        }
+
+        $pk = [];
+        foreach($this->space->getPrimaryIndex()->parts as $part) {
+            $pk[] = $instance->{$this->space->getFormat()[$part[0]]['name']};
+        }
+
+        $client = $this->space->getMapper()->getClient();
+        $result = $client->getSpace($this->space->getId())->update($pk, $tupleOperations);
+        foreach($result->getData() as $tuple) {
+            foreach($this->space->getFormat() as $index => $info) {
+                if(array_key_exists($index, $tuple)) {
+                    $instance->{$info['name']} = $tuple[$index];
+                }
+            }
+        }
     }
 
     public function save($instance)

@@ -21,15 +21,17 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
         return new Client($connection, new PurePacker());
     }
 
-    protected function clean(Client $client)
+    protected function clean(Mapper $mapper)
     {
-        $client->evaluate('
+        $mapper->getClient()->evaluate('
             local i, space, j, index
-            for i, space in box.space._vspace:pairs() do
+            for i, space in box.space._space:pairs() do
                 if string.sub(space[3], 1, 1) ~= "_" then
                     box.space[space[3]]:drop()
                 end
             end
         ');
+
+        $mapper->getSchema()->reset();
     }
 }

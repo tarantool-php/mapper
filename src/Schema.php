@@ -14,34 +14,7 @@ class Schema
     public function __construct(Mapper $mapper)
     {
         $this->mapper = $mapper;
-        $this->names = $mapper->getClient()->evaluate("
-            local spaces = {}
-            local i, s
-            for i, s in box.space._space:pairs() do
-                spaces[s[3]] = s[1]
-            end
-            return spaces"
-        )->getData()[0];
-    }
-
-    public function getSpace($id)
-    {
-        if(is_string($id)) {
-            if(array_key_exists($id, $this->names)) {
-                return $this->getSpace($this->names[$id]);
-            }
-            throw new Exception("No space $id");
-        }
-
-        if(!array_key_exists($id, $this->spaces)) {
-            $this->spaces[$id] = new Space($this->mapper, $id);
-        }
-        return $this->spaces[$id];
-    }
-
-    public function getSpaces()
-    {
-        return $this->spaces;
+        $this->reset();
     }
 
     public function createSpace($space)
@@ -52,8 +25,8 @@ class Schema
         ")->getData()[0];
 
         $this->names[$space] = $id;
-        
-        return $this->spaces[$id] = new Space($this->mapper, $id);
+
+        return $this->spaces[$id] = new Space($this->mapper, $id, $space);
     }
 
     public function formatValue($type, $value)
@@ -63,5 +36,47 @@ class Schema
             case 'unsigned': return (int) $value;
             default: return $value;
         }
+    }
+
+    public function getSpace($id)
+    {
+        if(is_string($id)) {
+            return $this->getSpace($this->getSpaceId($id));
+        }
+
+        if(!array_key_exists($id, $this->spaces)) {
+            $this->spaces[$id] = new Space($this->mapper, $id, array_search($id, $this->names));
+        }
+        return $this->spaces[$id];
+    }
+
+    public function getSpaceId($name)
+    {
+        if(!$this->hasSpace($name)) {
+            throw new Exception("No space $id");
+        }
+        return $this->names[$name];
+    }
+
+    public function getSpaces()
+    {
+        return $this->spaces;
+    }
+
+    public function hasSpace($name)
+    {
+        return array_key_exists($name, $this->names);
+    }
+
+    public function reset()
+    {
+        $this->names = $this->mapper->getClient()->evaluate("
+            local spaces = {}
+            local i, s
+            for i, s in box.space._space:pairs() do
+                spaces[s[3]] = s[1]
+            end
+            return spaces"
+        )->getData()[0];
     }
 }

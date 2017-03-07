@@ -22,7 +22,7 @@ class SchemaTest extends TestCase
     public function testBasics()
     {
         $mapper = $this->createMapper();
-        $this->clean($mapper->getClient());
+        $this->clean($mapper);
 
         $person = $mapper->getSchema()->createSpace('person');
         $person->addProperty('id', 'unsigned');
@@ -104,7 +104,7 @@ class SchemaTest extends TestCase
     public function testIndexCasting()
     {
         $mapper = $this->createMapper();
-        $this->clean($mapper->getClient());
+        $this->clean($mapper);
 
         $task = $mapper->getSchema()->createSpace('task');
         $task->addProperty('id', 'unsigned');
