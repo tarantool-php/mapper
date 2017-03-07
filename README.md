@@ -98,7 +98,7 @@ $person->createIndex([
 $person->createIndex([
     'fields' => ['name', 'birthday'],
     'type' => 'hash',
-    'name' => 
+    'name' =>
 ]);
 ```
 
@@ -138,7 +138,7 @@ $mapper->save($helloWorld);
 ```php
 $note = $mapper->getSchema()->createSpace('note');
 $note->addProperty('slug', 'str');
-$note->addProperty('title', 'str', 
+$note->addProperty('title', 'str',
 $note->addProperty('status', 'str');
 
 $note->addIndex('slug');
@@ -176,7 +176,7 @@ $mapper->find('person', ['client' => 2, 'sector' => 27]);
 # Array properties
 You can store arrays as property without any serialization to string.
 ```php
-$pattern = $mapper->getSchema()->createSpace('shift_pattern'); 
+$pattern = $mapper->getSchema()->createSpace('shift_pattern');
 $pattern->addProperty('id', 'unsigned');
 $pattern->addProperty('title', 'str');
 $pattern->addProperty('pattern', '*');
@@ -198,6 +198,34 @@ $mapper->create('shift_pattern', [
 ]);
 
 $mapper->get('shift_pattern', 1)->pattern[5]; // read element with index 5 from pattern array
+```
+
+# Sequence plugin
+If you want you can use sequence plugin that generates next value based on sequence space.
+Or you can implement id generator using any other source, for example with raft protocol.
+```php
+$pattern = $mapper->getSchema()->createSpace('shift_pattern');
+$pattern->addProperty('id', 'unsigned');
+$pattern->addProperty('title', 'str');
+$pattern->addProperty('pattern', '*');
+$pattern->addIndex('id');
+
+$mappr->addPlugin(Tarantool\Mapper\Plugins\Sequence::class);
+
+$pattern = $mapper->create('shift_pattern', [
+  'title' => '5 days week',
+  'pattern' => [
+    ['work' => true],
+    ['work' => true],
+    ['work' => true],
+    ['work' => true],
+    ['work' => true],
+    ['work' => false],
+    ['work' => false],
+  ]
+]);
+
+echo $pattern->id; // will be set when you create an instance
 ```
 
 # Internals
