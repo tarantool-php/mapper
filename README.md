@@ -204,28 +204,20 @@ $mapper->get('shift_pattern', 1)->pattern[5]; // read element with index 5 from 
 If you want you can use sequence plugin that generates next value based on sequence space.
 Or you can implement id generator using any other source, for example with raft protocol.
 ```php
-$pattern = $mapper->getSchema()->createSpace('shift_pattern');
-$pattern->addProperty('id', 'unsigned');
-$pattern->addProperty('title', 'str');
-$pattern->addProperty('pattern', '*');
-$pattern->addIndex('id');
+$post = $mapper->getSchema()->createSpace('post');
+$post->addProperty('id', 'unsigned');
+$post->addProperty('title', 'str');
+$post->addProperty('body', 'str');
+$post->addIndex('id');
 
 $mappr->addPlugin(Tarantool\Mapper\Plugins\Sequence::class);
 
-$pattern = $mapper->create('shift_pattern', [
-  'title' => '5 days week',
-  'pattern' => [
-    ['work' => true],
-    ['work' => true],
-    ['work' => true],
-    ['work' => true],
-    ['work' => true],
-    ['work' => false],
-    ['work' => false],
-  ]
+$entity = $mapper->create('post', [
+  'title' => 'Autoincrement implemented',
+  'body' => 'You can use Sequence plugin to track and fill your entity id'
 ]);
 
-echo $pattern->id; // will be set when you create an instance
+echo $entity->id; // will be set when you create an instance
 ```
 
 # User-defined classes plugin
