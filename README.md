@@ -143,7 +143,7 @@ $note->addProperty('status', 'str');
 
 $note->addIndex('slug');
 $note->addIndex([
-  fields' => 'status',
+  'fields' => 'status',
   'unique' => false
 ]);
 
