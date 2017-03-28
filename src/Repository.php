@@ -183,6 +183,8 @@ class Repository
     {
         $tuple = [];
 
+        $size = count(get_object_vars($instance));
+
         foreach($this->space->getFormat() as $index => $info) {
             if(!property_exists($instance, $info['name'])) {
                 $instance->{$info['name']} = null;
@@ -191,6 +193,10 @@ class Repository
             $instance->{$info['name']} = $this->space->getMapper()->getSchema()
                 ->formatValue($info['type'], $instance->{$info['name']});
             $tuple[$index] = $instance->{$info['name']};
+
+            if(count($tuple) == $size) {
+                break;
+            }
         }
 
         $key = $this->space->getInstanceKey($instance);
