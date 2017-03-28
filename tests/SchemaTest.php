@@ -94,11 +94,15 @@ class SchemaTest extends TestCase
 
         $mapper->getClient()->setLogging(false);
         $this->assertCount(5, $mapper->getClient()->getLog());
-        // create instance
-        // select by birthday
-        // update birthday
-        // select by birthday
-        // select by birthday
+
+        $vasiliy = $mapper->create('person', [
+            'id' => 2,
+            'name' => 'vasiliy',
+            'gender' => 'male',
+        ]);
+
+        $this->assertNotNull($vasiliy);
+        $this->assertSame($vasiliy->birthday, 0);
     }
 
     public function testIndexCasting()

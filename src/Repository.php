@@ -184,11 +184,13 @@ class Repository
         $tuple = [];
 
         foreach($this->space->getFormat() as $index => $info) {
-            if(property_exists($instance, $info['name'])) {
-                $instance->{$info['name']} = $this->space->getMapper()->getSchema()
-                    ->formatValue($info['type'], $instance->{$info['name']});
-                $tuple[$index] = $instance->{$info['name']};
+            if(!property_exists($instance, $info['name'])) {
+                $instance->{$info['name']} = null;
             }
+
+            $instance->{$info['name']} = $this->space->getMapper()->getSchema()
+                ->formatValue($info['type'], $instance->{$info['name']});
+            $tuple[$index] = $instance->{$info['name']};
         }
 
         $key = $this->space->getInstanceKey($instance);
