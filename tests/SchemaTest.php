@@ -104,6 +104,10 @@ class SchemaTest extends TestCase
 
         $this->assertNotNull($vasiliy);
         $this->assertSame($vasiliy->birthday, 0);
+
+        $mapper->remove($vasiliy);
+
+        $this->assertNull($mapper->findOne('person', ['name' => 'vasiliy']));
     }
 
     public function testIndexCasting()

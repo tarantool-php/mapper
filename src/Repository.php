@@ -39,7 +39,7 @@ class Repository
                 $instance->{$row['name']} = $data[$row['name']];
             }
         }
-        
+
         foreach($this->space->getMapper()->getPlugins() as $plugin) {
             $plugin->beforeCreate($instance, $this->space);
         }
@@ -177,6 +177,34 @@ class Repository
                 }
             }
         }
+    }
+
+    public function remove($instance)
+    {
+        $key = $this->space->getInstanceKey($instance);
+
+        if(!array_key_exists($key, $this->original)) {
+            return;
+        }
+
+        if(array_key_exists($key, $this->persisted)) {
+
+            unset($this->persisted[$key]);
+
+            $pk = [];
+            foreach($this->space->getPrimaryIndex()->parts as $part) {
+                $pk[] = $this->original[$key][$part[0]];
+            }
+
+            $this->space->getMapper()->getClient()
+                ->getSpace($this->space->getId())
+                ->delete($pk);
+
+        }
+
+        unset($this->original[$key]);
+
+        $this->results = [];
     }
 
     public function save($instance)
