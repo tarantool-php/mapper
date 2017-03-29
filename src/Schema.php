@@ -68,6 +68,17 @@ class Schema
         return array_key_exists($name, $this->names);
     }
 
+    public function once($name, $callback)
+    {
+        $key = 'once' . $name;
+
+        $rows = $this->mapper->find('_schema', ['key' => $key]);
+        if(!count($rows)) {
+            $this->mapper->create('_schema', ['key' => $key]);
+            return $callback($this->mapper);
+        }
+    }
+
     public function reset()
     {
         $this->names = $this->mapper->getClient()->evaluate("

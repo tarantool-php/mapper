@@ -1,9 +1,35 @@
 <?php
 
+use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testOnce()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $schema = $mapper->getSchema();
+
+        $test = $schema->createSpace('test');
+        $test->addProperty('name', 'str');
+        $test->createIndex('name');
+
+        $flag = $mapper->findOne('_schema', ['key' => 'onceinsert']);
+        if($flag) {
+            $mapper->remove($flag);
+        }
+
+        $iterations = 2;
+        while($iterations--) {
+            $schema->once('insert', function(Mapper $mapper) {
+                $mapper->create('test', ['name' => 'example row']);
+            });
+        }
+        $this->assertCount(1, $mapper->find('test'));
+    }
+
     public function testSystemMeta()
     {
         $mapper = $this->createMapper();
