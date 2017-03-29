@@ -5,6 +5,25 @@ use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testIndexes()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $schema = $mapper->getSchema();
+
+        $test = $schema->createSpace('test');
+        $test->addProperty('a', 'unsigned');
+        $test->addProperty('b', 'unsigned');
+        $test->createIndex(['a', 'b']);
+
+        $indexes = $mapper->find('_index', [
+            'id' => $test->getId()
+        ]);
+
+        $this->assertCount(1, $indexes);
+    }
+
     public function testOnce()
     {
         $mapper = $this->createMapper();

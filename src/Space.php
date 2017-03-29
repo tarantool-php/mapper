@@ -47,7 +47,9 @@ class Space
             if(array_values($config) != $config) {
                 throw new Exception("Invalid index configuration");
             }
-            $config['fields'] = $config;
+            $config = [
+                'fields' => $config
+            ];
         }
 
         if(!is_array($config['fields'])) {
@@ -63,6 +65,7 @@ class Space
                 $options[$k] = $v;
             }
         }
+
         foreach($config['fields'] as $property) {
             if(!$this->getPropertyType($property)) {
                 throw new Exception("Unknown property $property", 1);
