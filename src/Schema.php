@@ -60,6 +60,9 @@ class Schema
 
     public function getSpaces()
     {
+        foreach($this->names as $id) {
+            $this->getSpace($id);
+        }
         return $this->spaces;
     }
 
