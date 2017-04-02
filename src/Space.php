@@ -101,6 +101,9 @@ class Space
             } else {
                 $this->format = $this->mapper->findOne('_space', ['id' => $this->id])->format;
             }
+            if(!$this->format) {
+                $this->format = [];
+            }
             $this->parseFormat();
         }
 

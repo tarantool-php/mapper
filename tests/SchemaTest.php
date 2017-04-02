@@ -5,6 +5,16 @@ use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testEmptySpace()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $tester = $mapper->getSchema()->createSpace('tester');
+        $this->assertCount(0, $tester->getFormat());
+        $this->assertCount(0, $tester->getIndexes());
+    }
+
     public function testIndexes()
     {
         $mapper = $this->createMapper();
