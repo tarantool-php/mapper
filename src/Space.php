@@ -28,6 +28,11 @@ class Space
     public function addProperty($name, $type)
     {
         $format = $this->getFormat();
+        foreach($format as $field) {
+            if($field['name'] == $name) {
+                throw new Exception("Property $name exists");
+            }
+        }
         $format[] = compact('name', 'type');
         $this->format = $format;
         $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
