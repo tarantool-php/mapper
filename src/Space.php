@@ -35,6 +35,19 @@ class Space
         $this->parseFormat();
     }
 
+    public function removeProperty($name)
+    {
+        $format = $this->getFormat();
+        $last = array_pop($format);
+        if($last['name'] != $name) {
+            throw new Exception("Remove only last property");
+        }
+        $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
+        $this->format = $format;
+
+        $this->parseFormat();
+    }
+
     public function removeIndex($name)
     {
         $this->mapper->getClient()->evaluate("box.space[$this->id].index.$name:drop()");

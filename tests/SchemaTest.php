@@ -1,11 +1,29 @@
 <?php
 
-use Exception;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testRemoveProperty()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $space = $mapper->getSchema()->createSpace('tester');
+        $space->addProperty('first', 'unsigned');
+        $space->addProperty('second', 'unsigned');
+        $space->addProperty('third', 'unsigned');
+
+        $this->assertCount(3, $space->getFormat());
+
+        $space->removeProperty('third');
+        $this->assertCount(2, $space->getFormat());
+
+        $this->expectException(Exception::class);
+        $space->removeIndex('first');
+    }
+
     public function testRemoveIndex()
     {
         $mapper = $this->createMapper();
