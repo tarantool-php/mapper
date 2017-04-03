@@ -6,6 +6,27 @@ use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testRemoveIndex()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $space = $mapper->getSchema()->createSpace('tester');
+        $space->addProperty('id', 'unsigned');
+        $space->addProperty('iid', 'unsigned');
+
+        $space->createIndex(['id']);
+        $space->createIndex(['iid']);
+
+        $this->assertCount(2, $space->getIndexes());
+
+        $space->removeIndex('iid');
+        $this->assertCount(1, $space->getIndexes());
+
+        $this->expectException(Exception::class);
+        $space->removeIndex('iid');
+    }
+
     public function testNoSpaceException()
     {
         $mapper = $this->createMapper();

@@ -35,6 +35,13 @@ class Space
         $this->parseFormat();
     }
 
+    public function removeIndex($name)
+    {
+        $this->mapper->getClient()->evaluate("box.space[$this->id].index.$name:drop()");
+        $this->indexes = [];
+        $this->mapper->getRepository('_index')->flushCache();
+    }
+
     public function createIndex($config)
     {
 

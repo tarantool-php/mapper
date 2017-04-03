@@ -257,6 +257,11 @@ class Repository
         }
 
 
+        $this->flushCache();
+    }
+
+    public function flushCache()
+    {
         $this->cache = [];
     }
 }
