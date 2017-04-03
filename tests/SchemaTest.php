@@ -1,10 +1,19 @@
 <?php
 
+use Exception;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testNoSpaceException()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+        $this->expectException(Exception::class);
+        $space = $mapper->getSchema()->getSpace(null);
+    }
+
     public function testEmptySpace()
     {
         $mapper = $this->createMapper();

@@ -44,6 +44,10 @@ class Schema
             return $this->getSpace($this->getSpaceId($id));
         }
 
+        if(!$id) {
+            throw new Exception("Space id or name not defined");
+        }
+
         if(!array_key_exists($id, $this->spaces)) {
             $this->spaces[$id] = new Space($this->mapper, $id, array_search($id, $this->names));
         }
