@@ -10,7 +10,7 @@ Install using composer.
 ```json
 {
   "require": {
-    "tarantool/mapper": "2.0.2"
+    "tarantool/mapper": "2.2.0"
   }
 }
 ```
@@ -98,8 +98,32 @@ $person->createIndex([
 $person->createIndex([
     'fields' => ['name', 'birthday'],
     'type' => 'hash',
-    'name' =>
+    'name' => 'name_with_birthday',
 ]);
+```
+
+# Use migrations
+
+```php
+use Tarantool\Mapper\Mapper;
+use Tarantool\Mapper\Migration;
+
+class InitTesterSchema implements Migration
+{
+  public function migrate(Mapper $mapper)
+  {
+    $tester = $mapper->getSchema()->createSpace('tester');
+    $tester->addProperty('id', 'unsigned');
+    $tester->addProperty('name', 'str');
+    $tester->createIndex('id');
+  }
+}
+
+$mapper->getBootstrap()->register(InitTesterSchema::class);
+// or register instance $mapper->getBootstrap()->register(new InitTesterSchema());
+
+$mapper->getBootstrap()->migrate();
+
 ```
 
 # Working with the data
