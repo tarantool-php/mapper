@@ -19,11 +19,14 @@ class Bootstrap
 
     public function migrate()
     {
+        $schema = $this->mapper->getSchema();
         foreach($this->migrations as $migration) {
             if(!is_object($migration)) {
                 $migration = new $migration;
             }
-            $migration->migrate($this->mapper);
+            $schema->once(get_class($migration), function() use ($migration) {
+                $migration->migrate($this->mapper);
+            });
         }
     }
 }

@@ -10,7 +10,7 @@ Install using composer.
 ```json
 {
   "require": {
-    "tarantool/mapper": "2.2.0"
+    "tarantool/mapper": "^2.2.2"
   }
 }
 ```
