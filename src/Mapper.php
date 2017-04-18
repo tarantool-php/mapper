@@ -10,6 +10,7 @@ class Mapper
     private $client;
     private $plugins = [];
     private $schema;
+    private $bootstrap;
 
     public function __construct(Client $client)
     {
@@ -54,6 +55,15 @@ class Mapper
         }
 
         throw new Exception("No Repository for given Entity");
+    }
+
+    public function getBootstrap()
+    {
+        if(!$this->bootstrap) {
+            $this->bootstrap = new Bootstrap($this);
+        }
+
+        return $this->bootstrap;
     }
 
     public function getClient()
