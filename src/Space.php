@@ -7,7 +7,7 @@ use Exception;
 class Space
 {
     private $mapper;
-    
+
     private $id;
     private $name;
     private $format;
@@ -38,6 +38,8 @@ class Space
         $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
 
         $this->parseFormat();
+
+        return $this;
     }
 
     public function removeProperty($name)
@@ -51,6 +53,8 @@ class Space
         $this->format = $format;
 
         $this->parseFormat();
+
+        return $this;
     }
 
     public function removeIndex($name)
@@ -58,6 +62,8 @@ class Space
         $this->mapper->getClient()->evaluate("box.space[$this->id].index.$name:drop()");
         $this->indexes = [];
         $this->mapper->getRepository('_index')->flushCache();
+
+        return $this;
     }
 
     public function createIndex($config)
@@ -66,7 +72,7 @@ class Space
         if(!is_array($config)) {
             $config = ['fields' => $config];
         }
-        
+
 
         if(!array_key_exists('fields', $config)) {
             if(array_values($config) != $config) {
@@ -104,6 +110,7 @@ class Space
         $this->mapper->getClient()->evaluate("box.space[$this->id]:create_index('$name', ...)", [$options]);
         $this->indexes = [];
 
+        return $this;
     }
 
     public function isSpecial()
@@ -153,6 +160,7 @@ class Space
             $this->formatTypesHash[$row['name']] = $row['type'];
             $this->formatNamesHash[$row['name']] = $key;
         }
+        return $this;
     }
 
     public function hasProperty($name)
@@ -222,7 +230,7 @@ class Space
                     $equals = $equals && in_array($part[0], $keys);
                 }
             }
-            
+
             if($equals) {
                 return $index->iid;
             }
