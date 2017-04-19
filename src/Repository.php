@@ -212,9 +212,11 @@ class Repository
         $tuple = [];
 
         $size = count(get_object_vars($instance));
+        $skipped = 0;
 
         foreach($this->space->getFormat() as $index => $info) {
             if(!property_exists($instance, $info['name'])) {
+                $skipped++;
                 $instance->{$info['name']} = null;
             }
 
@@ -222,7 +224,7 @@ class Repository
                 ->formatValue($info['type'], $instance->{$info['name']});
             $tuple[$index] = $instance->{$info['name']};
 
-            if(count($tuple) == $size) {
+            if(count($tuple) == $size + $skipped) {
                 break;
             }
         }

@@ -6,6 +6,39 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testBasics()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $schema = $mapper->getSchema();
+
+        $session = $schema->createSpace('session');
+        $session->addProperty('uuid', 'str');
+        $session->addProperty('activity_at', 'unsigned');
+        $session->addProperty('login', 'unsigned');
+        $session->addProperty('ip', 'unsigned');
+
+        $session->createIndex('uuid');
+        $session->createIndex([
+            'fields' => 'login',
+            'unique' => false,
+        ]);
+
+        $session->createIndex([
+            'fields' => 'ip',
+            'unique' => false,
+        ]);
+
+        $entity = $mapper->create('session', [
+            'uuid' => '81b3edc8-0dd0-43b6-80b4-39f1f8045f3e',
+            'login' => 1,
+            'ip' => 2130706433
+        ]);
+
+        $this->assertNotNull($entity);
+    }
+
     public function testInstances()
     {
         $mapper = $this->createMapper();
