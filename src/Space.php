@@ -25,6 +25,14 @@ class Space
         $this->name = $name;
     }
 
+    public function addProperties($config)
+    {
+        foreach($config as $name => $type) {
+            $this->addProperty($name, $type);
+        }
+        return $this;
+    }
+
     public function addProperty($name, $type)
     {
         $format = $this->getFormat();
