@@ -74,6 +74,11 @@ class Space
         return $this;
     }
 
+    public function addIndex($config)
+    {
+        return $this->createIndex($config);
+    }
+
     public function createIndex($config)
     {
 

@@ -53,12 +53,12 @@ class MapperTest extends TestCase
                 'ip'          => 'unsigned',
             ])
 
-            ->createIndex('uuid')
-            ->createIndex([
+            ->addIndex('uuid')
+            ->addIndex([
                 'fields' => 'login',
                 'unique' => false,
             ])
-            ->createIndex([
+            ->addIndex([
                 'fields' => 'ip',
                 'unique' => false,
             ]);
