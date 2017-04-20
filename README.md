@@ -78,6 +78,13 @@ $person->addProperty('name', 'str');
 $person->addProperty('birthday', 'unsigned');
 $person->addProperty('gender', 'str');
 
+// add multiple properties
+$person->addProperties([
+  'telegram' => 'str',
+  'vk' => 'str',
+  'facebook' => 'str',
+]);
+
 // add indexes
 // first index is primary
 $person->createIndex([
@@ -123,6 +130,25 @@ $mapper->getBootstrap()->register(InitTesterSchema::class);
 // or register instance $mapper->getBootstrap()->register(new InitTesterSchema());
 
 $mapper->getBootstrap()->migrate();
+
+```
+
+# Use fluent api
+
+```php
+use Tarantool\Mapper\Mapper;
+use Tarantool\Mapper\Migration;
+
+class InitTesterSchema implements Migration
+{
+  public function migrate(Mapper $mapper)
+  {
+    $mapper->getSchema()->createSpace('person')
+      ->addProperty('id', 'unsigned')
+      ->addProperty('name', 'str')
+      ->addIndex('id');
+  }
+}
 
 ```
 
