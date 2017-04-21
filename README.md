@@ -254,13 +254,13 @@ $mapper->get('shift_pattern', 1)->pattern[5]; // read element with index 5 from 
 If you want you can use sequence plugin that generates next value based on sequence space.
 Or you can implement id generator using any other source, for example with raft protocol.
 ```php
-$post = $mapper->getSchema()->createSpace('post');
-$post->addProperty('id', 'unsigned');
-$post->addProperty('title', 'str');
-$post->addProperty('body', 'str');
-$post->addIndex('id');
+$mapper->getSchema()->createSpace('post')
+  ->addProperty('id', 'unsigned')
+  ->addProperty('title', 'str')
+  ->addProperty('body', 'str')
+  ->addIndex('id');
 
-$mappr->addPlugin(Tarantool\Mapper\Plugins\Sequence::class);
+$mapper->addPlugin(Tarantool\Mapper\Plugins\Sequence::class);
 
 $entity = $mapper->create('post', [
   'title' => 'Autoincrement implemented',
