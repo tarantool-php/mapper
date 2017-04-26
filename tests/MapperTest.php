@@ -6,6 +6,24 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testCompositeKeys()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()->createSpace('sector_parent')
+            ->addProperties([
+                'id' => 'unsigned',
+                'parent' => 'unsigned',
+            ])
+            ->addIndex(['id', 'parent']);
+
+        $mapper->create('sector_parent', ['id' => 1, 'parent' => 2]);
+        $mapper->create('sector_parent', ['id' => 1, 'parent' => 3]);
+
+        $this->assertCount(2, $mapper->find('sector_parent'));
+    }
+
     public function testFluentInterface()
     {
         $mapper = $this->createMapper();
