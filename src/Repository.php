@@ -195,6 +195,7 @@ class Repository
             foreach($this->space->getPrimaryIndex()->parts as $part) {
                 $pk[] = $this->original[$key][$part[0]];
             }
+            $plugin->beforeRemove($instance, $this->space);
 
             $this->space->getMapper()->getClient()
                 ->getSpace($this->space->getId())
@@ -248,6 +249,7 @@ class Repository
             foreach($this->space->getPrimaryIndex()->parts as $part) {
                 $pk[] = $this->original[$key][$part[0]];
             }
+            $plugin->beforeCreate($instance, $this->space);
 
             $client->getSpace($this->space->getId())->update($pk, $operations);
             $this->original[$key] = $tuple;
