@@ -8,7 +8,7 @@ use Tarantool\Mapper\Space;
 
 class Sequence extends Plugin
 {
-    public function beforeCreate(Entity $instance, Space $space)
+    public function generateKey(Entity $instance, Space $space)
     {
         $primary = $space->getPrimaryIndex();
         if(count($primary->parts) == 1) {
@@ -28,7 +28,6 @@ class Sequence extends Plugin
             $sequence = $this->mapper->getSchema()->createSpace('sequence');
             $sequence->addProperty('space', 'unsigned');
             $sequence->addProperty('counter', 'unsigned');
-
             $sequence->createIndex('space');
 
             $this->mapper->create('sequence', [
