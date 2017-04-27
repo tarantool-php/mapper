@@ -71,6 +71,15 @@ class Mapper
         return $this->client;
     }
 
+    public function getPlugin($class)
+    {
+        foreach($this->getPlugins() as $plugin) {
+            if(is_a($plugin, $class)) {
+                return $plugin;
+            }
+        }
+    }
+
     public function getPlugins()
     {
         return $this->plugins;
