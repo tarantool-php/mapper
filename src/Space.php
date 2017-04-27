@@ -334,4 +334,9 @@ class Space
         }
         return $this->repository ?: $this->repository = new $class($this);
     }
+
+    public function repositoryExists()
+    {
+        return !!$this->repository;
+    }
 }
