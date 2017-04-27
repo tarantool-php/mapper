@@ -90,6 +90,17 @@ class Mapper
         return $this->getSchema()->getSpace($space)->getRepository();
     }
 
+    public function getRepositories()
+    {
+        $repositories = [];
+        foreach($this->getSchema()->getSpaces() as $space) {
+            if($space->repositoryExists()) {
+                $repositories[] = $space->getRepository();
+            }
+        }
+        return $repositories;
+    }
+
     public function getSchema()
     {
         return $this->schema ?: $this->schema = new Schema($this);
