@@ -60,11 +60,17 @@ class Spy extends Plugin
         return implode(':', $key);
     }
 
-    public function getChanges() {
+    public function getChanges()
+    {
         return (object) [
             'create' => array_values($this->create),
             'update' => array_values($this->update),
             'remove' => array_values($this->remove),
         ];
+    }
+
+    public function hasChanges()
+    {
+        return count($this->create) + count($this->update) + count($this->remove) > 0;
     }
 }
