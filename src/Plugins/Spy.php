@@ -69,8 +69,9 @@ class Spy extends Plugin
             foreach($this->$action as $key => $row) {
                 list($space) = explode(':', $key);
                 if(!array_key_exists($space, $data)) {
-                    $data[$space][] = $row;
+                    $data[$space] = [];
                 }
+                $data[$space][] = $row;
             }
             $result->$action = $data;
         }
