@@ -61,6 +61,10 @@ class Spy extends Plugin
     }
 
     public function getChanges() {
-        return (object) get_object_vars($this);
+        return (object) [
+            'create' => array_values($this->create),
+            'update' => array_values($this->update),
+            'remove' => array_values($this->remove),
+        ];
     }
 }
