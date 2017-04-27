@@ -41,7 +41,7 @@ class Repository
         }
 
         foreach($this->space->getMapper()->getPlugins() as $plugin) {
-            $plugin->beforeCreate($instance, $this->space);
+            $plugin->generateKey($instance, $this->space);
         }
 
         // validate instance key
@@ -253,13 +253,18 @@ class Repository
             }
 
             foreach($this->space->getMapper()->getPlugins() as $plugin) {
-                $plugin->beforeCreate($instance, $this->space);
+                $plugin->beforeUpdate($instance, $this->space);
             }
 
             $client->getSpace($this->space->getId())->update($pk, $operations);
             $this->original[$key] = $tuple;
 
         } else {
+
+            foreach($this->space->getMapper()->getPlugins() as $plugin) {
+                $plugin->beforeCreate($instance, $this->space);
+            }
+
             $client->getSpace($this->space->getId())->insert($tuple);
             $this->persisted[$key] = $instance;
             $this->original[$key] = $tuple;
