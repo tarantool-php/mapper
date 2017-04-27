@@ -179,7 +179,30 @@ class Repository
         }
     }
 
-    public function remove($instance)
+    public function truncate()
+    {
+        $this->cache = [];
+        $this->results = [];
+        $id = $this->space->getId();
+        $this->space->getMapper()->getClient()->evaluate("box.space[$id]:truncate()");
+    }
+
+    public function remove($params = [])
+    {
+        if($params instanceof Entity) {
+            return $this->removeEntity($params);
+        }
+
+        if(!count($params)) {
+            throw new Exception("Use truncate to flush space");
+        }
+
+        foreach($this->find($params) as $entity) {
+            $this->removeEntity($entity);
+        }
+    }
+
+    public function removeEntity(Entity $instance)
     {
         $key = $this->space->getInstanceKey($instance);
 
@@ -202,12 +225,12 @@ class Repository
             $this->space->getMapper()->getClient()
                 ->getSpace($this->space->getId())
                 ->delete($pk);
-
         }
 
         unset($this->original[$key]);
 
         $this->results = [];
+        $this->cache = [];
     }
 
     public function save($instance)

@@ -106,9 +106,14 @@ class Mapper
         return $this->schema ?: $this->schema = new Schema($this);
     }
 
-    public function remove(Entity $instance)
+    public function remove($space, $params = [])
     {
-        $this->findRepository($instance)->remove($instance);
+        if($space instanceof Entity) {
+            $this->findRepository($space)->removeEntity($space);
+
+        } else {
+            $this->getRepository($space)->remove($params);
+        }
     }
 
     public function save(Entity $instance)

@@ -6,6 +6,31 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testRemove()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()->createSpace('sector_parent')
+            ->addProperties([
+                'id' => 'unsigned',
+                'parent' => 'unsigned',
+            ])
+            ->addIndex(['id', 'parent']);
+
+        $mapper->create('sector_parent', ['id' => 1, 'parent' => 2]);
+        $mapper->create('sector_parent', ['id' => 1, 'parent' => 3]);
+        $mapper->create('sector_parent', ['id' => 2, 'parent' => 3]);
+
+        $this->assertCount(3, $mapper->find('sector_parent'));
+
+        $mapper->remove('sector_parent', ['id' => 1]);
+        $this->assertCount(1, $mapper->find('sector_parent'));
+
+        $mapper->getRepository('sector_parent')->truncate();
+        $this->assertCount(0, $mapper->find('sector_parent'));
+    }
+
     public function testCompositeKeys()
     {
         $mapper = $this->createMapper();
