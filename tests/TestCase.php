@@ -24,14 +24,18 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
     protected function clean(Mapper $mapper)
     {
         $mapper->getClient()->evaluate('
-            local i, space, j, index
+            local todo = {}
             for i, space in box.space._space:pairs() do
-                if string.sub(space[3], 1, 1) ~= "_" then
-                    box.space[space[3]]:drop()
+                if space[1] >= 512 then
+                    table.insert(todo, space[3])
                 end
+            end
+            for i, name in pairs(todo) do
+                box.space[name]:drop()
             end
         ');
 
         $mapper->getSchema()->reset();
+        $mapper->getRepository('_space')->flushCache();
     }
 }
