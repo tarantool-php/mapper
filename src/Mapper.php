@@ -23,7 +23,7 @@ class Mapper
             throw new Exception("Plugin should extend " . Plugin::class . " class");
         }
 
-        $plugin = new $class($this);
+        $plugin = is_object($class) ? $class : new $class($this);
         $this->plugins[] = $plugin;
 
         return $plugin;

@@ -5,7 +5,27 @@ use Tarantool\Mapper\Plugins\Sequence;
 
 class SequenceTest extends TestCase
 {
-    public function test()
+    public function testPluginInstance()
+    {
+        $mapper = $this->createMapper();
+        $mapper->addPlugin(new Sequence($mapper));
+        $this->clean($mapper);
+
+        $this->assertCount(1, $mapper->getPlugins());
+
+        $person = $mapper->getSchema()->createSpace('person');
+        $person->addProperty('id', 'unsigned');
+        $person->addProperty('email', 'str');
+        $person->createIndex('id');
+
+        $nekufa = $mapper->create('person', ['email' => 'nekufa@gmail.com']);
+        $this->assertSame($nekufa->id, 1);
+
+        $rybakit = $mapper->create('person', ['email' => 'gen.work@gmail.com']);
+        $this->assertSame($rybakit->id, 2);
+    }
+
+    public function testPluginClass()
     {
         $mapper = $this->createMapper();
         $mapper->addPlugin(Sequence::class);
