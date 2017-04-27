@@ -47,7 +47,7 @@ class SpyTest extends TestCase
         $this->assertCount(0, $changes->create);
         $this->assertCount(0, $changes->update);
         $this->assertCount(1, $changes->remove);
-        $this->assertSame(array_values($changes->remove)[0]->id, $nekufa->id);
+        $this->assertSame($changes->remove['person'][0]->id, $nekufa->id);
         $this->assertTrue($spy->hasChanges());
 
         $spy->reset();
@@ -66,7 +66,7 @@ class SpyTest extends TestCase
         $this->assertCount(0, $changes->update);
         $this->assertCount(0, $changes->remove);
 
-        $this->assertSame([$vasya], array_values($changes->create));
+        $this->assertSame([$vasya], $changes->create['person']);
 
         $vasya->email = 'vasya@ya.ru';
         $mapper->save($vasya);
@@ -76,7 +76,7 @@ class SpyTest extends TestCase
         $this->assertCount(1, $changes->create);
         $this->assertCount(0, $changes->update);
         $this->assertCount(0, $changes->remove);
-        $this->assertSame([$vasya], array_values($changes->create));
+        $this->assertSame([$vasya], array_values($changes->create['person']));
 
         $mapper->remove($vasya);
         $changes = $spy->getChanges();

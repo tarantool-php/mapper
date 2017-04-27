@@ -62,11 +62,20 @@ class Spy extends Plugin
 
     public function getChanges()
     {
-        return (object) [
-            'create' => array_values($this->create),
-            'update' => array_values($this->update),
-            'remove' => array_values($this->remove),
-        ];
+        $result = (object) [];
+
+        foreach(['create', 'update', 'remove'] as $action) {
+            $data = [];
+            foreach($this->$action as $key => $row) {
+                list($space) = explode(':', $key);
+                if(!array_key_exists($space, $data)) {
+                    $data[$space][] = $row;
+                }
+            }
+            $result->$action = $data;
+        }
+
+        return $result;
     }
 
     public function hasChanges()
