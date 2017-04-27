@@ -23,6 +23,8 @@ class SequenceTest extends TestCase
 
         $rybakit = $mapper->create('person', ['email' => 'gen.work@gmail.com']);
         $this->assertSame($rybakit->id, 2);
+
+        $this->assertCount(1, $mapper->find('sequence'));
     }
 
     public function testPluginClass()

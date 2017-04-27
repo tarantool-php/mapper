@@ -29,11 +29,6 @@ class Sequence extends Plugin
             $sequence->addProperty('space', 'unsigned');
             $sequence->addProperty('counter', 'unsigned');
             $sequence->createIndex('space');
-
-            $this->mapper->create('sequence', [
-                'space' => $sequence->getId(),
-                'counter' => 1
-            ]);
         }
 
         $entity = $this->mapper->findOne('sequence', $space->getId());
