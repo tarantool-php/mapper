@@ -10,13 +10,18 @@
     },
     "suggest": {
         "ext-msgpack": "For using Pecl- or PeclLitePacker.",
-        "rybakit/msgpack": "For using PurePacker."
+        "rybakit/msgpack": "For using PurePacker.",
+        "phpdocumentor/reflection-docblock": "ORM Plugin"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.0",
-        "rybakit/msgpack": "^0.2.1"
+        "rybakit/msgpack": "^0.2.1",
+        "phpdocumentor/reflection-docblock": "^3.1"
     },
     "autoload-dev": {
+        "psr-4": {
+            "": "tests"
+        },
         "classmap": ["tests"]
     },
     "autoload": {
