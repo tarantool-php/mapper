@@ -10,7 +10,7 @@ Install using composer.
 ```json
 {
   "require": {
-    "tarantool/mapper": "^2.2.3"
+    "tarantool/mapper": "^2.5.0"
   }
 }
 ```
@@ -274,7 +274,7 @@ echo $entity->id; // will be set when you create an instance
 If you want you can specify classes to use for repository and entity instances.
 Entity and repository class implementation are ommited, but you should just extend base classes.
 ```php
-$userClasses = $mappr->addPlugin(Tarantool\Mapper\Plugins\UserClasses::class);
+$userClasses = $mapper->addPlugin(Tarantool\Mapper\Plugins\UserClasses::class);
 $userClasses->mapEntity('person', Application\Models\Person::class);
 $userClasses->mapRepository('person', Application\Repositories\Person::class);
 
@@ -285,6 +285,89 @@ $nekufa = $mapper->create('person', [
 get_class($nekufa); // Application\Models\Person;
 
 $mapper->getSchema()->getSpace('person')->getRepository(); // will be instance of Application\Repositories\Person
+```
+
+# DocBlock plugin
+You can describe your entities using dobclock. Mapper will create space, format and indexes for you.
+
+```php
+namespace Entities;
+
+use Tarantool\Mapper\Entity;
+
+class Person extends Entity
+{
+    /**
+     * @var integer
+     */
+    public $id;
+
+    /**
+     * @var string
+     */
+    public $name;
+}
+
+class Post extends Entity
+{
+    /**
+     * @var integer
+     */
+    public $id;
+
+    /**
+     * @var string
+     */
+    public $slug;
+
+    /**
+     * @var string
+     */
+    public $title;
+
+    /**
+     * @var string
+     */
+    public $body;
+
+    /**
+     * @var Person
+     */
+    public $author;
+}
+```
+If you want to index fields, extend repository and define indexes property
+```php
+namespace Repositories;
+
+use Tarantool\Mapper\Repository;
+
+class Post extends Repository
+{
+    public $indexes = [
+        ['id'],
+        ['slug']
+    ];
+}
+```
+Register plugin and all your classes:
+```php
+$mapper->addPlugin(Tarantool\Mapper\Plugins\Sequence::class); // just not to fill id manually
+$mapper->addPlugin(Tarantool\Mapper\Plugins\DocBlock::class)
+  ->register(Entities\Person::class)
+  ->register(Entities\Post::class)
+  ->register(Repositories\Person::class)
+  ->migrate(); // sync code with database schema
+
+$nekufa = $mapper->create('person', ['name' => 'dmitry']);
+
+$post = $mapper->create('post', [
+  'author' => $nekufa,
+  'slug' => 'hello-world',
+  'title' => 'Hello world',
+  'body' => 'Now you can use mapper better way'
+]);
+
 ```
 
 # Internals
