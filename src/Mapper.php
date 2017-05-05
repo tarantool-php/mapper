@@ -24,7 +24,7 @@ class Mapper
         }
 
         $plugin = is_object($class) ? $class : new $class($this);
-        $this->plugins[] = $plugin;
+        $this->plugins[get_class($plugin)] = $plugin;
 
         return $plugin;
     }
@@ -73,16 +73,15 @@ class Mapper
 
     public function getPlugin($class)
     {
-        foreach($this->getPlugins() as $plugin) {
-            if(is_a($plugin, $class)) {
-                return $plugin;
-            }
+        if(!array_key_exists($class, $this->plugins)) {
+            throw new Exception("No plugin $class");
         }
+        return $this->plugins[$class];
     }
 
     public function getPlugins()
     {
-        return $this->plugins;
+        return array_values($this->plugins);
     }
 
     public function getRepository($space)
