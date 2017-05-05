@@ -49,6 +49,7 @@ class DocBlock extends UserClasses
                 $this->mapRepository($name, $class);
             }
         }
+        return $this;
     }
 
     public function migrate()
@@ -116,6 +117,8 @@ class DocBlock extends UserClasses
                 $space->addIndex(['id']);
             }
         }
+
+        return $this;
     }
 
     private $underscores = [];

@@ -12,14 +12,12 @@ class DocBlockTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $orm = $mapper->addPlugin(Sequence::class);
-        $orm = $mapper->addPlugin(DocBlock::class);
-
-        $orm->register('Entities\\Post');
-        $orm->register('Entities\\Person');
-        $orm->register('Repositories\\Post');
-
-        $orm->migrate();
+        $sequence = $mapper->addPlugin(Sequence::class);
+        $mapper->addPlugin(DocBlock::class)
+            ->register('Entities\\Post')
+            ->register('Entities\\Person')
+            ->register('Repositories\\Post')
+            ->migrate();
 
         $nekufa = $mapper->create('person', [
             'name' => 'Dmitry.Krokhin'
