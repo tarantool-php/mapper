@@ -123,6 +123,8 @@ class Space
         $this->mapper->getClient()->evaluate("box.space[$this->id]:create_index('$name', ...)", [$options]);
         $this->indexes = [];
 
+        $this->mapper->getSchema()->getSpace('_index')->getRepository()->flushCache();
+
         return $this;
     }
 
