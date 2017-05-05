@@ -37,6 +37,9 @@ class Repository
         foreach($this->space->getFormat() as $row) {
             if(array_key_exists($row['name'], $data)) {
                 $instance->{$row['name']} = $data[$row['name']];
+                if($data[$row['name']] instanceof Entity) {
+                    $instance->{$row['name']} = $instance->{$row['name']}->id;
+                }
             }
         }
 
