@@ -141,6 +141,10 @@ class DocBlock extends UserClasses
             return $this->tarantoolTypes[$type];
         }
 
+        if($type[0] == '\\') {
+            return $this->tarantoolTypes[$type] = 'unsigned';
+        }
+
         switch($type) {
             case 'int':
                 return $this->tarantoolTypes[$type] = 'unsigned';
