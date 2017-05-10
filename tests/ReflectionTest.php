@@ -1,11 +1,11 @@
 <?php
 
-use Tarantool\Mapper\Plugins\DocBlock;
+use Tarantool\Mapper\Plugins\Reflection;
 use Tarantool\Mapper\Plugins\Sequence;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Repository;
 
-class DocBlockTest extends TestCase
+class ReflectionTest extends TestCase
 {
     public function test()
     {
@@ -13,13 +13,13 @@ class DocBlockTest extends TestCase
         $this->clean($mapper);
 
         $sequence = $mapper->addPlugin(Sequence::class);
-        $mapper->addPlugin(DocBlock::class)
+        $mapper->addPlugin(Reflection::class)
             ->register('Entities\\Post')
             ->register('Entities\\Person')
             ->register('Repositories\\Post')
             ->migrate();
 
-        $mapper->getPlugin(DocBlock::class)->migrate();
+        $mapper->getPlugin(Reflection::class)->migrate();
 
         $nekufa = $mapper->create('person', [
             'name' => 'Dmitry.Krokhin'

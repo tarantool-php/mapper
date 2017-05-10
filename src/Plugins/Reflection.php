@@ -12,7 +12,7 @@ use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;
 use Tarantool\Mapper\Repository;
 
-class DocBlock extends UserClasses
+class Reflection extends UserClasses
 {
     private $entities = [];
     private $repositories = [];
