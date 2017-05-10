@@ -33,7 +33,7 @@ class Repository
                 $class = $entityClass;
             }
         }
-        $instance = new $class();
+        $instance = new $class($this);
         foreach($this->space->getFormat() as $row) {
             if(array_key_exists($row['name'], $data)) {
                 $instance->{$row['name']} = $data[$row['name']];
@@ -136,7 +136,7 @@ class Repository
                 $class = $entityClass;
             }
         }
-        $instance = new $class();
+        $instance = new $class($this);
 
         $this->original[$key] = $tuple;
 

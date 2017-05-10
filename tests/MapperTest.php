@@ -6,6 +6,31 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testActiveEntity()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()->createSpace('tester')
+            ->addProperties([
+                'id' => 'unsigned',
+                'name' => 'str',
+            ])
+            ->addIndex(['id']);
+
+        $tester = $mapper->create('tester', [
+            'id' => 1,
+            'name' => 'hello'
+        ]);
+
+        $tester->name = 'hello world';
+        $tester->save();
+
+        $mapper = $this->createMapper();
+        $entity = $mapper->findOne('tester', 1);
+        $this->assertSame($entity->name, 'hello world');
+    }
+
     public function testRemove()
     {
         $mapper = $this->createMapper();
