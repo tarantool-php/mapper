@@ -17,7 +17,7 @@ class Schema
         $this->reset();
     }
 
-    public function createSpace($space)
+    public function createSpace($space, $properties = null)
     {
         $id = $this->mapper->getClient()->evaluate("
             box.schema.space.create('$space')
@@ -26,7 +26,13 @@ class Schema
 
         $this->names[$space] = $id;
 
-        return $this->spaces[$id] = new Space($this->mapper, $id, $space);
+        $this->spaces[$id] = new Space($this->mapper, $id, $space);
+
+        if($properties) {
+            $this->spaces[$id]->addProperties($properties);
+        }
+
+        return $this->spaces[$id];
     }
 
     public function formatValue($type, $value)

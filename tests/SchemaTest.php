@@ -5,6 +5,21 @@ use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testCreateSpaceWithProperties()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $tester = $mapper->getSchema()->createSpace('tester', [
+            'id' => 'unsigned',
+            'name' => 'str',
+        ]);
+
+        $tester->addIndex('id');
+
+        $this->assertCount(2, $tester->getFormat());
+    }
+
     public function testDuplicateProperty()
     {
         $mapper = $this->createMapper();
@@ -13,7 +28,7 @@ class SchemaTest extends TestCase
         $space = $mapper->getSchema()->createSpace('tester');
         $space->addProperty('id', 'unsigned');
         $this->expectException(Exception::class);
-        
+
         $space->addProperty('id', 'unsigned');
     }
 
