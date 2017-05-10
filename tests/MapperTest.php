@@ -7,6 +7,32 @@ use Tarantool\Mapper\Plugins\Sequence;
 
 class MapperTest extends TestCase
 {
+    public function testIndexRemoved()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('tester', [
+                'id' => 'unsigned',
+                'name1' => 'str',
+                'name2' => 'str',
+            ])
+            ->addIndex('id')
+            ->addIndex('name1')
+            ->addIndex('name2')
+            ->removeIndex('name1');
+
+        $mapper->create('tester', [
+            'id' => 1,
+            'name1' => 'q',
+            'name2' => 'w'
+        ]);
+
+        $mapper = $this->createMapper();
+        $this->assertNotNull($mapper->findOne('tester', ['name2' => 'w']));
+    }
+
     public function testCasting()
     {
         $mapper = $this->createMapper();

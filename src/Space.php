@@ -274,9 +274,18 @@ class Space
 
     public function getIndexValues($indexId, $params)
     {
-        $index = $this->getIndexes()[$indexId];
-        $format = $this->getFormat();
+        $index = null;
+        foreach($this->getIndexes() as $candidate) {
+            if($candidate->iid == $indexId) {
+                $index = $candidate;
+                break;
+            }
+        }
+        if(!$index) {
+            throw new Exception("Undefined index: $indexId");
+        }
 
+        $format = $this->getFormat();
         $values = [];
         foreach($index->parts as $part) {
             $name = $format[$part[0]]['name'];
