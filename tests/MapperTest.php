@@ -3,9 +3,30 @@
 use Tarantool\Mapper\Client;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Schema;
+use Tarantool\Mapper\Plugins\Sequence;
 
 class MapperTest extends TestCase
 {
+    public function testCasting()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->addPlugin(Sequence::class);
+
+        $mapper->getSchema()
+            ->createSpace('person', [
+                'id' => 'unsigned',
+                'name' => 'str',
+                'children' => '*',
+            ])
+            ->addIndex(['id']);
+
+        $dmitry = $mapper->create('person', ['dmitry', [1, 2]]);
+        $this->assertSame(1, $dmitry->id);
+        $this->assertSame('dmitry', $dmitry->name);
+    }
+
     public function testActiveEntity()
     {
         $mapper = $this->createMapper();

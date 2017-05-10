@@ -23,6 +23,7 @@ class Repository
 
     public function create($data)
     {
+        $data = (array) $data;
         $class = Entity::class;
         foreach($this->space->getMapper()->getPlugins() as $plugin) {
             $entityClass = $plugin->getEntityClass($this->space);
@@ -33,6 +34,33 @@ class Repository
                 $class = $entityClass;
             }
         }
+
+        if(array_key_exists(0, $data)) {
+            $byType = [];
+            foreach($this->space->getFormat() as $row) {
+                if(!array_key_exists($row['type'], $byType)) {
+                    $byType[$row['type']] = [$row['name']];
+                } else {
+                    $byType[$row['type']][] = $row['name'];
+                }
+            }
+            $mapping = [
+                'is_numeric' => 'unsigned',
+                'is_string' => 'str',
+                'is_array' => '*',
+            ];
+            foreach($data as $k => $v) {
+                foreach($mapping as $function => $type) {
+                    if(call_user_func($function, $v)) {
+                        if(count($byType[$type]) == 1) {
+                            $data[$byType[$type][0]] = $v;
+                            unset($data[$k]);
+                        }
+                    }
+                }
+            }
+        }
+
         $instance = new $class($this);
         foreach($this->space->getFormat() as $row) {
             if(array_key_exists($row['name'], $data)) {
