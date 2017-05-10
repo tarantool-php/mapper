@@ -103,6 +103,14 @@ class DocBlock extends UserClasses
             $properties = $class->getDefaultProperties();
             if(array_key_exists('indexes', $properties)) {
                 foreach($properties['indexes'] as $index) {
+                    if(!is_array($index)) {
+                        $index = (array) $index;
+                    }
+                    if(!array_key_exists('fields', $index)) {
+                        $index = ['fields' => $index];
+                    }
+
+                    $index['if_not_exists'] = true;
                     $space->addIndex($index);
                 }
             }

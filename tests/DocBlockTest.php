@@ -19,6 +19,8 @@ class DocBlockTest extends TestCase
             ->register('Repositories\\Post')
             ->migrate();
 
+        $mapper->getPlugin(DocBlock::class)->migrate();
+
         $nekufa = $mapper->create('person', [
             'name' => 'Dmitry.Krokhin'
         ]);
