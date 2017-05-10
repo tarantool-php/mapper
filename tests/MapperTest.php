@@ -7,6 +7,28 @@ use Tarantool\Mapper\Plugins\Sequence;
 
 class MapperTest extends TestCase
 {
+    public function testTypesCasting()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('tester', [
+                'id' => 'unsigned',
+                'name' => 'str',
+            ])
+            ->addIndex('id')
+            ->addIndex('name');
+
+        $petya = $mapper->create('tester', [
+            'id' => '1',
+            'name' => 'petya',
+        ]);
+        $this->assertSame(1, $petya->id);
+
+        $anotherPetya = $mapper->findOne('tester', ['id' => '1']);
+        $this->assertNotNull($anotherPetya);
+    }
     public function testIndexRemoved()
     {
         $mapper = $this->createMapper();
@@ -33,7 +55,7 @@ class MapperTest extends TestCase
         $this->assertNotNull($mapper->findOne('tester', ['name2' => 'w']));
     }
 
-    public function testCasting()
+    public function testPropertyNameCasting()
     {
         $mapper = $this->createMapper();
         $this->clean($mapper);

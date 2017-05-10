@@ -38,8 +38,15 @@ class Schema
     public function formatValue($type, $value)
     {
         switch($type) {
-            case 'str': return (string) $value;
-            case 'unsigned': return (int) $value;
+            case 'STR':
+            case 'str':
+                return (string) $value;
+
+            case 'unsigned':
+            case 'UNSIGNED':
+            case 'num':
+            case 'NUM':
+                return (int) $value;
             default: return $value;
         }
     }
