@@ -44,9 +44,9 @@ class DocBlock extends UserClasses
         $space = $this->toUnderscore($reflection->getShortName());
         if($this->mapper->getSchema()->hasSpace($space)) {
             if($isEntity) {
-                $this->mapEntity($name, $class);
+                $this->mapEntity($space, $class);
             } else {
-                $this->mapRepository($name, $class);
+                $this->mapRepository($space, $class);
             }
         }
         return $this;

@@ -63,7 +63,7 @@ class Schema
     public function getSpaceId($name)
     {
         if(!$this->hasSpace($name)) {
-            throw new Exception("No space $id");
+            throw new Exception("No space $name");
         }
         return $this->names[$name];
     }
