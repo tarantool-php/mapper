@@ -362,7 +362,7 @@ $mapper->addPlugin(Tarantool\Mapper\Plugins\Reflection::class)
   ->register(Entities\Person::class)
   ->register(Entities\Post::class)
   ->register(Repositories\Person::class)
-  ->migrate(); // sync code with database schema
+  ->migrate(); // sync database schema with code
 
 $nekufa = $mapper->create('person', ['name' => 'dmitry']);
 
