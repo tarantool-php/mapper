@@ -287,7 +287,7 @@ get_class($nekufa); // Application\Models\Person;
 $mapper->getSchema()->getSpace('person')->getRepository(); // will be instance of Application\Repositories\Person
 ```
 
-# Reflection plugin
+# Annotation plugin
 You can describe your entities using dobclock. Mapper will create space, format and indexes for you.
 
 ```php
@@ -358,7 +358,7 @@ class Post extends Repository
 Register plugin and all your classes:
 ```php
 $mapper->addPlugin(Tarantool\Mapper\Plugins\Sequence::class); // just not to fill id manually
-$mapper->addPlugin(Tarantool\Mapper\Plugins\Reflection::class)
+$mapper->addPlugin(Tarantool\Mapper\Plugins\Annotation::class)
   ->register(Entities\Person::class)
   ->register(Entities\Post::class)
   ->register(Repositories\Person::class)
