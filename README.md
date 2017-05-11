@@ -6,16 +6,28 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/tarantool-php/mapper/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/tarantool-php/mapper/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/tarantool-php/mapper/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/tarantool-php/mapper/?branch=master)
 
-Install using composer.
-```json
-{
-  "require": {
-    "tarantool/mapper": "^2.7.2"
-  }
-}
+- [Installation](#installation)
+- [Instantiate mapper](#instantiate-mapper)
+- [Logging](#logging)
+- [Existing types](#existing-types)
+- [Describe entities](#describe-entities)
+- [Use migrations](#use-migrations)
+- [Use fluent api](#use-fluent-api)
+- [Working with the data](#working-with-the-data)
+- [Indexes](#indexes)
+- [Array properties](#array-properties)
+- [Sequence plugin](#sequence-plugin)
+- [User-defined classes plugin](#user-defined-classes-plugin)
+- [Annotation plugin](#annotation-plugin)
+- [Internals](#internals)
+
+## Installation
+The recommended way to install the library is through [Composer](http://getcomposer.org):
+```
+$ composer require tarantool/mapper
 ```
 
-# Instantiate mapper
+## Instantiate mapper
 Usually, you manage dependencies in your service provider.
 To get started you should instantiate connection, packer, client and mapper itself.
 In this example we use PurePacker and StreamConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#usage)
@@ -31,7 +43,7 @@ $client = new Client($connection, new PurePacker());
 $mapper = new Mapper($client);
 ```
 
-# Logging
+## Logging
 By default, client does not logs tarantool requests, you can use mapper\client that supports logging.
 ```php
 use Tarantool\Client\Connection\StreamConnection;
@@ -48,7 +60,7 @@ $result = $client->ping();
 $log = $client->getLog();
 ```
 
-# Existing types
+## Existing types
 You can start with your current configuration.
 Please, note - all instances are mapped to key-value objects.
 ```php
@@ -66,7 +78,7 @@ echo $guest->type; // user
 
 ```
 
-# Describe entities
+## Describe entities
 To get started you should describe your types and fields using meta object.
 ```php
 
@@ -109,7 +121,7 @@ $person->createIndex([
 ]);
 ```
 
-# Use migrations
+## Use migrations
 
 ```php
 use Tarantool\Mapper\Mapper;
@@ -133,7 +145,7 @@ $mapper->getBootstrap()->migrate();
 
 ```
 
-# Use fluent api
+## Use fluent api
 
 ```php
 use Tarantool\Mapper\Mapper;
@@ -152,7 +164,7 @@ class InitTesterSchema implements Migration
 
 ```
 
-# Working with the data
+## Working with the data
 Now you can store and retreive data from tarantool storage using mapper instance.
 ```php
 // get repository instance
@@ -184,7 +196,7 @@ $helloWorld = $mapper->find('post', 3);
 $helloWorld->title = "Hello World!";
 $mapper->save($helloWorld);
 ```
-# Indexes
+## Indexes
 ```php
 $note = $mapper->getSchema()->createSpace('note');
 $note->addProperty('slug', 'str');
@@ -223,7 +235,7 @@ $mapper->find('person', ['client' => 2]);
 $mapper->find('person', ['client' => 2, 'sector' => 27]);
 ```
 
-# Array properties
+## Array properties
 You can store arrays as property without any serialization to string.
 ```php
 $pattern = $mapper->getSchema()->createSpace('shift_pattern');
@@ -250,7 +262,7 @@ $mapper->create('shift_pattern', [
 $mapper->get('shift_pattern', 1)->pattern[5]; // read element with index 5 from pattern array
 ```
 
-# Sequence plugin
+## Sequence plugin
 If you want you can use sequence plugin that generates next value based on sequence space.
 Or you can implement id generator using any other source, for example with raft protocol.
 ```php
@@ -270,7 +282,7 @@ $entity = $mapper->create('post', [
 echo $entity->id; // will be set when you create an instance
 ```
 
-# User-defined classes plugin
+## User-defined classes plugin
 If you want you can specify classes to use for repository and entity instances.
 Entity and repository class implementation are ommited, but you should just extend base classes.
 ```php
@@ -287,7 +299,7 @@ get_class($nekufa); // Application\Models\Person;
 $mapper->getSchema()->getSpace('person')->getRepository(); // will be instance of Application\Repositories\Person
 ```
 
-# Annotation plugin
+## Annotation plugin
 You can describe your entities using dobclock. Mapper will create space, format and indexes for you.
 
 ```php
@@ -375,7 +387,7 @@ $post = $mapper->create('post', [
 
 ```
 
-# Internals
+## Internals
 Mapper uses IdentityMap and query caching
 ```php
 $dmitry = $mapper->getRepository('person')->findOne(['name' => 'Dmitry']); // person with id 1
