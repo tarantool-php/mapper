@@ -10,7 +10,7 @@ Install using composer.
 ```json
 {
   "require": {
-    "tarantool/mapper": "^2.5.0"
+    "tarantool/mapper": "^2.7.2"
   }
 }
 ```
@@ -346,7 +346,12 @@ class Post extends Repository
 {
     public $indexes = [
         ['id'],
-        ['slug']
+        ['slug'],
+        // extended definition (similar to Space::addIndex params)
+        // [
+        //  'fields' => ['year', 'month', 'day'],
+        //  'unique' => true
+        // ],
     ];
 }
 ```
