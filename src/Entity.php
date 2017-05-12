@@ -20,4 +20,11 @@ class Entity
     {
         $this->getRepository()->save($this);
     }
+
+    public function __debugInfo()
+    {
+        $info = get_object_vars($this);
+        unset($info['_repository']);
+        return $info;
+    }
 }
