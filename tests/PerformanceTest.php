@@ -24,13 +24,13 @@ class PerformanceTest extends TestCase
 
         $this->exec('create', 1000,  function(Mapper $mapper) {
             foreach(range(1, $this->counter) as $id) {
-                $mapper->create('tester', [$id, "text for $id"]);
+                $mapper->create('tester', ['id' => $id, 'text' => "text for $id"]);
             }
         });
 
         $this->exec('read ony by one', 10000,  function(Mapper $mapper) {
             foreach(range(1, $this->counter) as $id) {
-                $mapper->findOne('tester', $id);
+                $mapper->findOne('tester', ['id' => $id]);
             }
         });
 
@@ -58,6 +58,6 @@ class PerformanceTest extends TestCase
         $this->assertGreaterThan($value, $mappingPerSecond, "exec: $label");
 
         // output overhead in milliseconds per entity
-        // var_dump($label.": ".(1000 * $cleanTime / $this->counter). ' ' .$cleanTime);
+        // var_dump($label.": ".(1000 * $cleanTime / $this->counter). ' ' .$cleanTime. ' '.$mappingPerSecond);
     }
 }
