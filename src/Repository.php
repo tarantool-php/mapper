@@ -12,7 +12,6 @@ class Repository
     private $original = [];
     private $keys;
 
-    private $cache = [];
     private $results = [];
 
     public function __construct(Space $space)
@@ -210,7 +209,6 @@ class Repository
 
     public function truncate()
     {
-        $this->cache = [];
         $this->results = [];
         $id = $this->space->getId();
         $this->space->getMapper()->getClient()->evaluate("box.space[$id]:truncate()");
@@ -259,7 +257,6 @@ class Repository
         unset($this->original[$key]);
 
         $this->results = [];
-        $this->cache = [];
     }
 
     public function save($instance)
@@ -328,6 +325,6 @@ class Repository
 
     public function flushCache()
     {
-        $this->cache = [];
+        $this->results = [];
     }
 }

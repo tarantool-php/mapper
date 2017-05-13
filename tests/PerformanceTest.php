@@ -22,19 +22,19 @@ class PerformanceTest extends TestCase
             ->addIndex('id');
 
 
-        $this->exec('create', 2000,  function(Mapper $mapper) {
+        $this->exec('create', 1000,  function(Mapper $mapper) {
             foreach(range(1, $this->counter) as $id) {
                 $mapper->create('tester', [$id, "text for $id"]);
             }
         });
 
-        $this->exec('read ony by one', 20000,  function(Mapper $mapper) {
+        $this->exec('read ony by one', 10000,  function(Mapper $mapper) {
             foreach(range(1, $this->counter) as $id) {
                 $mapper->findOne('tester', $id);
             }
         });
 
-        $this->exec('mass read', 200000,  function(Mapper $mapper) {
+        $this->exec('mass read', 100000,  function(Mapper $mapper) {
             $mapper->find('tester');
         });
     }
