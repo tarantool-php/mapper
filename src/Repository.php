@@ -89,9 +89,10 @@ class Repository
 
     public function find($params = [], $one = false)
     {
-        $cacheIndex = array_search([$params, $one], $this->cache);
-        if($cacheIndex !== false) {
-            return $this->results[$cacheIndex];
+        $cacheKey = json_encode(func_get_args());
+
+        if(array_key_exists($cacheKey, $this->results)) {
+            return $this->results[$cacheKey];
         }
 
         if(!is_array($params)) {
@@ -122,9 +123,6 @@ class Repository
             throw new Exception("No index for params ".json_encode($params));
         }
 
-        $cacheIndex = count($this->cache);
-        $this->cache[] = [$params, $one];
-
         $client = $this->space->getMapper()->getClient();
         $values = $this->space->getIndexValues($index, $params);
 
@@ -134,16 +132,16 @@ class Repository
         foreach($data as $tuple) {
             $instance = $this->getInstance($tuple);
             if($one) {
-                return $this->results[$cacheIndex] = $instance;
+                return $this->results[$cacheKey] = $instance;
             }
             $result[] = $instance;
         }
 
         if($one) {
-            return $this->results[$cacheIndex] = null;
+            return $this->results[$cacheKey] = null;
         }
 
-        return $this->results[$cacheIndex] = $result;
+        return $this->results[$cacheKey] = $result;
     }
 
     private function getInstance($tuple)

@@ -20,6 +20,7 @@
 - [User-defined classes plugin](#user-defined-classes-plugin)
 - [Annotation plugin](#annotation-plugin)
 - [Internals](#internals)
+- [Performance](#performance)
 
 ## Installation
 The recommended way to install the library is through [Composer](http://getcomposer.org):
@@ -399,3 +400,16 @@ $mapper->getRepository('person')->findOne(['name' => 'Dmitry']);
 // you can flush cache manually
 $mapper->getRepository('person')->flushCache();
 ```
+
+## Performance
+Mapper overhead depends on amount of rows and operation type.
+Table contains overhead in **milliseconds** per entity. In some cases, overhead can't be calculated due float precision.
+
+| Operation | 100 | 1000 | 10 000 | 100 000 |
+| --- | --- | --- | --- | --- |
+| create entity one by one | 0.017 | 0.022 | 0.023 | 0.024 |
+| select entity one by one | - | 0.015 | 0.016 | 0.018 |
+| one select for all entites | - | - | 0.002 | 0.006 |
+
+Perfomance test was made on (intel i5-6400), bash for windows 10 using php 7.0.18.
+For example, when select will create 10 000 entites overhead will be 19ms.
