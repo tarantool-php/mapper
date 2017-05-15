@@ -36,54 +36,54 @@ class SpyTest extends TestCase
         $this->assertTrue($spy->hasChanges());
 
         $changes = $spy->getChanges();
-        $this->assertCount(1, $changes->create);
-        $this->assertCount(1, $changes->update);
-        $this->assertCount(0, $changes->remove);
+        $this->assertCount(1, $changes->created);
+        $this->assertCount(1, $changes->updated);
+        $this->assertCount(0, $changes->removed);
 
         $mapper->remove($rybakit);
         $mapper->remove($nekufa);
 
         $changes = $spy->getChanges();
-        $this->assertCount(0, $changes->create);
-        $this->assertCount(0, $changes->update);
-        $this->assertCount(1, $changes->remove);
-        $this->assertSame($changes->remove['person'][0]->id, $nekufa->id);
+        $this->assertCount(0, $changes->created);
+        $this->assertCount(0, $changes->updated);
+        $this->assertCount(1, $changes->removed);
+        $this->assertSame($changes->removed['person'][0]->id, $nekufa->id);
         $this->assertTrue($spy->hasChanges());
 
         $spy->reset();
 
         $changes = $spy->getChanges();
         $this->assertFalse($spy->hasChanges());
-        $this->assertCount(0, $changes->create);
-        $this->assertCount(0, $changes->update);
-        $this->assertCount(0, $changes->remove);
+        $this->assertCount(0, $changes->created);
+        $this->assertCount(0, $changes->updated);
+        $this->assertCount(0, $changes->removed);
 
         $vasya = $mapper->create('person', ['email' => 'vasya@mail.ru']);
 
         $changes = $spy->getChanges();
         $this->assertTrue($spy->hasChanges());
-        $this->assertCount(1, $changes->create);
-        $this->assertCount(0, $changes->update);
-        $this->assertCount(0, $changes->remove);
+        $this->assertCount(1, $changes->created);
+        $this->assertCount(0, $changes->updated);
+        $this->assertCount(0, $changes->removed);
 
-        $this->assertSame([$vasya], $changes->create['person']);
+        $this->assertSame([$vasya], $changes->created['person']);
 
         $vasya->email = 'vasya@ya.ru';
         $mapper->save($vasya);
 
         $changes = $spy->getChanges();
         $this->assertTrue($spy->hasChanges());
-        $this->assertCount(1, $changes->create);
-        $this->assertCount(0, $changes->update);
-        $this->assertCount(0, $changes->remove);
-        $this->assertSame([$vasya], array_values($changes->create['person']));
+        $this->assertCount(1, $changes->created);
+        $this->assertCount(0, $changes->updated);
+        $this->assertCount(0, $changes->removed);
+        $this->assertSame([$vasya], array_values($changes->created['person']));
 
         $mapper->remove($vasya);
         $changes = $spy->getChanges();
         $this->assertFalse($spy->hasChanges());
-        $this->assertCount(0, $changes->create);
-        $this->assertCount(0, $changes->update);
-        $this->assertCount(0, $changes->remove);
+        $this->assertCount(0, $changes->created);
+        $this->assertCount(0, $changes->updated);
+        $this->assertCount(0, $changes->removed);
 
         $vasya = $mapper->create('person', ['email' => 'vasya@mail.ru']);
         $spy->reset();
@@ -93,16 +93,16 @@ class SpyTest extends TestCase
 
         $changes = $spy->getChanges();
         $this->assertTrue($spy->hasChanges());
-        $this->assertCount(0, $changes->create);
-        $this->assertCount(1, $changes->update);
-        $this->assertCount(0, $changes->remove);
+        $this->assertCount(0, $changes->created);
+        $this->assertCount(1, $changes->updated);
+        $this->assertCount(0, $changes->removed);
 
         $mapper->remove($vasya);
 
         $changes = $spy->getChanges();
         $this->assertTrue($spy->hasChanges());
-        $this->assertCount(0, $changes->create);
-        $this->assertCount(0, $changes->update);
-        $this->assertCount(1, $changes->remove);
+        $this->assertCount(0, $changes->created);
+        $this->assertCount(0, $changes->updated);
+        $this->assertCount(1, $changes->removed);
     }
 }

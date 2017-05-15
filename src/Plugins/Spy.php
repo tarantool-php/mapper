@@ -8,20 +8,20 @@ use Tarantool\Mapper\Space;
 
 class Spy extends Plugin
 {
-    private $create = [];
-    private $update = [];
-    private $remove = [];
+    private $created = [];
+    private $updated = [];
+    private $removed = [];
 
     public function beforeCreate(Entity $instance, Space $space)
     {
-        $this->create[$this->getKey($instance, $space)] = $instance;
+        $this->created[$this->getKey($instance, $space)] = $instance;
     }
 
     public function beforeUpdate(Entity $instance, Space $space)
     {
         $key = $this->getKey($instance, $space);
-        if(!array_key_exists($key, $this->create)) {
-            $this->update[$key] = $instance;
+        if(!array_key_exists($key, $this->created)) {
+            $this->updated[$key] = $instance;
         }
     }
 
@@ -29,23 +29,23 @@ class Spy extends Plugin
     {
         $key = $this->getKey($instance, $space);
 
-        if(array_key_exists($key, $this->create)) {
-            unset($this->create[$key]);
+        if(array_key_exists($key, $this->created)) {
+            unset($this->created[$key]);
             return;
         }
 
-        if(array_key_exists($key, $this->update)) {
-            unset($this->update[$key]);
+        if(array_key_exists($key, $this->updated)) {
+            unset($this->updated[$key]);
         }
 
-        $this->remove[$key] = $instance;
+        $this->removed[$key] = $instance;
     }
 
     public function reset()
     {
-        $this->create = [];
-        $this->update = [];
-        $this->remove = [];
+        $this->created = [];
+        $this->updated = [];
+        $this->removed = [];
     }
 
     private function getKey(Entity $instance, Space $space)
@@ -64,7 +64,7 @@ class Spy extends Plugin
     {
         $result = (object) [];
 
-        foreach(['create', 'update', 'remove'] as $action) {
+        foreach(['created', 'updated', 'removed'] as $action) {
             $data = [];
             foreach($this->$action as $key => $row) {
                 list($space) = explode(':', $key);
@@ -81,6 +81,6 @@ class Spy extends Plugin
 
     public function hasChanges()
     {
-        return count($this->create) + count($this->update) + count($this->remove) > 0;
+        return count($this->created) + count($this->updated) + count($this->removed) > 0;
     }
 }
