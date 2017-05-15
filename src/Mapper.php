@@ -59,11 +59,7 @@ class Mapper
 
     public function getBootstrap()
     {
-        if(!$this->bootstrap) {
-            $this->bootstrap = new Bootstrap($this);
-        }
-
-        return $this->bootstrap;
+        return $this->bootstrap ?: $this->bootstrap = new Bootstrap($this);
     }
 
     public function getClient()
