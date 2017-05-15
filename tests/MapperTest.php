@@ -7,6 +7,28 @@ use Tarantool\Mapper\Plugins\Sequence;
 
 class MapperTest extends TestCase
 {
+    public function testNullIndexedValuesFilling()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('rules', [
+                'id' => 'unsigned',
+                'module' => 'unsigned',
+                'rule' => 'unsigned',
+            ])
+            ->addIndex('id')
+            ->addIndex('module')
+            ->addIndex('rule');
+
+        $rule = $mapper->create('rules', [
+            'id' => 1,
+            'module' => 1
+        ]);
+        $this->assertSame($rule->rule, 0);
+    }
+
     public function testTypesCasting()
     {
         $mapper = $this->createMapper();

@@ -263,10 +263,22 @@ class Repository
     {
         $tuple = [];
 
+        $format = $this->space->getFormat();
+
+        // complete indexes fields
+        foreach($this->space->getIndexes() as $index) {
+            foreach($index->parts as $part) {
+                $name = $format[$part[0]]['name'];
+                if(!property_exists($instance, $name)) {
+                    $instance->{$name} = null;
+                }
+            }
+        }
+
         $size = count(get_object_vars($instance));
         $skipped = 0;
 
-        foreach($this->space->getFormat() as $index => $info) {
+        foreach($format as $index => $info) {
             if(!property_exists($instance, $info['name'])) {
                 $skipped++;
                 $instance->{$info['name']} = null;
