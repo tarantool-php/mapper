@@ -7,6 +7,20 @@ use Tarantool\Mapper\Plugins\Sequence;
 
 class MapperTest extends TestCase
 {
+    public function testLogging()
+    {
+        $mapper = $this->createMapper();
+        $client = $mapper->getClient();
+        $client->setLogging(true);
+        $this->assertCount(0, $client->getLog());
+
+        $client->ping();
+
+        // connect
+        // ping
+        $this->assertCount(2, $client->getLog());
+    }
+
     public function testTypeCasting()
     {
         $mapper = $this->createMapper();
