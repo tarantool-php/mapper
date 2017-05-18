@@ -163,7 +163,7 @@ class Annotation extends UserClasses
 
     private $spaceNames = [];
 
-    private function getSpaceName($class)
+    public function getSpaceName($class)
     {
         if(!array_key_exists($class, $this->spaceNames)) {
 
