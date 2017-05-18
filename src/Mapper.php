@@ -19,7 +19,7 @@ class Mapper
 
     public function addPlugin($class)
     {
-        if(!is_subclass_of($class, Plugin::class)) {
+        if (!is_subclass_of($class, Plugin::class)) {
             throw new Exception("Plugin should extend " . Plugin::class . " class");
         }
 
@@ -48,8 +48,8 @@ class Mapper
 
     public function findRepository(Entity $instance)
     {
-        foreach($this->getSchema()->getSpaces() as $space) {
-            if($space->getRepository()->knows($instance)) {
+        foreach ($this->getSchema()->getSpaces() as $space) {
+            if ($space->getRepository()->knows($instance)) {
                 return $space->getRepository();
             }
         }
@@ -69,7 +69,7 @@ class Mapper
 
     public function getPlugin($class)
     {
-        if(!array_key_exists($class, $this->plugins)) {
+        if (!array_key_exists($class, $this->plugins)) {
             throw new Exception("No plugin $class");
         }
         return $this->plugins[$class];
@@ -88,8 +88,8 @@ class Mapper
     public function getRepositories()
     {
         $repositories = [];
-        foreach($this->getSchema()->getSpaces() as $space) {
-            if($space->repositoryExists()) {
+        foreach ($this->getSchema()->getSpaces() as $space) {
+            if ($space->repositoryExists()) {
                 $repositories[] = $space->getRepository();
             }
         }
@@ -103,9 +103,8 @@ class Mapper
 
     public function remove($space, $params = [])
     {
-        if($space instanceof Entity) {
+        if ($space instanceof Entity) {
             $this->findRepository($space)->removeEntity($space);
-
         } else {
             $this->getRepository($space)->remove($params);
         }

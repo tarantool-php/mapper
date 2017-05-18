@@ -20,11 +20,11 @@ class Bootstrap
     public function migrate()
     {
         $schema = $this->mapper->getSchema();
-        foreach($this->migrations as $migration) {
-            if(!is_object($migration)) {
+        foreach ($this->migrations as $migration) {
+            if (!is_object($migration)) {
                 $migration = new $migration;
             }
-            $schema->once(get_class($migration), function() use ($migration) {
+            $schema->once(get_class($migration), function () use ($migration) {
                 $migration->migrate($this->mapper);
             });
         }

@@ -15,14 +15,14 @@ class UserClasses extends Plugin
 
     public function getRepositoryClass(Space $space)
     {
-        if(array_key_exists($space->getName(), $this->repositories)) {
+        if (array_key_exists($space->getName(), $this->repositories)) {
             return $this->repositories[$space->getName()];
         }
     }
 
     public function getEntityClass(Space $space)
     {
-        if(array_key_exists($space->getName(), $this->entities)) {
+        if (array_key_exists($space->getName(), $this->entities)) {
             return $this->entities[$space->getName()];
         }
     }
@@ -31,11 +31,11 @@ class UserClasses extends Plugin
     {
         $this->validateSpace($space);
 
-        if(!class_exists($class)) {
+        if (!class_exists($class)) {
             throw new Exception("No class $class");
         }
 
-        if(!is_subclass_of($class, Entity::class)) {
+        if (!is_subclass_of($class, Entity::class)) {
             throw new Exception("Entity should extend " . Entity::class . " class");
         }
 
@@ -46,11 +46,11 @@ class UserClasses extends Plugin
     {
         $this->validateSpace($space);
 
-        if(!class_exists($class)) {
+        if (!class_exists($class)) {
             throw new Exception("No class $class");
         }
 
-        if(!is_subclass_of($class, Repository::class)) {
+        if (!is_subclass_of($class, Repository::class)) {
             throw new Exception("Repository should extend " . Repository::class . " class");
         }
 
@@ -59,7 +59,7 @@ class UserClasses extends Plugin
 
     public function validateSpace($space)
     {
-        if(!$this->mapper->getSchema()->hasSpace($space)) {
+        if (!$this->mapper->getSchema()->hasSpace($space)) {
             throw new Exception("No space $space");
         }
     }

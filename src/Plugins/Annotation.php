@@ -25,27 +25,27 @@ class Annotation extends UserClasses
         $isEntity = is_subclass_of($class, Entity::class);
         $isRepository = is_subclass_of($class, Repository::class);
 
-        if(!$isEntity && !$isRepository) {
+        if (!$isEntity && !$isRepository) {
             throw new Exception("Invalid registration");
         }
 
-        if($isEntity) {
-            if($class == Entity::class) {
+        if ($isEntity) {
+            if ($class == Entity::class) {
                 throw new Exception("Invalid entity registration");
             }
             $this->entities[] = $class;
         }
 
-        if($isRepository) {
-            if($class == Repository::class) {
+        if ($isRepository) {
+            if ($class == Repository::class) {
                 throw new Exception("Invalid repository registration");
             }
             $this->repositories[] = $class;
         }
 
         $space = $this->getSpaceName($class);
-        if($this->mapper->getSchema()->hasSpace($space)) {
-            if($isEntity) {
+        if ($this->mapper->getSchema()->hasSpace($space)) {
+            if ($isEntity) {
                 $this->mapEntity($space, $class);
             } else {
                 $this->mapRepository($space, $class);
@@ -60,8 +60,7 @@ class Annotation extends UserClasses
 
         $schema = $this->mapper->getSchema();
 
-        foreach($this->entities as $entity) {
-
+        foreach ($this->entities as $entity) {
             $spaceName = $this->getSpaceName($entity);
             $space = $schema->hasSpace($spaceName) ? $schema->getSpace($spaceName) : $schema->createSpace($spaceName);
 
@@ -69,33 +68,31 @@ class Annotation extends UserClasses
 
             $class = new ReflectionClass($entity);
 
-            foreach($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-
+            foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
                 $description = $factory->create($property->getDocComment());
                 $tags = $description->getTags('var');
 
-                if(!count($tags)) {
+                if (!count($tags)) {
                     throw new Exception("No var tag for ".$entity.'::'.$property->getName());
                 }
 
-                if(count($tags) > 1) {
+                if (count($tags) > 1) {
                     throw new Exception("Invalid var tag for ".$entity.'::'.$property->getName());
                 }
 
                 $property = $this->toUnderscore($property->getName());
                 $type = $this->getTarantoolType($tags[0]->getType());
 
-                if(!$space->hasProperty($property)) {
+                if (!$space->hasProperty($property)) {
                     $space->addProperty($property, $type);
                 }
             }
         }
 
-        foreach($this->repositories as $repository) {
-
+        foreach ($this->repositories as $repository) {
             $spaceName = $this->getSpaceName($repository);
 
-            if(!$schema->hasSpace($spaceName)) {
+            if (!$schema->hasSpace($spaceName)) {
                 throw new Exception("Repository with no entity definition");
             }
 
@@ -103,12 +100,12 @@ class Annotation extends UserClasses
 
             $space = $schema->getSpace($spaceName);
             $properties = $class->getDefaultProperties();
-            if(array_key_exists('indexes', $properties)) {
-                foreach($properties['indexes'] as $index) {
-                    if(!is_array($index)) {
+            if (array_key_exists('indexes', $properties)) {
+                foreach ($properties['indexes'] as $index) {
+                    if (!is_array($index)) {
                         $index = (array) $index;
                     }
-                    if(!array_key_exists('fields', $index)) {
+                    if (!array_key_exists('fields', $index)) {
                         $index = ['fields' => $index];
                     }
 
@@ -118,10 +115,9 @@ class Annotation extends UserClasses
             }
         }
 
-        foreach($schema->getSpaces() as $space) {
-
-            if(!count($space->getIndexes())) {
-                if(!$space->hasProperty('id')) {
+        foreach ($schema->getSpaces() as $space) {
+            if (!count($space->getIndexes())) {
+                if (!$space->hasProperty('id')) {
                     throw new Exception("No primary index on ". $space->getName());
                 }
                 $space->addIndex(['id']);
@@ -146,7 +142,7 @@ class Annotation extends UserClasses
     public function getRepositoryMapping()
     {
         $mapping = [];
-        foreach($this->repositories as $class) {
+        foreach ($this->repositories as $class) {
             $mapping[$this->getSpaceName($class)] = $class;
         }
         return $mapping;
@@ -155,7 +151,7 @@ class Annotation extends UserClasses
     public function getEntityMapping()
     {
         $mapping = [];
-        foreach($this->entities as $class) {
+        foreach ($this->entities as $class) {
             $mapping[$this->getSpaceName($class)] = $class;
         }
         return $mapping;
@@ -165,19 +161,18 @@ class Annotation extends UserClasses
 
     public function getSpaceName($class)
     {
-        if(!array_key_exists($class, $this->spaceNames)) {
-
+        if (!array_key_exists($class, $this->spaceNames)) {
             $reflection = new ReflectionClass($class);
             $className = $reflection->getShortName();
 
-            if($reflection->isSubclassOf(Repository::class)) {
-                if($this->repositoryPostifx) {
+            if ($reflection->isSubclassOf(Repository::class)) {
+                if ($this->repositoryPostifx) {
                     $className = substr($className, 0, strlen($className) - strlen($this->repositoryPostifx));
                 }
             }
 
-            if($reflection->isSubclassOf(Entity::class)) {
-                if($this->entityPostfix) {
+            if ($reflection->isSubclassOf(Entity::class)) {
+                if ($this->entityPostfix) {
                     $className = substr($className, 0, strlen($className) - strlen($this->entityPostfix));
                 }
             }
@@ -192,7 +187,7 @@ class Annotation extends UserClasses
 
     private function toUnderscore($input)
     {
-        if(!array_key_exists($input, $this->underscores)) {
+        if (!array_key_exists($input, $this->underscores)) {
             preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $input, $matches);
             $ret = $matches[0];
             foreach ($ret as &$match) {
@@ -207,15 +202,15 @@ class Annotation extends UserClasses
 
     private function getTarantoolType(string $type)
     {
-        if(array_key_exists($type, $this->tarantoolTypes)) {
+        if (array_key_exists($type, $this->tarantoolTypes)) {
             return $this->tarantoolTypes[$type];
         }
 
-        if($type[0] == '\\') {
+        if ($type[0] == '\\') {
             return $this->tarantoolTypes[$type] = 'unsigned';
         }
 
-        switch($type) {
+        switch ($type) {
             case 'int':
                 return $this->tarantoolTypes[$type] = 'unsigned';
 

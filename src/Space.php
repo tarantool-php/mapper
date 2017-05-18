@@ -27,7 +27,7 @@ class Space
 
     public function addProperties($config)
     {
-        foreach($config as $name => $type) {
+        foreach ($config as $name => $type) {
             $this->addProperty($name, $type);
         }
         return $this;
@@ -36,8 +36,8 @@ class Space
     public function addProperty($name, $type)
     {
         $format = $this->getFormat();
-        foreach($format as $field) {
-            if($field['name'] == $name) {
+        foreach ($format as $field) {
+            if ($field['name'] == $name) {
                 throw new Exception("Property $name exists");
             }
         }
@@ -54,7 +54,7 @@ class Space
     {
         $format = $this->getFormat();
         $last = array_pop($format);
-        if($last['name'] != $name) {
+        if ($last['name'] != $name) {
             throw new Exception("Remove only last property");
         }
         $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
@@ -81,14 +81,13 @@ class Space
 
     public function createIndex($config)
     {
-
-        if(!is_array($config)) {
+        if (!is_array($config)) {
             $config = ['fields' => $config];
         }
 
 
-        if(!array_key_exists('fields', $config)) {
-            if(array_values($config) != $config) {
+        if (!array_key_exists('fields', $config)) {
+            if (array_values($config) != $config) {
                 throw new Exception("Invalid index configuration");
             }
             $config = [
@@ -96,7 +95,7 @@ class Space
             ];
         }
 
-        if(!is_array($config['fields'])) {
+        if (!is_array($config['fields'])) {
             $config['fields'] = [$config['fields']];
         }
 
@@ -104,14 +103,14 @@ class Space
             'parts' => []
         ];
 
-        foreach($config as $k => $v) {
-            if($k != 'name' && $k != 'fields') {
+        foreach ($config as $k => $v) {
+            if ($k != 'name' && $k != 'fields') {
                 $options[$k] = $v;
             }
         }
 
-        foreach($config['fields'] as $property) {
-            if(!$this->getPropertyType($property)) {
+        foreach ($config['fields'] as $property) {
+            if (!$this->getPropertyType($property)) {
                 throw new Exception("Unknown property $property", 1);
             }
             $options['parts'][] = $this->getPropertyIndex($property)+1;
@@ -140,15 +139,14 @@ class Space
 
     public function getFormat()
     {
-        if(!$this->format) {
-            if($this->isSpecial()) {
+        if (!$this->format) {
+            if ($this->isSpecial()) {
                 $this->format = $this->mapper->getClient()
                     ->getSpace(280)->select([$this->id])->getData()[0][6];
-
             } else {
                 $this->format = $this->mapper->findOne('_space', ['id' => $this->id])->format;
             }
-            if(!$this->format) {
+            if (!$this->format) {
                 $this->format = [];
             }
             $this->parseFormat();
@@ -171,7 +169,7 @@ class Space
     {
         $this->formatTypesHash = [];
         $this->formatNamesHash = [];
-        foreach($this->format as $key => $row) {
+        foreach ($this->format as $key => $row) {
             $this->formatTypesHash[$row['name']] = $row['type'];
             $this->formatNamesHash[$row['name']] = $key;
         }
@@ -186,7 +184,7 @@ class Space
 
     public function getPropertyType($name)
     {
-        if(!$this->hasProperty($name)) {
+        if (!$this->hasProperty($name)) {
             throw new Exception("No property $name");
         }
         return $this->formatTypesHash[$name];
@@ -194,7 +192,7 @@ class Space
 
     public function getPropertyIndex($name)
     {
-        if(!$this->hasProperty($name)) {
+        if (!$this->hasProperty($name)) {
             throw new Exception("No property $name");
         }
         return $this->formatNamesHash[$name];
@@ -202,19 +200,18 @@ class Space
 
     public function getIndexes()
     {
-        if(!$this->indexes) {
-            if($this->isSpecial()) {
+        if (!$this->indexes) {
+            if ($this->isSpecial()) {
                 $this->indexes = [];
                 $indexTuples = $this->mapper->getClient()->getSpace(288)->select([$this->id])->getData();
                 $indexFormat = $this->mapper->getSchema()->getSpace(288)->getFormat();
-                foreach($indexTuples as $tuple) {
+                foreach ($indexTuples as $tuple) {
                     $instance = (object) [];
-                    foreach($indexFormat as $index => $format) {
+                    foreach ($indexFormat as $index => $format) {
                         $instance->{$format['name']} = $tuple[$index];
                     }
                     $this->indexes[] = $instance;
                 }
-
             } else {
                 $this->indexes = $this->mapper->find('_index', ['id' => $this->id]);
             }
@@ -227,44 +224,44 @@ class Space
         $keys = array_keys($params);
 
         $keys = [];
-        foreach($params as $name => $value) {
+        foreach ($params as $name => $value) {
             $keys[] = $this->getPropertyIndex($name);
         }
-        if($keys == [0]) {
+        if ($keys == [0]) {
             // primary index
             return 0;
         }
 
         // equals
-        foreach($this->getIndexes() as $index) {
+        foreach ($this->getIndexes() as $index) {
             $equals = false;
-            if(count($keys) == count($index->parts)) {
+            if (count($keys) == count($index->parts)) {
                 // same length
                 $equals = true;
-                foreach($index->parts as $part) {
+                foreach ($index->parts as $part) {
                     $equals = $equals && in_array($part[0], $keys);
                 }
             }
 
-            if($equals) {
+            if ($equals) {
                 return $index->iid;
             }
         }
 
         // index part
-        foreach($this->getIndexes() as $index) {
+        foreach ($this->getIndexes() as $index) {
             $partial = [];
-            foreach($index->parts as $n => $part) {
-                if(!array_key_exists($n, $keys)) {
+            foreach ($index->parts as $n => $part) {
+                if (!array_key_exists($n, $keys)) {
                     break;
                 }
-                if($keys[$n] != $part[0]) {
+                if ($keys[$n] != $part[0]) {
                     break;
                 }
                 $partial[] = $keys[$n];
             }
 
-            if(count($partial) == count($keys)) {
+            if (count($partial) == count($keys)) {
                 return $index->iid;
             }
         }
@@ -275,21 +272,21 @@ class Space
     public function getIndexValues($indexId, $params)
     {
         $index = null;
-        foreach($this->getIndexes() as $candidate) {
-            if($candidate->iid == $indexId) {
+        foreach ($this->getIndexes() as $candidate) {
+            if ($candidate->iid == $indexId) {
                 $index = $candidate;
                 break;
             }
         }
-        if(!$index) {
+        if (!$index) {
             throw new Exception("Undefined index: $indexId");
         }
 
         $format = $this->getFormat();
         $values = [];
-        foreach($index->parts as $part) {
+        foreach ($index->parts as $part) {
             $name = $format[$part[0]]['name'];
-            if(!array_key_exists($name, $params)) {
+            if (!array_key_exists($name, $params)) {
                 break;
             }
             $values[] = $this->mapper->getSchema()->formatValue($part[1], $params[$name]);
@@ -300,7 +297,7 @@ class Space
     public function getPrimaryIndex()
     {
         $indexes = $this->getIndexes();
-        if(!count($indexes)) {
+        if (!count($indexes)) {
             throw new Exception("No primary index");
         }
         return $indexes[0];
@@ -309,7 +306,7 @@ class Space
     public function getTupleKey($tuple)
     {
         $key = [];
-        foreach($this->getPrimaryIndex()->parts as $part) {
+        foreach ($this->getPrimaryIndex()->parts as $part) {
             $key[] = $tuple[$part[0]];
         }
         return count($key) == 1 ? $key[0] : implode(':', $key);
@@ -317,12 +314,11 @@ class Space
 
     public function getInstanceKey($instance)
     {
-
         $key = [];
 
-        foreach($this->getPrimaryIndex()->parts as $part) {
+        foreach ($this->getPrimaryIndex()->parts as $part) {
             $name = $this->getFormat()[$part[0]]['name'];
-            if(!property_exists($instance, $name)) {
+            if (!property_exists($instance, $name)) {
                 throw new Exception("Field $name is undefined", 1);
             }
             $key[] = $instance->$name;
@@ -334,10 +330,10 @@ class Space
     public function getRepository()
     {
         $class = Repository::class;
-        foreach($this->mapper->getPlugins() as $plugin) {
+        foreach ($this->mapper->getPlugins() as $plugin) {
             $repositoryClass = $plugin->getRepositoryClass($this);
-            if($repositoryClass) {
-                if($class != Repository::class) {
+            if ($repositoryClass) {
+                if ($class != Repository::class) {
                     throw new Exception('Repository class override');
                 }
                 $class = $repositoryClass;

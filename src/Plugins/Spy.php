@@ -20,7 +20,7 @@ class Spy extends Plugin
     public function beforeUpdate(Entity $instance, Space $space)
     {
         $key = $this->getKey($instance, $space);
-        if(!array_key_exists($key, $this->created)) {
+        if (!array_key_exists($key, $this->created)) {
             $this->updated[$key] = $instance;
         }
     }
@@ -29,12 +29,12 @@ class Spy extends Plugin
     {
         $key = $this->getKey($instance, $space);
 
-        if(array_key_exists($key, $this->created)) {
+        if (array_key_exists($key, $this->created)) {
             unset($this->created[$key]);
             return;
         }
 
-        if(array_key_exists($key, $this->updated)) {
+        if (array_key_exists($key, $this->updated)) {
             unset($this->updated[$key]);
         }
 
@@ -53,7 +53,7 @@ class Spy extends Plugin
         $key = [$space->getName()];
 
         $format = $space->getFormat();
-        foreach($space->getPrimaryIndex()->parts as $part) {
+        foreach ($space->getPrimaryIndex()->parts as $part) {
             $key[] = $instance->{$format[$part[0]]['name']};
         }
 
@@ -64,11 +64,11 @@ class Spy extends Plugin
     {
         $result = (object) [];
 
-        foreach(['created', 'updated', 'removed'] as $action) {
+        foreach (['created', 'updated', 'removed'] as $action) {
             $data = [];
-            foreach($this->$action as $key => $row) {
+            foreach ($this->$action as $key => $row) {
                 list($space) = explode(':', $key);
-                if(!array_key_exists($space, $data)) {
+                if (!array_key_exists($space, $data)) {
                     $data[$space] = [];
                 }
                 $data[$space][] = $row;

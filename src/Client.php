@@ -37,7 +37,7 @@ class Client extends TarantoolClient
     public function getTimeSummary()
     {
         $summary = 0;
-        foreach($this->log as $request) {
+        foreach ($this->log as $request) {
             $summary += $request[0];
         }
         return $summary;
@@ -52,5 +52,4 @@ class Client extends TarantoolClient
     {
         return $this->log;
     }
-
 }

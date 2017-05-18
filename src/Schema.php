@@ -28,7 +28,7 @@ class Schema
 
         $this->spaces[$id] = new Space($this->mapper, $id, $space);
 
-        if($properties) {
+        if ($properties) {
             $this->spaces[$id]->addProperties($properties);
         }
 
@@ -37,7 +37,7 @@ class Schema
 
     public function formatValue($type, $value)
     {
-        switch($type) {
+        switch ($type) {
             case 'STR':
             case 'str':
                 return (string) $value;
@@ -53,15 +53,15 @@ class Schema
 
     public function getSpace($id)
     {
-        if(is_string($id)) {
+        if (is_string($id)) {
             return $this->getSpace($this->getSpaceId($id));
         }
 
-        if(!$id) {
+        if (!$id) {
             throw new Exception("Space id or name not defined");
         }
 
-        if(!array_key_exists($id, $this->spaces)) {
+        if (!array_key_exists($id, $this->spaces)) {
             $this->spaces[$id] = new Space($this->mapper, $id, array_search($id, $this->names));
         }
         return $this->spaces[$id];
@@ -69,7 +69,7 @@ class Schema
 
     public function getSpaceId($name)
     {
-        if(!$this->hasSpace($name)) {
+        if (!$this->hasSpace($name)) {
             throw new Exception("No space $name");
         }
         return $this->names[$name];
@@ -77,7 +77,7 @@ class Schema
 
     public function getSpaces()
     {
-        foreach($this->names as $id) {
+        foreach ($this->names as $id) {
             $this->getSpace($id);
         }
         return $this->spaces;
@@ -93,7 +93,7 @@ class Schema
         $key = 'once' . $name;
 
         $rows = $this->mapper->find('_schema', ['key' => $key]);
-        if(!count($rows)) {
+        if (!count($rows)) {
             $this->mapper->create('_schema', ['key' => $key]);
             return $callback($this->mapper);
         }
