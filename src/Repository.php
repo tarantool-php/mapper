@@ -24,7 +24,7 @@ class Repository
     {
         $data = (array) $data;
         $class = Entity::class;
-        foreach($this->space->getMapper()->getPlugins() as $plugin) {
+        foreach($this->getMapper()->getPlugins() as $plugin) {
             $entityClass = $plugin->getEntityClass($this->space);
             if($entityClass) {
                 if($class != Entity::class) {
@@ -70,7 +70,7 @@ class Repository
             }
         }
 
-        foreach($this->space->getMapper()->getPlugins() as $plugin) {
+        foreach($this->getMapper()->getPlugins() as $plugin) {
             $plugin->generateKey($instance, $this->space);
         }
 
@@ -100,7 +100,7 @@ class Repository
         if(count($params) == 1 && array_key_exists(0, $params)) {
             $primary = $this->space->getPrimaryIndex();
             if(count($primary->parts) == 1) {
-                $formatted = $this->space->getMapper()->getSchema()->formatValue($primary->parts[0][1], $params[0]);
+                $formatted = $this->getMapper()->getSchema()->formatValue($primary->parts[0][1], $params[0]);
                 if($params[0] == $formatted) {
                     $params = [
                         $this->space->getFormat()[$primary->parts[0][0]]['name'] => $params[0]
@@ -122,7 +122,7 @@ class Repository
             throw new Exception("No index for params ".json_encode($params));
         }
 
-        $client = $this->space->getMapper()->getClient();
+        $client = $this->getMapper()->getClient();
         $values = $this->space->getIndexValues($index, $params);
 
         $data = $client->getSpace($this->space->getId())->select($values, $index)->getData();
@@ -152,7 +152,7 @@ class Repository
         }
 
         $class = Entity::class;
-        foreach($this->space->getMapper()->getPlugins() as $plugin) {
+        foreach($this->getMapper()->getPlugins() as $plugin) {
             $entityClass = $plugin->getEntityClass($this->space);
             if($entityClass) {
                 if($class != Entity::class) {
@@ -172,6 +172,11 @@ class Repository
         $this->keys->offsetSet($instance, $key);
 
         return $this->persisted[$key] = $instance;
+    }
+
+    public function getMapper()
+    {
+        return $this->space->getMapper();
     }
 
     public function knows($instance)
@@ -196,7 +201,7 @@ class Repository
             $pk[] = $instance->{$this->space->getFormat()[$part[0]]['name']};
         }
 
-        $client = $this->space->getMapper()->getClient();
+        $client = $this->getMapper()->getClient();
         $result = $client->getSpace($this->space->getId())->update($pk, $tupleOperations);
         foreach($result->getData() as $tuple) {
             foreach($this->space->getFormat() as $index => $info) {
@@ -211,7 +216,7 @@ class Repository
     {
         $this->results = [];
         $id = $this->space->getId();
-        $this->space->getMapper()->getClient()->evaluate("box.space[$id]:truncate()");
+        $this->getMapper()->getClient()->evaluate("box.space[$id]:truncate()");
     }
 
     public function remove($params = [])
@@ -245,11 +250,11 @@ class Repository
             foreach($this->space->getPrimaryIndex()->parts as $part) {
                 $pk[] = $this->original[$key][$part[0]];
             }
-            foreach($this->space->getMapper()->getPlugins() as $plugin) {
+            foreach($this->getMapper()->getPlugins() as $plugin) {
                 $plugin->beforeRemove($instance, $this->space);
             }
 
-            $this->space->getMapper()->getClient()
+            $this->getMapper()->getClient()
                 ->getSpace($this->space->getId())
                 ->delete($pk);
         }
@@ -284,7 +289,7 @@ class Repository
                 $instance->{$info['name']} = null;
             }
 
-            $instance->{$info['name']} = $this->space->getMapper()->getSchema()
+            $instance->{$info['name']} = $this->getMapper()->getSchema()
                 ->formatValue($info['type'], $instance->{$info['name']});
             $tuple[$index] = $instance->{$info['name']};
 
@@ -294,7 +299,7 @@ class Repository
         }
 
         $key = $this->space->getInstanceKey($instance);
-        $client = $this->space->getMapper()->getClient();
+        $client = $this->getMapper()->getClient();
 
         if(array_key_exists($key, $this->persisted)) {
             // update
@@ -313,7 +318,7 @@ class Repository
                 $pk[] = $this->original[$key][$part[0]];
             }
 
-            foreach($this->space->getMapper()->getPlugins() as $plugin) {
+            foreach($this->getMapper()->getPlugins() as $plugin) {
                 $plugin->beforeUpdate($instance, $this->space);
             }
 
@@ -322,7 +327,7 @@ class Repository
 
         } else {
 
-            foreach($this->space->getMapper()->getPlugins() as $plugin) {
+            foreach($this->getMapper()->getPlugins() as $plugin) {
                 $plugin->beforeCreate($instance, $this->space);
             }
 
