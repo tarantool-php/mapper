@@ -4,7 +4,7 @@ namespace Repositories;
 
 use Tarantool\Mapper\Repository;
 
-class Post extends Repository
+class PostRepository extends Repository
 {
     public $indexes = [
         ['id'],

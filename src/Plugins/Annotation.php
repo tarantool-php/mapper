@@ -15,7 +15,10 @@ use Tarantool\Mapper\Repository;
 class Annotation extends UserClasses
 {
     private $entities = [];
+    private $entityPostfix;
+
     private $repositories = [];
+    private $repositoryPostifx;
 
     public function register($class)
     {
@@ -40,8 +43,7 @@ class Annotation extends UserClasses
             $this->repositories[] = $class;
         }
 
-        $reflection = new ReflectionClass($class);
-        $space = $this->toUnderscore($reflection->getShortName());
+        $space = $this->getSpaceName($class);
         if($this->mapper->getSchema()->hasSpace($space)) {
             if($isEntity) {
                 $this->mapEntity($space, $class);
@@ -60,11 +62,12 @@ class Annotation extends UserClasses
 
         foreach($this->entities as $entity) {
 
-            $class = new ReflectionClass($entity);
-            $spaceName = $this->toUnderscore($class->getShortName());
-
+            $spaceName = $this->getSpaceName($entity);
             $space = $schema->hasSpace($spaceName) ? $schema->getSpace($spaceName) : $schema->createSpace($spaceName);
+
             $this->mapEntity($spaceName, $entity);
+
+            $class = new ReflectionClass($entity);
 
             foreach($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
 
@@ -90,8 +93,7 @@ class Annotation extends UserClasses
 
         foreach($this->repositories as $repository) {
 
-            $class = new ReflectionClass($repository);
-            $spaceName = $this->toUnderscore($class->getShortName());
+            $spaceName = $this->getSpaceName($repository);
 
             if(!$schema->hasSpace($spaceName)) {
                 throw new Exception("Repository with no entity definition");
@@ -127,6 +129,63 @@ class Annotation extends UserClasses
         }
 
         return $this;
+    }
+
+    public function setEntityPostfix($postfix)
+    {
+        $this->entityPostfix = $postfix;
+        return $this;
+    }
+
+    public function setRepositoryPostfix($postfix)
+    {
+        $this->repositoryPostifx = $postfix;
+        return $this;
+    }
+
+    public function getRepositoryMapping()
+    {
+        $mapping = [];
+        foreach($this->repositories as $class) {
+            $mapping[$this->getSpaceName($class)] = $class;
+        }
+        return $mapping;
+    }
+
+    public function getEntityMapping()
+    {
+        $mapping = [];
+        foreach($this->entities as $class) {
+            $mapping[$this->getSpaceName($class)] = $class;
+        }
+        return $mapping;
+    }
+
+    private $spaceNames = [];
+
+    private function getSpaceName($class)
+    {
+        if(!array_key_exists($class, $this->spaceNames)) {
+
+            $reflection = new ReflectionClass($class);
+            $className = $reflection->getShortName();
+
+            if($reflection->isSubclassOf(Repository::class)) {
+                if($this->repositoryPostifx) {
+                    $className = substr($className, 0, strlen($className) - strlen($this->repositoryPostifx));
+                }
+            }
+
+            if($reflection->isSubclassOf(Entity::class)) {
+                if($this->entityPostfix) {
+                    $className = substr($className, 0, strlen($className) - strlen($this->entityPostfix));
+                }
+            }
+
+            $this->spaceNames[$class] = $this->toUnderscore($className);
+        }
+
+        return $this->spaceNames[$class];
     }
 
     private $underscores = [];
