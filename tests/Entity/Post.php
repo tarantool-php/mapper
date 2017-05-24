@@ -1,10 +1,10 @@
 <?php
 
-namespace Entities;
+namespace Entity;
 
-use Tarantool\Mapper\Entity;
+use Tarantool\Mapper\Entity as MapperEntity;
 
-class Post extends Entity
+class Post extends MapperEntity
 {
     /**
      * @var integer
