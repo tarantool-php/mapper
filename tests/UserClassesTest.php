@@ -3,7 +3,7 @@
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Repository;
 use Tarantool\Mapper\Space;
-use Tarantool\Mapper\Plugins\UserClasses;
+use Tarantool\Mapper\Plugin\UserClasses;
 
 class UserClassesTest extends TestCase
 {

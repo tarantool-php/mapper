@@ -1,7 +1,7 @@
 <?php
 
 use Tarantool\Mapper\Space;
-use Tarantool\Mapper\Plugins\Sequence;
+use Tarantool\Mapper\Plugin\Sequence;
 
 class SequenceTest extends TestCase
 {

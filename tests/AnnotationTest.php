@@ -1,7 +1,7 @@
 <?php
 
-use Tarantool\Mapper\Plugins\Annotation;
-use Tarantool\Mapper\Plugins\Sequence;
+use Tarantool\Mapper\Plugin\Annotation;
+use Tarantool\Mapper\Plugin\Sequence;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Repository;
 

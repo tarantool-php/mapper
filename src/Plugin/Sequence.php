@@ -1,6 +1,6 @@
 <?php
 
-namespace Tarantool\Mapper\Plugins;
+namespace Tarantool\Mapper\Plugin;
 
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;

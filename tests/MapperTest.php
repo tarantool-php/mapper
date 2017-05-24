@@ -3,7 +3,7 @@
 use Tarantool\Mapper\Client;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Schema;
-use Tarantool\Mapper\Plugins\Sequence;
+use Tarantool\Mapper\Plugin\Sequence;
 
 class MapperTest extends TestCase
 {
