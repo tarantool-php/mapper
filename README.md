@@ -288,27 +288,27 @@ If you want you can specify classes to use for repository and entity instances.
 Entity and repository class implementation are ommited, but you should just extend base classes.
 ```php
 $userClasses = $mapper->addPlugin(Tarantool\Mapper\Plugin\UserClasses::class);
-$userClasses->mapEntity('person', Application\Models\Person::class);
-$userClasses->mapRepository('person', Application\Repositories\Person::class);
+$userClasses->mapEntity('person', Application\Entity\Person::class);
+$userClasses->mapRepository('person', Application\Repository\Person::class);
 
 $nekufa = $mapper->create('person', [
   'email' => 'nekufa@gmail.com'
 ]);
 
-get_class($nekufa); // Application\Models\Person;
+get_class($nekufa); // Application\Entity\Person;
 
-$mapper->getSchema()->getSpace('person')->getRepository(); // will be instance of Application\Repositories\Person
+$mapper->getSchema()->getSpace('person')->getRepository(); // will be instance of Application\Repository\Person
 ```
 
 ## Annotation plugin
 You can describe your entities using dobclock. Mapper will create space, format and indexes for you.
 
 ```php
-namespace Entities;
+namespace Entity;
 
-use Tarantool\Mapper\Entity;
+use Tarantool\Mapper\Entity as MapperEntity;
 
-class Person extends Entity
+class Person extends MapperEntity
 {
     /**
      * @var integer
@@ -321,7 +321,7 @@ class Person extends Entity
     public $name;
 }
 
-class Post extends Entity
+class Post extends MapperEntity
 {
     /**
      * @var integer
@@ -351,11 +351,11 @@ class Post extends Entity
 ```
 If you want to index fields, extend repository and define indexes property
 ```php
-namespace Repositories;
+namespace Repository;
 
-use Tarantool\Mapper\Repository;
+use Tarantool\Mapper\Repository as MapperRepository;
 
-class Post extends Repository
+class Post extends MapperRepository
 {
     public $indexes = [
         ['id'],
@@ -372,9 +372,9 @@ Register plugin and all your classes:
 ```php
 $mapper->addPlugin(Tarantool\Mapper\Plugin\Sequence::class); // just not to fill id manually
 $mapper->addPlugin(Tarantool\Mapper\Plugin\Annotation::class)
-  ->register(Entities\Person::class)
-  ->register(Entities\Post::class)
-  ->register(Repositories\Person::class)
+  ->register(Entity\Person::class)
+  ->register(Entity\Post::class)
+  ->register(Repository\Person::class)
   ->migrate(); // sync database schema with code
 
 $nekufa = $mapper->create('person', ['name' => 'dmitry']);
