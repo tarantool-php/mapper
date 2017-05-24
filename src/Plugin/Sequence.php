@@ -13,7 +13,7 @@ class Sequence extends Plugin
         $primary = $space->getPrimaryIndex();
         if (count($primary->parts) == 1) {
             $key = $space->getFormat()[$primary->parts[0][0]]['name'];
-            if (!property_exists($instance, $key)) {
+            if (!property_exists($instance, $key) || is_null($instance->$key)) {
                 $instance->$key = $this->generateValue($space);
             }
         }
