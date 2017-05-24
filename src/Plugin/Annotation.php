@@ -99,7 +99,10 @@ class Annotation extends UserClasses
             $this->mapRepository($spaceName, $repository);
 
             $space = $schema->getSpace($spaceName);
+
+            $class = new ReflectionClass($repository);
             $properties = $class->getDefaultProperties();
+
             if (array_key_exists('indexes', $properties)) {
                 foreach ($properties['indexes'] as $index) {
                     if (!is_array($index)) {
