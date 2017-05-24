@@ -333,8 +333,9 @@ class Repository
             $this->original[$key] = $tuple;
         }
 
-
         $this->flushCache();
+
+        return $instance;
     }
 
     public function flushCache()

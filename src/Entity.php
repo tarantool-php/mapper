@@ -18,7 +18,7 @@ class Entity
 
     public function save()
     {
-        $this->getRepository()->save($this);
+        return $this->getRepository()->save($this);
     }
 
     public function __debugInfo()
