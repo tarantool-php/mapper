@@ -23,6 +23,8 @@ class AnnotationTest extends TestCase
         $annotation->migrate();
         $annotation->migrate();
 
+        $this->assertSame('post', $annotation->getRepositorySpaceName('Repository\\Posts'));
+
         $this->assertEquals($annotation->getRepositoryMapping(), [
             'person' => 'Repository\\Persons',
             'post'   => 'Repository\\Posts',

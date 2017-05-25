@@ -169,6 +169,11 @@ class Annotation extends UserClasses
 
     private $spaceNames = [];
 
+    public function getRepositorySpaceName($class)
+    {
+        return array_search($class, $this->repositoryMapping);
+    }
+
     public function getSpaceName($class)
     {
         if (!array_key_exists($class, $this->spaceNames)) {
