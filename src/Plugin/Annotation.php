@@ -48,22 +48,6 @@ class Annotation extends UserClasses
             if ($isEntity) {
                 $this->mapEntity($space, $class);
             } else {
-                $singulared = false;
-                foreach ($this->entityMapping as $candidate => $_class) {
-                    if ($this->pluralize($candidate) == $space) {
-                        $space = $candidate;
-                        $singulared = true;
-                        break;
-                    }
-                }
-                if (!$singulared) {
-                    foreach ($this->mapper->getSchema()->getSpaces() as $space) {
-                        if ($this->pluralize($space->getName()) == $space) {
-                            $space = $candidate;
-                            break;
-                        }
-                    }
-                }
                 $this->mapRepository($space, $class);
             }
         }
@@ -105,17 +89,8 @@ class Annotation extends UserClasses
             }
         }
 
-        $plural = [];
-        foreach ($this->mapper->getSchema()->getSpaces() as $space) {
-            $plural[$this->pluralize($space->getName())] = $space->getName();
-        }
-
         foreach ($this->repositoryClasses as $repository) {
             $spaceName = $this->getSpaceName($repository);
-
-            if (array_key_exists($spaceName, $plural)) {
-                $spaceName = $plural[$spaceName];
-            }
 
             if (!$schema->hasSpace($spaceName)) {
                 throw new Exception("Repository with no entity definition");
@@ -196,18 +171,6 @@ class Annotation extends UserClasses
         }
 
         return $this->spaceNames[$class];
-    }
-
-    private function pluralize($word)
-    {
-        switch (strtolower($word[strlen($word)-1])) {
-            case 'y':
-                return substr($word, 0, -1).'ies';
-            case 's':
-                return $word.'es';
-            default:
-                return $word.'s';
-        }
     }
 
     private $underscores = [];
