@@ -44,14 +44,29 @@ class Annotation extends UserClasses
         }
 
         $space = $this->getSpaceName($class);
-        if ($this->mapper->getSchema()->hasSpace($space)) {
-            if ($isEntity) {
-                $this->mapEntity($space, $class);
-            } else {
-                $this->mapRepository($space, $class);
-            }
+        if ($isEntity) {
+            $this->mapEntity($space, $class);
+        } else {
+            $this->mapRepository($space, $class);
         }
         return $this;
+    }
+
+    public function validateSpace($space)
+    {
+        foreach($this->entityClasses as $class) {
+            if($this->getSpaceName($class) == $space) {
+                return true;
+            }
+        }
+
+        foreach($this->repositoryClasses as $class) {
+            if($this->getSpaceName($class) == $space) {
+                return true;
+            }
+        }
+
+        return parent::validateSpace($space);
     }
 
     public function migrate()

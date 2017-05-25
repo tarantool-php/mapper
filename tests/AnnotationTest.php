@@ -20,6 +20,18 @@ class AnnotationTest extends TestCase
             ->register('Repository\\Post')
             ->register('Repository\\Person');
 
+        $this->assertSame('post', $annotation->getRepositorySpaceName('Repository\\Post'));
+
+        $this->assertEquals($annotation->getRepositoryMapping(), [
+            'person' => 'Repository\\Person',
+            'post'   => 'Repository\\Post',
+        ]);
+
+        $this->assertEquals($annotation->getEntityMapping(), [
+            'person' => 'Entity\\Person',
+            'post'   => 'Entity\\Post',
+        ]);
+
         $annotation->migrate();
         $annotation->migrate();
 
@@ -34,6 +46,7 @@ class AnnotationTest extends TestCase
             'person' => 'Entity\\Person',
             'post'   => 'Entity\\Post',
         ]);
+
 
         $nekufa = $mapper->create('person', [
             'name' => 'Dmitry.Krokhin'
