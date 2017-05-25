@@ -129,11 +129,18 @@ class UserClassesTest extends TestCase
 
         $this->assertInstanceOf(TestRepository::class, $test->getRepository());
     }
-
 }
 
-class InvalidTestEntity {}
-class TestEntity extends Entity {}
+class InvalidTestEntity
+{
+}
+class TestEntity extends Entity
+{
+}
 
-class InvalidTestRepository {}
-class TestRepository extends Repository {}
+class InvalidTestRepository
+{
+}
+class TestRepository extends Repository
+{
+}

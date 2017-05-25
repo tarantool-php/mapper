@@ -14,11 +14,11 @@ use Tarantool\Mapper\Repository;
 
 class Annotation extends UserClasses
 {
-    private $entities = [];
-    private $entityPostfix;
+    protected $entityClasses = [];
+    protected $entityPostfix;
 
-    private $repositories = [];
-    private $repositoryPostifx;
+    protected $repositoryClasses = [];
+    protected $repositoryPostifx;
 
     public function register($class)
     {
@@ -33,14 +33,14 @@ class Annotation extends UserClasses
             if ($class == Entity::class) {
                 throw new Exception("Invalid entity registration");
             }
-            $this->entities[] = $class;
+            $this->entityClasses[] = $class;
         }
 
         if ($isRepository) {
             if ($class == Repository::class) {
                 throw new Exception("Invalid repository registration");
             }
-            $this->repositories[] = $class;
+            $this->repositoryClasses[] = $class;
         }
 
         $space = $this->getSpaceName($class);
@@ -48,6 +48,22 @@ class Annotation extends UserClasses
             if ($isEntity) {
                 $this->mapEntity($space, $class);
             } else {
+                $singulared = false;
+                foreach ($this->entityMapping as $candidate => $_class) {
+                    if ($this->pluralize($candidate) == $space) {
+                        $space = $candidate;
+                        $singulared = true;
+                        break;
+                    }
+                }
+                if (!$singulared) {
+                    foreach ($this->mapper->getSchema()->getSpaces() as $space) {
+                        if ($this->pluralize($space->getName()) == $space) {
+                            $space = $candidate;
+                            break;
+                        }
+                    }
+                }
                 $this->mapRepository($space, $class);
             }
         }
@@ -60,7 +76,7 @@ class Annotation extends UserClasses
 
         $schema = $this->mapper->getSchema();
 
-        foreach ($this->entities as $entity) {
+        foreach ($this->entityClasses as $entity) {
             $spaceName = $this->getSpaceName($entity);
             $space = $schema->hasSpace($spaceName) ? $schema->getSpace($spaceName) : $schema->createSpace($spaceName);
 
@@ -89,8 +105,17 @@ class Annotation extends UserClasses
             }
         }
 
-        foreach ($this->repositories as $repository) {
+        $plural = [];
+        foreach ($this->mapper->getSchema()->getSpaces() as $space) {
+            $plural[$this->pluralize($space->getName())] = $space->getName();
+        }
+
+        foreach ($this->repositoryClasses as $repository) {
             $spaceName = $this->getSpaceName($repository);
+
+            if (array_key_exists($spaceName, $plural)) {
+                $spaceName = $plural[$spaceName];
+            }
 
             if (!$schema->hasSpace($spaceName)) {
                 throw new Exception("Repository with no entity definition");
@@ -142,24 +167,6 @@ class Annotation extends UserClasses
         return $this;
     }
 
-    public function getRepositoryMapping()
-    {
-        $mapping = [];
-        foreach ($this->repositories as $class) {
-            $mapping[$this->getSpaceName($class)] = $class;
-        }
-        return $mapping;
-    }
-
-    public function getEntityMapping()
-    {
-        $mapping = [];
-        foreach ($this->entities as $class) {
-            $mapping[$this->getSpaceName($class)] = $class;
-        }
-        return $mapping;
-    }
-
     private $spaceNames = [];
 
     public function getSpaceName($class)
@@ -184,6 +191,18 @@ class Annotation extends UserClasses
         }
 
         return $this->spaceNames[$class];
+    }
+
+    private function pluralize($word)
+    {
+        switch (strtolower($word[strlen($word)-1])) {
+            case 'y':
+                return substr($word, 0, -1).'ies';
+            case 's':
+                return $word.'es';
+            default:
+                return $word.'s';
+        }
     }
 
     private $underscores = [];

@@ -16,4 +16,3 @@ class Person extends MapperEntity
      */
     public $name;
 }
-

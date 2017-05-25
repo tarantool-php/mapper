@@ -121,13 +121,13 @@ class SchemaTest extends TestCase
         $test->createIndex('name');
 
         $flag = $mapper->findOne('_schema', ['key' => 'onceinsert']);
-        if($flag) {
+        if ($flag) {
             $mapper->remove($flag);
         }
 
         $iterations = 2;
-        while($iterations--) {
-            $schema->once('insert', function(Mapper $mapper) {
+        while ($iterations--) {
+            $schema->once('insert', function (Mapper $mapper) {
                 $mapper->create('test', ['name' => 'example row']);
             });
         }
@@ -273,7 +273,7 @@ class SchemaTest extends TestCase
             ['id' => $id++, 'sector' => 2, 'year' => 2017, 'month' => 1, 'day' => 2],
         ];
 
-        foreach($tasks as $task) {
+        foreach ($tasks as $task) {
             $mapper->create('task', $task);
         }
 

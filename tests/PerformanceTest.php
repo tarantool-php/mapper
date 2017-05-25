@@ -11,7 +11,7 @@ class PerformanceTest extends TestCase
 
     public function test()
     {
-        if(extension_loaded('xdebug')) {
+        if (extension_loaded('xdebug')) {
             $this->markTestSkipped("Disable performance metrics with xdebug");
         }
         $mapper = $this->createMapper();
@@ -25,24 +25,24 @@ class PerformanceTest extends TestCase
             ->addIndex('id');
 
 
-        $this->exec('create', 1000,  function(Mapper $mapper) {
-            foreach(range(1, $this->counter) as $id) {
+        $this->exec('create', 1000, function (Mapper $mapper) {
+            foreach (range(1, $this->counter) as $id) {
                 $mapper->create('tester', ['id' => $id, 'text' => "text for $id"]);
             }
         });
 
-        $this->exec('read ony by one', 10000,  function(Mapper $mapper) {
-            foreach(range(1, $this->counter) as $id) {
+        $this->exec('read ony by one', 10000, function (Mapper $mapper) {
+            foreach (range(1, $this->counter) as $id) {
                 $mapper->findOne('tester', ['id' => $id]);
             }
         });
 
-        $this->exec('mass read', 100000,  function(Mapper $mapper) {
+        $this->exec('mass read', 100000, function (Mapper $mapper) {
             $mapper->find('tester');
         });
     }
 
-    private function exec($label, $value, Callable $runner)
+    private function exec($label, $value, callable $runner)
     {
         $startTime = microtime(1);
 
@@ -53,7 +53,7 @@ class PerformanceTest extends TestCase
         $totalTime = microtime(1) - $startTime;
 
         $cleanTime = $totalTime - $mapper->getClient()->getTimeSummary();
-        if($cleanTime <= 0) {
+        if ($cleanTime <= 0) {
             return [$label, [$totalTime, $mapper->getClient()->getTimeSummary()]];
         }
 

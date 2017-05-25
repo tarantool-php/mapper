@@ -11,7 +11,7 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
 {
     protected function createMapper()
     {
-    	return new Mapper($this->createClient());
+        return new Mapper($this->createClient());
     }
 
     protected function createClient()

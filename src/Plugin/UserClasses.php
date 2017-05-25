@@ -10,20 +10,20 @@ use Tarantool\Mapper\Space;
 
 class UserClasses extends Plugin
 {
-    private $repositories = [];
-    private $entities = [];
+    protected $repositoryMapping = [];
+    protected $entityMapping = [];
 
     public function getRepositoryClass(Space $space)
     {
-        if (array_key_exists($space->getName(), $this->repositories)) {
-            return $this->repositories[$space->getName()];
+        if (array_key_exists($space->getName(), $this->repositoryMapping)) {
+            return $this->repositoryMapping[$space->getName()];
         }
     }
 
     public function getEntityClass(Space $space)
     {
-        if (array_key_exists($space->getName(), $this->entities)) {
-            return $this->entities[$space->getName()];
+        if (array_key_exists($space->getName(), $this->entityMapping)) {
+            return $this->entityMapping[$space->getName()];
         }
     }
 
@@ -39,7 +39,7 @@ class UserClasses extends Plugin
             throw new Exception("Entity should extend " . Entity::class . " class");
         }
 
-        $this->entities[$space] = $class;
+        $this->entityMapping[$space] = $class;
     }
 
     public function mapRepository($space, $class)
@@ -54,7 +54,17 @@ class UserClasses extends Plugin
             throw new Exception("Repository should extend " . Repository::class . " class");
         }
 
-        $this->repositories[$space] = $class;
+        $this->repositoryMapping[$space] = $class;
+    }
+
+    public function getRepositoryMapping()
+    {
+        return $this->repositoryMapping;
+    }
+
+    public function getEntityMapping()
+    {
+        return $this->entityMapping;
     }
 
     public function validateSpace($space)

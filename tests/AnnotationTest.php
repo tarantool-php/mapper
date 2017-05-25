@@ -15,16 +15,17 @@ class AnnotationTest extends TestCase
         $mapper->addPlugin(Sequence::class);
 
         $annotation = $mapper->addPlugin(Annotation::class)
-            ->setRepositoryPostfix('Repository')
             ->register('Entity\\Post')
             ->register('Entity\\Person')
-            ->register('Repository\\PostRepository');
+            ->register('Repository\\Posts')
+            ->register('Repository\\Persons');
 
         $annotation->migrate();
         $annotation->migrate();
 
-        $this->assertSame($annotation->getRepositoryMapping(), [
-            'post' => 'Repository\\PostRepository',
+        $this->assertEquals($annotation->getRepositoryMapping(), [
+            'person' => 'Repository\\Persons',
+            'post'   => 'Repository\\Posts',
         ]);
 
         $this->assertEquals($annotation->getEntityMapping(), [
@@ -43,7 +44,6 @@ class AnnotationTest extends TestCase
         ]);
 
         $this->assertInstanceOf('Entity\\Person', $nekufa);
-        $this->assertInstanceOf('Repository\\PostRepository', $mapper->getSchema()->getSpace('post')->getRepository());
+        $this->assertInstanceOf('Repository\\Posts', $mapper->getSchema()->getSpace('post')->getRepository());
     }
 }
-
