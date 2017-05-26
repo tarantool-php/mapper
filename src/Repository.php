@@ -145,7 +145,7 @@ class Repository
 
     public function forget($id)
     {
-        if(array_key_exists($id, $this->persisted)) {
+        if (array_key_exists($id, $this->persisted)) {
             unset($this->persisted[$id]);
         }
     }
@@ -359,8 +359,7 @@ class Repository
 
     public function sync($id)
     {
-        if(array_key_exists($id, $this->persisted)) {
-
+        if (array_key_exists($id, $this->persisted)) {
             $tuple = $this->getMapper()->getClient()->getSpace($this->space->getId())->select([$id], 0)->getData()[0];
 
             foreach ($this->space->getFormat() as $index => $info) {

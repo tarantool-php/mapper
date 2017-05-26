@@ -54,14 +54,14 @@ class Annotation extends UserClasses
 
     public function validateSpace($space)
     {
-        foreach($this->entityClasses as $class) {
-            if($this->getSpaceName($class) == $space) {
+        foreach ($this->entityClasses as $class) {
+            if ($this->getSpaceName($class) == $space) {
                 return true;
             }
         }
 
-        foreach($this->repositoryClasses as $class) {
-            if($this->getSpaceName($class) == $space) {
+        foreach ($this->repositoryClasses as $class) {
+            if ($this->getSpaceName($class) == $space) {
                 return true;
             }
         }

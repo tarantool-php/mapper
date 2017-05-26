@@ -29,9 +29,9 @@ class NestedSet extends Plugin
             ['root', 'right'],
         ];
 
-        foreach($indexes as $index) {
+        foreach ($indexes as $index) {
             $fields = array_key_exists('fields', $index) ? $index['fields'] : $index;
-            if($space->castIndex(array_flip($fields), true) === null) {
+            if ($space->castIndex(array_flip($fields), true) === null) {
                 $space->createIndex($index);
             }
         }
@@ -39,20 +39,18 @@ class NestedSet extends Plugin
 
     public function beforeCreate(Entity $entity, Space $space)
     {
-        if($this->isNested($space)) {
-
+        if ($this->isNested($space)) {
             $repository = $space->getRepository();
 
-            if($entity->parent) {
-
+            if ($entity->parent) {
                 $parent = $repository->findOne($entity->parent);
                 $entity->depth = $parent->depth + 1;
 
                 $updateLeft = [];
                 $updateRight = [];
-                foreach($repository->find(['root' => $entity->root]) as $node) {
-                    if($node->right >= $parent->right) {
-                        if($node->left > $parent->right) {
+                foreach ($repository->find(['root' => $entity->root]) as $node) {
+                    if ($node->right >= $parent->right) {
+                        if ($node->left > $parent->right) {
                             $updateLeft[$node->left] = $node;
                         }
                         $updateRight[$node->right] = $node;
@@ -63,17 +61,16 @@ class NestedSet extends Plugin
                 $entity->right = $entity->left + 1;
 
                 krsort($updateRight);
-                foreach($updateRight as $node) {
+                foreach ($updateRight as $node) {
                     $node->right += 2;
                     $node->save();
                 }
 
                 krsort($updateLeft);
-                foreach($updateLeft as $node) {
+                foreach ($updateLeft as $node) {
                     $node->left += 2;
                     $node->save();
                 }
-
             } else {
                 // new root
                 $map = $space->getTupleMap();
@@ -94,7 +91,6 @@ class NestedSet extends Plugin
                 $entity->left = $max + 1;
                 $entity->right = $entity->left + 1;
             }
-
         }
     }
 
@@ -140,12 +136,12 @@ class NestedSet extends Plugin
         ")->getData();
 
         // remove
-        foreach($result[0] as $id) {
+        foreach ($result[0] as $id) {
             $space->getRepository()->forget($id);
         }
 
         // update
-        foreach($result[1] as $id) {
+        foreach ($result[1] as $id) {
             $space->getRepository()->sync($id);
         }
 
@@ -155,10 +151,9 @@ class NestedSet extends Plugin
     public function isNested(Space $space, $force = false)
     {
         $spaceName = $space->getName();
-        if($force || !array_key_exists($spaceName, $this->nestedSpaces)) {
-
+        if ($force || !array_key_exists($spaceName, $this->nestedSpaces)) {
             $fields = [];
-            foreach($space->getFormat() as $field) {
+            foreach ($space->getFormat() as $field) {
                 $fields[] = $field['name'];
             }
 

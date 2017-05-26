@@ -112,6 +112,5 @@ class NestedSetTest extends TestCase
         $node9 = $mapper->create('tree', ['parent' => $node7->id, 'root' => 1]);
         $this->assertSame($node2->left, 1);
         $this->assertSame($node2->right, 12);
-
     }
 }

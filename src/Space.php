@@ -140,7 +140,7 @@ class Space
     public function getTupleMap()
     {
         $reverse = [];
-        foreach($this->getFormat() as $i => $field) {
+        foreach ($this->getFormat() as $i => $field) {
             $reverse[$field['name']] = $i + 1;
         }
         return (object) $reverse;
@@ -230,7 +230,7 @@ class Space
 
     public function castIndex($params, $suppressException = false)
     {
-        if(!count($this->getIndexes())) {
+        if (!count($this->getIndexes())) {
             return;
         }
         $keys = array_keys($params);
@@ -278,7 +278,7 @@ class Space
             }
         }
 
-        if(!$suppressException) {
+        if (!$suppressException) {
             throw new Exception("No index");
         }
     }
