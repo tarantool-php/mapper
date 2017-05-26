@@ -143,6 +143,13 @@ class Repository
         return $this->results[$cacheKey] = $result;
     }
 
+    public function forget($id)
+    {
+        if(array_key_exists($id, $this->persisted)) {
+            unset($this->persisted[$id]);
+        }
+    }
+
     private function getInstance($tuple)
     {
         $key = $this->space->getTupleKey($tuple);
@@ -265,43 +272,13 @@ class Repository
 
     public function save($instance)
     {
-        $tuple = [];
-
-        $format = $this->space->getFormat();
-
-        // complete indexes fields
-        foreach ($this->space->getIndexes() as $index) {
-            foreach ($index->parts as $part) {
-                $name = $format[$part[0]]['name'];
-                if (!property_exists($instance, $name)) {
-                    $instance->{$name} = null;
-                }
-            }
-        }
-
-        $size = count(get_object_vars($instance));
-        $skipped = 0;
-
-        foreach ($format as $index => $info) {
-            if (!property_exists($instance, $info['name'])) {
-                $skipped++;
-                $instance->{$info['name']} = null;
-            }
-
-            $instance->{$info['name']} = $this->getMapper()->getSchema()
-                ->formatValue($info['type'], $instance->{$info['name']});
-            $tuple[$index] = $instance->{$info['name']};
-
-            if (count($tuple) == $size + $skipped) {
-                break;
-            }
-        }
-
         $key = $this->space->getInstanceKey($instance);
         $client = $this->getMapper()->getClient();
 
         if (array_key_exists($key, $this->persisted)) {
+
             // update
+            $tuple = $this->getTuple($instance);
             $update = array_diff_assoc($tuple, $this->original[$key]);
             if (!count($update)) {
                 return $instance;
@@ -324,10 +301,12 @@ class Repository
             $client->getSpace($this->space->getId())->update($pk, $operations);
             $this->original[$key] = $tuple;
         } else {
+            $this->addDefaultValues($instance);
             foreach ($this->getMapper()->getPlugins() as $plugin) {
                 $plugin->beforeCreate($instance, $this->space);
             }
 
+            $tuple = $this->getTuple($instance);
             $client->getSpace($this->space->getId())->insert($tuple);
             $this->persisted[$key] = $instance;
             $this->original[$key] = $tuple;
@@ -336,6 +315,60 @@ class Repository
         $this->flushCache();
 
         return $instance;
+    }
+
+    private function addDefaultValues(Entity $instance)
+    {
+        $format = $this->space->getFormat();
+
+        // complete indexes fields
+        foreach ($this->space->getIndexes() as $index) {
+            foreach ($index->parts as $part) {
+                $name = $format[$part[0]]['name'];
+                if (!property_exists($instance, $name)) {
+                    $instance->{$name} = null;
+                }
+            }
+        }
+    }
+
+    private function getTuple(Entity $instance)
+    {
+        $tuple = [];
+
+        $size = count(get_object_vars($instance));
+        $skipped = 0;
+
+        foreach ($this->space->getFormat() as $index => $info) {
+            if (!property_exists($instance, $info['name'])) {
+                $skipped++;
+                $instance->{$info['name']} = null;
+            }
+
+            $instance->{$info['name']} = $this->getMapper()->getSchema()
+                ->formatValue($info['type'], $instance->{$info['name']});
+            $tuple[$index] = $instance->{$info['name']};
+
+            if (count($tuple) == $size + $skipped) {
+                break;
+            }
+        }
+
+        return $tuple;
+    }
+
+    public function sync($id)
+    {
+        if(array_key_exists($id, $this->persisted)) {
+
+            $tuple = $this->getMapper()->getClient()->getSpace($this->space->getId())->select([$id], 0)->getData()[0];
+
+            foreach ($this->space->getFormat() as $index => $info) {
+                $value = array_key_exists($index, $tuple) ? $tuple[$index] : null;
+                $this->persisted[$id]->{$info['name']} = $value;
+                $this->original[$id][$index] = $value;
+            }
+        }
     }
 
     public function flushCache()
