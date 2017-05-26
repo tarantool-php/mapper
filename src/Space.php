@@ -137,6 +137,15 @@ class Space
         return $this->id;
     }
 
+    public function getTupleMap()
+    {
+        $reverse = [];
+        foreach($this->getFormat() as $i => $field) {
+            $reverse[$field['name']] = $i + 1;
+        }
+        return (object) $reverse;
+    }
+
     public function getFormat()
     {
         if (!$this->format) {
@@ -219,8 +228,11 @@ class Space
         return $this->indexes;
     }
 
-    public function castIndex($params)
+    public function castIndex($params, $suppressException = false)
     {
+        if(!count($this->getIndexes())) {
+            return;
+        }
         $keys = array_keys($params);
 
         $keys = [];
@@ -266,7 +278,9 @@ class Space
             }
         }
 
-        throw new Exception("No index");
+        if(!$suppressException) {
+            throw new Exception("No index");
+        }
     }
 
     public function getIndexValues($indexId, $params)
