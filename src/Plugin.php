@@ -11,6 +11,9 @@ abstract class Plugin
         $this->mapper = $mapper;
     }
 
+    public function afterInstantiate(Entity $instance)
+    {
+    }
     public function getRepositoryClass(Space $space)
     {
     }

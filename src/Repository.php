@@ -61,6 +61,7 @@ class Repository
         }
 
         $instance = new $class($this);
+
         foreach ($this->space->getFormat() as $row) {
             if (array_key_exists($row['name'], $data)) {
                 $instance->{$row['name']} = $data[$row['name']];
@@ -72,6 +73,7 @@ class Repository
 
         foreach ($this->getMapper()->getPlugins() as $plugin) {
             $plugin->generateKey($instance, $this->space);
+            $plugin->afterInstantiate($instance, $this->space);
         }
 
         // validate instance key
@@ -168,6 +170,7 @@ class Repository
                 $class = $entityClass;
             }
         }
+
         $instance = new $class($this);
 
         $this->original[$key] = $tuple;
@@ -177,6 +180,10 @@ class Repository
         }
 
         $this->keys->offsetSet($instance, $key);
+
+        foreach ($this->getMapper()->getPlugins() as $plugin) {
+            $plugin->afterInstantiate($instance);
+        }
 
         return $this->persisted[$key] = $instance;
     }
