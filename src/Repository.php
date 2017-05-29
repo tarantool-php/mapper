@@ -265,7 +265,6 @@ class Repository
                 $instance->beforeRemove();
             }
 
-
             $this->getMapper()->getClient()
                 ->getSpace($this->space->getId())
                 ->delete($pk);
