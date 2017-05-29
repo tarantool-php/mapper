@@ -74,12 +74,13 @@ class NestedSet extends Plugin
             } else {
                 // new root
                 $map = $space->getTupleMap();
+                $spaceName = $space->getName();
 
                 $entity->root = $entity->root ?: 0;
                 $max = $this->mapper->getClient()->evaluate("
                     local max = 0
                     local root = $entity->root
-                    for i, n in box.space.tree.index.root_right:pairs(root, {iterator = 'le'}) do
+                    for i, n in box.space.$spaceName.index.root_right:pairs(root, {iterator = 'le'}) do
                         if n[$map->root] == root then
                             max = n[$map->right]
                         end
