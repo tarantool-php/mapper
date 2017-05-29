@@ -4,9 +4,37 @@ use Tarantool\Mapper\Client;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Schema;
 use Tarantool\Mapper\Plugin\Sequence;
+use Tarantool\Client\Request\InsertRequest;
 
 class MapperTest extends TestCase
 {
+    public function testDisableRequestType()
+    {
+        $mapper = $this->createMapper();
+        $client = $mapper->getClient();
+
+        $this->assertNotCount(0, $mapper->find('_space'));
+
+        $client->disableRequest(InsertRequest::class);
+
+        $mapper->getSchema()->createSpace('tester')
+            ->addProperties([
+                'id' => 'unsigned',
+                'name' => 'str',
+            ])
+            ->addIndex(['id']);
+
+        $this->expectException(Exception::class);
+
+        $tester = $mapper->create('tester', [
+            'id' => 1,
+            'name' => 'hello'
+        ]);
+
+        $tester->name = 'hello world';
+        $tester->save();
+    }
+
     public function testLogging()
     {
         $mapper = $this->createMapper();
