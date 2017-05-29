@@ -39,64 +39,69 @@ class NestedSet extends Plugin
 
     public function beforeCreate(Entity $entity, Space $space)
     {
-        if ($this->isNested($space)) {
-            $repository = $space->getRepository();
+        if (!$this->isNested($space)) {
+            return;
+        }
+        $repository = $space->getRepository();
 
-            if ($entity->parent) {
-                $parent = $repository->findOne($entity->parent);
-                $entity->depth = $parent->depth + 1;
+        if ($entity->parent) {
+            $parent = $repository->findOne($entity->parent);
+            $entity->depth = $parent->depth + 1;
 
-                $updateLeft = [];
-                $updateRight = [];
-                foreach ($repository->find(['root' => $entity->root]) as $node) {
-                    if ($node->right >= $parent->right) {
-                        if ($node->left > $parent->right) {
-                            $updateLeft[$node->left] = $node;
-                        }
-                        $updateRight[$node->right] = $node;
+            $updateLeft = [];
+            $updateRight = [];
+            foreach ($repository->find(['root' => $entity->root]) as $node) {
+                if ($node->right >= $parent->right) {
+                    if ($node->left > $parent->right) {
+                        $updateLeft[$node->left] = $node;
                     }
+                    $updateRight[$node->right] = $node;
                 }
-
-                $entity->left = $parent->right;
-                $entity->right = $entity->left + 1;
-
-                krsort($updateRight);
-                foreach ($updateRight as $node) {
-                    $node->right += 2;
-                    $node->save();
-                }
-
-                krsort($updateLeft);
-                foreach ($updateLeft as $node) {
-                    $node->left += 2;
-                    $node->save();
-                }
-            } else {
-                // new root
-                $map = $space->getTupleMap();
-                $spaceName = $space->getName();
-
-                $entity->root = $entity->root ?: 0;
-                $max = $this->mapper->getClient()->evaluate("
-                    local max = 0
-                    local root = $entity->root
-                    for i, n in box.space.$spaceName.index.root_right:pairs(root, {iterator = 'le'}) do
-                        if n[$map->root] == root then
-                            max = n[$map->right]
-                        end
-                        break
-                    end
-                    return max
-                ")->getData()[0];
-
-                $entity->left = $max + 1;
-                $entity->right = $entity->left + 1;
             }
+
+            $entity->left = $parent->right;
+            $entity->right = $entity->left + 1;
+
+            krsort($updateRight);
+            foreach ($updateRight as $node) {
+                $node->right += 2;
+                $node->save();
+            }
+
+            krsort($updateLeft);
+            foreach ($updateLeft as $node) {
+                $node->left += 2;
+                $node->save();
+            }
+        } else {
+            // new root
+            $map = $space->getTupleMap();
+            $spaceName = $space->getName();
+
+            $entity->root = $entity->root ?: 0;
+            $max = $this->mapper->getClient()->evaluate("
+                local max = 0
+                local root = $entity->root
+                for i, n in box.space.$spaceName.index.root_right:pairs(root, {iterator = 'le'}) do
+                    if n[$map->root] == root then
+                        max = n[$map->right]
+                    end
+                    break
+                end
+                return max
+            ")->getData()[0];
+
+            $entity->left = $max + 1;
+            $entity->right = $entity->left + 1;
         }
     }
 
     public function beforeRemove(Entity $instance, Space $space)
     {
+        if (!$this->isNested($space)) {
+            return;
+        }
+
         $spaceName = $space->getName();
         $map = $space->getTupleMap();
 
