@@ -256,9 +256,15 @@ class Repository
             foreach ($this->space->getPrimaryIndex()->parts as $part) {
                 $pk[] = $this->original[$key][$part[0]];
             }
+
             foreach ($this->getMapper()->getPlugins() as $plugin) {
                 $plugin->beforeRemove($instance, $this->space);
             }
+
+            if (method_exists($instance, 'beforeRemove')) {
+                $instance->beforeRemove();
+            }
+
 
             $this->getMapper()->getClient()
                 ->getSpace($this->space->getId())
@@ -298,12 +304,20 @@ class Repository
                 $plugin->beforeUpdate($instance, $this->space);
             }
 
+            if (method_exists($instance, 'beforeUpdate')) {
+                $instance->beforeUpdate();
+            }
+
             $client->getSpace($this->space->getId())->update($pk, $operations);
             $this->original[$key] = $tuple;
         } else {
             $this->addDefaultValues($instance);
             foreach ($this->getMapper()->getPlugins() as $plugin) {
                 $plugin->beforeCreate($instance, $this->space);
+            }
+
+            if (method_exists($instance, 'beforeCreate')) {
+                $instance->beforeCreate();
             }
 
             $tuple = $this->getTuple($instance);
