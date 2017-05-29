@@ -10,6 +10,7 @@ use ReflectionProperty;
 
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;
+use Tarantool\Mapper\Plugin\NestedSet;
 use Tarantool\Mapper\Repository;
 
 class Annotation extends UserClasses
@@ -100,6 +101,12 @@ class Annotation extends UserClasses
 
                 if (!$space->hasProperty($property)) {
                     $space->addProperty($property, $type);
+                }
+            }
+            if ($this->mapper->hasPlugin(NestedSet::class)) {
+                $nested = $this->mapper->getPlugin(NestedSet::class);
+                if ($nested->isNested($space)) {
+                    $nested->addIndexes($space);
                 }
             }
         }

@@ -75,6 +75,11 @@ class Mapper
         return $this->plugins[$class];
     }
 
+    public function hasPlugin($class)
+    {
+        return array_key_exists($class, $this->plugins);
+    }
+
     public function getPlugins()
     {
         return array_values($this->plugins);
