@@ -9,7 +9,7 @@ use Tarantool\Mapper\Space;
 
 class NestedSet extends Plugin
 {
-    private $keys = ['id', 'parent', 'root', 'depth', 'left', 'right'];
+    private $keys = ['id', 'parent', 'group', 'depth', 'left', 'right'];
     private $nestedSpaces = [];
 
     public function __construct(Mapper $mapper)
@@ -25,8 +25,8 @@ class NestedSet extends Plugin
                 'fields' => ['parent'],
                 'unique' => false,
             ],
-            ['root', 'left'],
-            ['root', 'right'],
+            ['group', 'left'],
+            ['group', 'right'],
         ];
 
         foreach ($indexes as $index) {
@@ -50,7 +50,7 @@ class NestedSet extends Plugin
 
             $updateLeft = [];
             $updateRight = [];
-            foreach ($repository->find(['root' => $entity->root]) as $node) {
+            foreach ($repository->find(['group' => $entity->group]) as $node) {
                 if ($node->right >= $parent->right) {
                     if ($node->left > $parent->right) {
                         $updateLeft[$node->left] = $node;
@@ -74,16 +74,16 @@ class NestedSet extends Plugin
                 $node->save();
             }
         } else {
-            // new root
+            // new group
             $map = $space->getTupleMap();
             $spaceName = $space->getName();
 
-            $entity->root = $entity->root ?: 0;
+            $entity->group = $entity->group ?: 0;
             $max = $this->mapper->getClient()->evaluate("
                 local max = 0
-                local root = $entity->root
-                for i, n in box.space.$spaceName.index.root_right:pairs(root, {iterator = 'le'}) do
-                    if n[$map->root] == root then
+                local group = $entity->group
+                for i, n in box.space.$spaceName.index.group_right:pairs(group, {iterator = 'le'}) do
+                    if n[$map->group] == group then
                         max = n[$map->right]
                     end
                     break
@@ -109,8 +109,8 @@ class NestedSet extends Plugin
             local removed_node = box.space.$spaceName:get($instance->id)
             local remove_list = {}
             local update_list = {}
-            for i, current in box.space.$spaceName.index.root_left:pairs({removed_node[$map->root], removed_node[$map->left]}, 'gt') do
-                if current[$map->root] ~= removed_node[$map->root] then
+            for i, current in box.space.$spaceName.index.group_left:pairs({removed_node[$map->group], removed_node[$map->left]}, 'gt') do
+                if current[$map->group] ~= removed_node[$map->group] then
                     break
                 end
                 if current[$map->left] < removed_node[$map->right] then
