@@ -8,6 +8,27 @@ use Tarantool\Client\Request\InsertRequest;
 
 class MapperTest extends TestCase
 {
+    public function testArray()
+    {
+        $mapper = $this->createMapper();
+        $client = $mapper->getClient();
+
+        $mapper->getSchema()
+            ->createSpace('params', [
+                'id' => 'unsigned',
+                'arr' => '*'
+            ])
+            ->addIndex('id');
+
+        $mapper->create('params', [
+            'id' => 1,
+            'arr' => [1,2,3,4,5],
+        ]);
+
+        $mapper = $this->createMapper();
+        $this->assertSame([1,2,3,4,5], $mapper->findOne('params', 1)->arr);
+    }
+
     public function testDisableRequestType()
     {
         $mapper = $this->createMapper();

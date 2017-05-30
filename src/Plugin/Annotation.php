@@ -223,6 +223,9 @@ class Annotation extends UserClasses
         }
 
         switch ($type) {
+            case 'array':
+                return $this->tarantoolTypes[$type] = '*';
+
             case 'int':
                 return $this->tarantoolTypes[$type] = 'unsigned';
 
