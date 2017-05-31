@@ -93,52 +93,54 @@ class NestedSet extends Plugin
                     end
                     box.begin()
                     for i, node in box.space.$spaceName:pairs() do
-                        if $right_key < $right_key_near then
-                            if node[$map->right] > $left_key and node[$map->left] <= $right_key_near then
-                                if node[$map->right] <= $right_key then
-                                    table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_edit})
-                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
-                                    maxLeft = maxLeft+1
-                                elseif node[$map->left] > $right_key then
-                                    table.insert(updates, {node[$map->id], $map->left, node[$map->left]-$skew_tree})
-                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
-                                    maxLeft = maxLeft+1
+                        if node[$map->group] == $entity->group then
+                            if $right_key < $right_key_near then
+                                if node[$map->right] > $left_key and node[$map->left] <= $right_key_near then
+                                    if node[$map->right] <= $right_key then
+                                        table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_edit})
+                                        box.space.$spaceName:update(node[$map->id], {
+                                            {'=', $map->left, maxLeft},
+                                            {'=', $map->depth, node[$map->depth]+$skew_level}
+                                        })
+                                        maxLeft = maxLeft+1
+                                    elseif node[$map->left] > $right_key then
+                                        table.insert(updates, {node[$map->id], $map->left, node[$map->left]-$skew_tree})
+                                        box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
+                                        maxLeft = maxLeft+1
+                                    end
+                                    if node[$map->right] <= $right_key then
+                                        table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_edit})
+                                        box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
+                                        maxRight = maxRight+1
+                                    elseif node[$map->right] <= $right_key_near then
+                                        table.insert(updates, {node[$map->id], $map->right, node[$map->right]-$skew_tree})
+                                        box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
+                                        maxRight = maxRight+1
+                                    end
                                 end
-                                if node[$map->right] <= $right_key then
-                                    table.insert(updates, {node[$map->id], $map->depth, node[$map->depth]+$skew_level})
-                                end
-                                if node[$map->right] <= $right_key then
-                                    table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_edit})
-                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
-                                    maxRight = maxRight+1
-                                elseif node[$map->right] <= $right_key_near then
-                                    table.insert(updates, {node[$map->id], $map->right, node[$map->right]-$skew_tree})
-                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
-                                    maxRight = maxRight+1
-                                end
-                            end
-                        else
-                            if node[$map->right] > $right_key_near and node[$map->left] < $right_key then
-                                if node[$map->left] >= $left_key then
-                                    table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_edit})
-                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
-                                    maxRight = maxRight+1
-                                elseif node[$map->right] < $left_key then
-                                    table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_tree})
-                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
-                                    maxRight = maxRight+1
-                                end
-                                if node[$map->left] >= $left_key then
-                                    table.insert(updates, {node[$map->id], $map->depth, node[$map->depth]+$skew_level})
-                                end
-                                if node[$map->left] >= $left_key then
-                                    table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_edit})
-                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
-                                    maxLeft = maxLeft+1
-                                elseif node[$map->left] > $right_key_near then
-                                    table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_tree})
-                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
-                                    maxLeft = maxLeft+1
+                            else
+                                if node[$map->right] > $right_key_near and node[$map->left] < $right_key then
+                                    if node[$map->left] >= $left_key then
+                                        table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_edit})
+                                        box.space.$spaceName:update(node[$map->id], {
+                                            {'=', $map->right, maxRight},
+                                            {'=', $map->depth, node[$map->depth]+$skew_level}
+                                        })
+                                        maxRight = maxRight+1
+                                    elseif node[$map->right] < $left_key then
+                                        table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_tree})
+                                        box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
+                                        maxRight = maxRight+1
+                                    end
+                                    if node[$map->left] >= $left_key then
+                                        table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_edit})
+                                        box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
+                                        maxLeft = maxLeft+1
+                                    elseif node[$map->left] > $right_key_near then
+                                        table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_tree})
+                                        box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
+                                        maxLeft = maxLeft+1
+                                    end
                                 end
                             end
                         end
