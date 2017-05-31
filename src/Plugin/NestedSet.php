@@ -37,6 +37,130 @@ class NestedSet extends Plugin
         }
     }
 
+    public function beforeUpdate(Entity $entity, Space $space)
+    {
+        if ($this->isNested($space)) {
+            $repository = $space->getRepository();
+
+            $parent = $repository->findOne($entity->parent);
+            $level_up = $parent ? $parent->depth+1 : 0;
+
+            $left_key = $entity->left;
+            $right_key = $entity->right;
+
+            $client = $this->mapper->getClient();
+            $map = $space->getTupleMap();
+
+            $old_entity = $client->getSpace($space->getId())->select([$entity->id])->getData()[0];
+            $old_parent = $repository->findOne($old_entity[$map->parent-1]);
+            $old_parent_id = $old_parent ? $old_parent->id : 0;
+
+            if ($old_parent_id != $entity->parent) {
+                $right_key_near = 0;
+                if (!$entity->parent) {
+                    foreach ($repository->find(['parent' => 0]) as $node) {
+                        if ($node->right > $right_key_near) {
+                            $right_key_near = $node->right;
+                        }
+                    }
+                } else {
+                    $right_key_near = $parent->left;
+                }
+
+                $skew_tree = $right_key - $left_key + 1;
+                $skew_edit = $right_key_near - $left_key + 1;
+                $skew_level = $level_up - $entity->depth;
+
+                $spaceName = $space->getName();
+
+                if ($right_key < $right_key_near) {
+                    $skew_edit -= $skew_tree;
+                }
+                $result = $this->mapper->getClient()->evaluate("
+                    local result = {}
+                    local updates = {}
+                    local leftKeys = {}
+                    local rightKeys = {}
+                    local maxRightTuple = box.space.$spaceName.index.group_right:max(right);
+                    local maxLeftTuple = box.space.$spaceName.index.group_left:max(left);
+                    local maxRight = 100
+                    if maxRightTuple ~= nil then
+                        maxRight = maxRightTuple[$map->right]+100
+                    end
+                    local maxLeft = 100
+                    if maxLeftTuple ~= nil then
+                        maxLeft = maxLeftTuple[$map->left]+100
+                    end
+                    box.begin()
+                    for i, node in box.space.$spaceName:pairs() do
+                        if $right_key < $right_key_near then
+                            if node[$map->right] > $left_key and node[$map->left] <= $right_key_near then
+                                if node[$map->right] <= $right_key then
+                                    table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_edit})
+                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
+                                    maxLeft = maxLeft+1
+                                elseif node[$map->left] > $right_key then
+                                    table.insert(updates, {node[$map->id], $map->left, node[$map->left]-$skew_tree})
+                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
+                                    maxLeft = maxLeft+1
+                                end
+                                if node[$map->right] <= $right_key then
+                                    table.insert(updates, {node[$map->id], $map->depth, node[$map->depth]+$skew_level})
+                                end
+                                if node[$map->right] <= $right_key then
+                                    table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_edit})
+                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
+                                    maxRight = maxRight+1
+                                elseif node[$map->right] <= $right_key_near then
+                                    table.insert(updates, {node[$map->id], $map->right, node[$map->right]-$skew_tree})
+                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
+                                    maxRight = maxRight+1
+                                end
+                            end
+                        else
+                            if node[$map->right] > $right_key_near and node[$map->left] < $right_key then
+                                if node[$map->left] >= $left_key then
+                                    table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_edit})
+                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
+                                    maxRight = maxRight+1
+                                elseif node[$map->right] < $left_key then
+                                    table.insert(updates, {node[$map->id], $map->right, node[$map->right]+$skew_tree})
+                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->right, maxRight}})
+                                    maxRight = maxRight+1
+                                end
+                                if node[$map->left] >= $left_key then
+                                    table.insert(updates, {node[$map->id], $map->depth, node[$map->depth]+$skew_level})
+                                end
+                                if node[$map->left] >= $left_key then
+                                    table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_edit})
+                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
+                                    maxLeft = maxLeft+1
+                                elseif node[$map->left] > $right_key_near then
+                                    table.insert(updates, {node[$map->id], $map->left, node[$map->left]+$skew_tree})
+                                    box.space.$spaceName:update(node[$map->id], {{'=', $map->left, maxLeft}})
+                                    maxLeft = maxLeft+1
+                                end
+                            end
+                        end
+                    end
+                    for i, node in pairs(updates) do
+                        table.insert(result, node[1])
+                        box.space.$spaceName:update(node[1], {{'=', node[2], node[3]}})
+                    end
+                    box.commit()
+
+                    return result
+                ")->getData();
+
+                foreach (array_unique($result[0]) as $id) {
+                    $space->getRepository()->sync($id);
+                }
+
+                $space->getRepository()->flushCache();
+            }
+        }
+    }
+
     public function beforeCreate(Entity $entity, Space $space)
     {
         if (!$this->isNested($space)) {

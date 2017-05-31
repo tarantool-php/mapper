@@ -51,6 +51,7 @@ class NestedSetTest extends TestCase
         $this->assertSame($node5->left, 2);
         $this->assertSame($node5->right, 3);
         $this->assertSame($node2->right, 10);
+
         $mapper->remove($node1);
 
         $this->assertCount(3, $mapper->find('tree'));
@@ -68,6 +69,56 @@ class NestedSetTest extends TestCase
         $node9 = $mapper->create('tree', ['parent' => 7]);
         $this->assertSame($node2->left, 1);
         $this->assertSame($node2->right, 12);
+
+        $node10 = $mapper->create('tree', []);
+        $this->assertSame($node10->left, 13);
+        $this->assertSame($node10->right, 14);
+
+        $node11 = $mapper->create('tree', ['parent' => 9]);
+        $this->assertSame($node10->left, 13);
+        $this->assertSame($node10->right, 16);
+
+        // move nodes
+
+        $node9->parent = 0;
+        $mapper->save($node9);
+        $this->assertSame($node7->left, 6);
+        $this->assertSame($node7->right, 7);
+        $this->assertSame($node8->left, 8);
+        $this->assertSame($node8->right, 9);
+        $this->assertSame($node9->left, 15);
+        $this->assertSame($node9->right, 16);
+        $this->assertSame($node9->depth, 0);
+        $this->assertSame($node10->left, 11);
+        $this->assertSame($node10->right, 14);
+
+        $node10->parent = 6;
+        $mapper->save($node10);
+        $this->assertSame($node2->left, 1);
+        $this->assertSame($node2->right, 14);
+        $this->assertSame($node7->left, 6);
+        $this->assertSame($node7->right, 11);
+        $this->assertSame($node10->left, 7);
+        $this->assertSame($node10->right, 10);
+        $this->assertSame($node10->depth, 2);
+        $this->assertSame($node11->left, 8);
+        $this->assertSame($node11->right, 9);
+        $this->assertSame($node11->depth, 3);
+
+        $node11->parent = 8;
+        $mapper->save($node11);
+        $this->assertSame($node2->left, 1);
+        $this->assertSame($node2->right, 12);
+        $this->assertSame($node7->left, 6);
+        $this->assertSame($node7->right, 9);
+        $this->assertSame($node10->left, 7);
+        $this->assertSame($node10->right, 8);
+        $this->assertSame($node10->depth, 2);
+        $this->assertSame($node9->left, 13);
+        $this->assertSame($node9->right, 16);
+        $this->assertSame($node11->left, 14);
+        $this->assertSame($node11->right, 15);
+        $this->assertSame($node11->depth, 1);
 
         // new group test
 
