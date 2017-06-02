@@ -352,6 +352,11 @@ class Repository
         }
     }
 
+    public  function getOriginal($instance)
+    {
+        return $this->original[$this->space->getInstanceKey($instance)];
+    }
+
     private function getTuple(Entity $instance)
     {
         $tuple = [];
@@ -377,15 +382,17 @@ class Repository
         return $tuple;
     }
 
-    public function sync($id)
+    public function sync($id, $fields = null)
     {
         if (array_key_exists($id, $this->persisted)) {
             $tuple = $this->getMapper()->getClient()->getSpace($this->space->getId())->select([$id], 0)->getData()[0];
 
             foreach ($this->space->getFormat() as $index => $info) {
-                $value = array_key_exists($index, $tuple) ? $tuple[$index] : null;
-                $this->persisted[$id]->{$info['name']} = $value;
-                $this->original[$id][$index] = $value;
+                if (!$fields || in_array($info['name'], $fields)) {
+                    $value = array_key_exists($index, $tuple) ? $tuple[$index] : null;
+                    $this->persisted[$id]->{$info['name']} = $value;
+                    $this->original[$id][$index] = $value;
+                }
             }
         }
     }
