@@ -8,6 +8,25 @@ use Tarantool\Client\Request\InsertRequest;
 
 class MapperTest extends TestCase
 {
+    public function testFirstTupleValueIndexCasting()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $client = $mapper->getClient();
+
+        $space = $mapper->getSchema()
+            ->createSpace('tester', [
+                'label' => 'str',
+                'id' => 'unsigned'
+            ])
+            ->addIndex('id')
+            ->addIndex('label');
+
+        $this->assertSame(0, $space->castIndex(['id' => 1]));
+        $this->assertSame(1, $space->castIndex(['label' => 1]));
+    }
+
     public function testArray()
     {
         $mapper = $this->createMapper();
@@ -32,6 +51,8 @@ class MapperTest extends TestCase
     public function testDisableRequestType()
     {
         $mapper = $this->createMapper();
+        $this->clean($mapper);
+
         $client = $mapper->getClient();
 
         $this->assertNotCount(0, $mapper->find('_space'));

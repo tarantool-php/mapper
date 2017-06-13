@@ -239,10 +239,6 @@ class Space
         foreach ($params as $name => $value) {
             $keys[] = $this->getPropertyIndex($name);
         }
-        if ($keys == [0]) {
-            // primary index
-            return 0;
-        }
 
         // equals
         foreach ($this->getIndexes() as $index) {
