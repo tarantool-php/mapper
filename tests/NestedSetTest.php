@@ -204,5 +204,12 @@ class NestedSetTest extends TestCase
         $this->assertSame($node9->left, 5);
         $this->assertSame($node9->right, 6);
         $this->assertSame($node9->depth, 4);
+
+        $this->assertCount(8, $mapper->find('tree', ['group' => 0]));
+        $this->assertCount(6, $mapper->find('tree', ['group' => 1]));
+
+        $repository = $mapper->getSchema()->getSpace('tree')->getRepository();
+        $this->assertCount(8, $repository->find(['group' => 0]));
+        $this->assertCount(6, $repository->find(['group' => 1]));
     }
 }
