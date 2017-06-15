@@ -24,7 +24,13 @@ class Entity
     public function __debugInfo()
     {
         $info = get_object_vars($this);
+
         unset($info['_repository']);
+
+        if (array_key_exists('app', $info) && is_object($app)) {
+            unset($info['app']);
+        }
+
         return $info;
     }
 }
