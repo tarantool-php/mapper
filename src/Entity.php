@@ -27,7 +27,7 @@ class Entity
 
         unset($info['_repository']);
 
-        if (array_key_exists('app', $info) && is_object($app)) {
+        if (array_key_exists('app', $info) && is_object($info['app'])) {
             unset($info['app']);
         }
 
