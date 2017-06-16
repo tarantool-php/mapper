@@ -223,6 +223,7 @@ class Annotation extends UserClasses
         }
 
         switch ($type) {
+            case 'mixed':
             case 'array':
                 return $this->tarantoolTypes[$type] = '*';
 
