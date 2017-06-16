@@ -79,6 +79,12 @@ class Repository
         // validate instance key
         $key = $this->space->getInstanceKey($instance);
 
+        foreach ($this->keys as $_) {
+            if ($this->keys[$_] == $key) {
+                throw new Exception($this->space->getName().' '.json_encode($key).' exists');
+            }
+        }
+
         $this->keys[$instance] = $key;
         return $instance;
     }
@@ -287,6 +293,7 @@ class Repository
         }
 
         unset($this->original[$key]);
+        unset($this->keys[$instance]);
 
         $this->results = [];
     }
