@@ -8,6 +8,34 @@ use Tarantool\Client\Request\InsertRequest;
 
 class MapperTest extends TestCase
 {
+    public function testFindOrCreateShortcut()
+    {
+        $mapper = $this->createMapper();
+        $mapper->addPlugin(new Sequence($mapper));
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('tester', [
+                'id'    => 'unsigned',
+                'label' => 'str',
+            ])
+            ->addIndex('id')
+            ->addIndex('label');
+
+        $params = [
+            'label' => 'test'
+        ];
+
+        $first = $mapper->findOrCreate('tester', $params);
+        $this->assertNotNull($first);
+        $this->assertSame($first, $mapper->findOrCreate('tester', $params));
+
+        $anotherMapper = $this->createMapper();
+        $anotherMapper->addPlugin(new Sequence($mapper));
+        $anotherEntity = $anotherMapper->findOrCreate('tester', $params);
+        $this->assertSame($anotherEntity->id, $first->id);
+    }
+
     public function testFirstTupleValueIndexCasting()
     {
         $mapper = $this->createMapper();

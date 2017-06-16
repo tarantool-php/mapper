@@ -31,14 +31,17 @@ class Mapper
 
     public function create($space, $data)
     {
-        $instance = $this->getRepository($space)->create($data);
-        $this->getRepository($space)->save($instance);
-        return $instance;
+        return $this->getRepository($space)->create($data)->save();
     }
 
     public function findOne($space, $params = [])
     {
         return $this->getRepository($space)->findOne($params);
+    }
+
+    public function findOrCreate($space, $params = [])
+    {
+        return $this->getRepository($space)->findOrCreate($params)->save();
     }
 
     public function find($space, $params = [])

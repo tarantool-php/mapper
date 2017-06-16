@@ -88,6 +88,15 @@ class Repository
         return $this->find($params, true);
     }
 
+    public function findOrCreate($params = [])
+    {
+        $entity = $this->findOne($params);
+        if (!$entity) {
+            $entity = $this->create($params);
+        }
+        return $entity;
+    }
+
     public function find($params = [], $one = false)
     {
         $cacheKey = json_encode(func_get_args());
