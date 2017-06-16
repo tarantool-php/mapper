@@ -7,7 +7,7 @@ use Tarantool\Mapper\Plugin\Sequence;
 
 class PerformanceTest extends TestCase
 {
-    public $counter = 10000;
+    public $counter = 1000;
 
     public function test()
     {
