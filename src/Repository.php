@@ -307,7 +307,14 @@ class Repository
 
             // update
             $tuple = $this->getTuple($instance);
-            $update = array_diff_assoc($tuple, $this->original[$key]);
+            $update = [];
+
+            foreach ($tuple as $i => $v) {
+                if ($v !== $this->original[$key][$i]) {
+                    $update[$i] = $v;
+                }
+            }
+
             if (!count($update)) {
                 return $instance;
             }
