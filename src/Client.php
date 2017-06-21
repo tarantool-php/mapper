@@ -30,6 +30,11 @@ class Client extends TarantoolClient
         $this->disabledRequests[] = $class;
     }
 
+    public function resetDisabled()
+    {
+        $this->disabledRequests = [];
+    }
+
     public function sendRequest(Request $request)
     {
         if (in_array(get_class($request), $this->disabledRequests)) {
