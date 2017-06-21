@@ -208,6 +208,11 @@ class Repository
         return $this->space->getMapper();
     }
 
+    public function getSpace()
+    {
+        return $this->space;
+    }
+
     public function knows($instance)
     {
         return $this->keys->offsetExists($instance);
