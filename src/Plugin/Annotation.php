@@ -126,7 +126,7 @@ class Annotation extends UserClasses
             $properties = $class->getDefaultProperties();
 
             if (array_key_exists('indexes', $properties)) {
-                foreach ($properties['indexes'] as $index) {
+                foreach ($properties['indexes'] as $i => $index) {
                     if (!is_array($index)) {
                         $index = (array) $index;
                     }
@@ -135,7 +135,12 @@ class Annotation extends UserClasses
                     }
 
                     $index['if_not_exists'] = true;
-                    $space->addIndex($index);
+                    try {
+                        $space->addIndex($index);
+                    } catch (Exception $e) {
+                        $presentation = json_encode($properties['indexes'][$i]);
+                        throw new Exception("Failed to add index $presentation. ". $e->getMessage(), 0, $e);
+                    }
                 }
             }
         }

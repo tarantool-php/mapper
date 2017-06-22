@@ -7,7 +7,29 @@ use Tarantool\Mapper\Repository;
 
 class AnnotationTest extends TestCase
 {
-    public function test()
+    public function testInvalidIndexMessage()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->addPlugin(Sequence::class);
+        $mapper->getSchema()
+            ->createSpace('invalid_index', [
+                'id' => 'unsigned'
+            ])
+            ->addIndex('id');
+
+        $i = $mapper->create('invalid_index', ['id' => 1]);
+
+        $annotation = $mapper->addPlugin(Annotation::class);
+        $annotation->register('Entity\\InvalidIndex');
+        $annotation->register('Repository\\InvalidIndex');
+
+        $this->expectExceptionMessage('Failed to add index ["name"]');
+        $annotation->migrate();
+    }
+
+    public function testCorrectDefinition()
     {
         $mapper = $this->createMapper();
         $this->clean($mapper);
