@@ -6,10 +6,10 @@
     "license": "MIT",
     "require": {
         "php": "^7.0",
-        "tarantool/client": "^0.2.0"
+        "tarantool/client": "^0.3.0"
     },
     "suggest": {
-        "ext-msgpack": "For using Pecl- or PeclLitePacker.",
+        "ext-msgpack": "For using PeclPacker.",
         "rybakit/msgpack": "For using PurePacker.",
         "phpdocumentor/reflection-docblock": "Annotation Plugin"
     },
