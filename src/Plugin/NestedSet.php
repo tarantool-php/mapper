@@ -12,11 +12,6 @@ class NestedSet extends Plugin
     private $keys = ['id', 'parent', 'group', 'depth', 'left', 'right'];
     private $nestedSpaces = [];
 
-    public function __construct(Mapper $mapper)
-    {
-        $this->mapper = $mapper;
-    }
-
     public function addIndexes(Space $space)
     {
         $indexes = [
