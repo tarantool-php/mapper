@@ -37,5 +37,11 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
 
         $mapper->getSchema()->reset();
         $mapper->getRepository('_space')->flushCache();
+
+        foreach ($mapper->find('_schema') as $schema) {
+            if (strpos($schema->key, 'once') === 0) {
+                $mapper->remove($schema);
+            }
+        }
     }
 }
