@@ -47,7 +47,9 @@ class Schema
             case 'num':
             case 'NUM':
                 return (int) $value;
-            default: return $value;
+
+            default:
+                return $value;
         }
     }
 
@@ -107,7 +109,7 @@ class Schema
             for i, s in box.space._space:pairs() do
                 spaces[s[3]] = s[1]
             end
-            return spaces"
-        )->getData()[0];
+            return spaces
+        ")->getData()[0];
     }
 }

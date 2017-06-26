@@ -309,7 +309,6 @@ class Repository
         $client = $this->getMapper()->getClient();
 
         if (array_key_exists($key, $this->persisted)) {
-
             // update
             $tuple = $this->getTuple($instance);
             $update = [];
@@ -380,7 +379,7 @@ class Repository
         }
     }
 
-    public  function getOriginal($instance)
+    public function getOriginal($instance)
     {
         return $this->original[$this->space->getInstanceKey($instance)];
     }
