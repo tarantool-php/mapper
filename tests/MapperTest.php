@@ -8,7 +8,32 @@ use Tarantool\Client\Request\InsertRequest;
 
 class MapperTest extends TestCase
 {
-    public function testDoubleCreationTest()
+    public function testRemoveAndCreate()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('tester', [
+                'a' => 'unsigned',
+                'b' => 'unsigned',
+            ])
+            ->addIndex(['a', 'b']);
+
+        $tester1 = $mapper->create('tester', ['a' => 1, 'b' => 2]);
+
+        $tester1x = $mapper->find('tester', ['a' => 1])[0];
+        $this->assertSame($tester1, $tester1x);
+        $mapper->remove($tester1x);
+
+        $tester2 = $mapper->create('tester', ['a' => 1, 'b' => 2]);
+
+        $this->assertSame($tester1->a, $tester2->a);
+        $this->assertSame($tester1->b, $tester2->b);
+        $this->assertNotSame($tester1, $tester2);
+    }
+
+    public function testDoubleCreation()
     {
         $mapper = $this->createMapper();
         $mapper->addPlugin(new Sequence($mapper));
