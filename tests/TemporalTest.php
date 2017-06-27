@@ -5,6 +5,31 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testTwoWayLinks()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        foreach (['person', 'role'] as $spaceName) {
+            $mapper->getSchema()
+                ->createSpace($spaceName, [
+                    'id' => 'unsigned',
+                ])
+                ->addIndex('id');
+        }
+
+        $temporal->link([
+            'person' => 1,
+            'role'   => 2,
+        ]);
+
+        $links = $temporal->getLinks('person', 1, 'now');
+        $this->assertCount(1, $links);
+    }
+
     public function testLinks()
     {
         $mapper = $this->createMapper();
