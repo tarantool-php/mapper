@@ -200,8 +200,8 @@ class Temporal extends Plugin
                         ->createSpace('_link', [
                             'id'        => 'unsigned',
                             'parent'    => 'unsigned',
-                            'entityId'  => 'unsigned',
                             'entity'    => 'unsigned',
+                            'entityId'  => 'unsigned',
                             'begin'     => 'unsigned',
                             'end'       => 'unsigned',
                             'timestamp' => 'unsigned',
