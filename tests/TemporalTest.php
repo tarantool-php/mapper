@@ -39,16 +39,16 @@ class TemporalTest extends TestCase
             ]
         ]);
 
-        $this->assertCount(0, $temporal->state('post', 1, '1 year ago'));
+        $this->assertCount(0, $temporal->getState('post', 1, '1 year ago'));
 
         foreach (['5 days ago', '-2 days', '+2 days', '+1 year'] as $time) {
-            $state = $temporal->state('post', 1, $time);
+            $state = $temporal->getState('post', 1, $time);
             $this->assertNotNull('title', $state);
             $this->assertSame($state['title'], 'test post', "Validation: $time");
         }
 
         foreach (['midnight', 'tomorrow'] as $time) {
-            $state = $temporal->state('post', 1, $time);
+            $state = $temporal->getState('post', 1, $time);
             $this->assertArrayHasKey('title', $state);
             $this->assertSame($state['title'], 'hello world', "Validation: $time");
         }
@@ -65,20 +65,20 @@ class TemporalTest extends TestCase
         ]);
 
         foreach (['5 days ago', '-2 days', '+3 year', '+4 days'] as $time) {
-            $state = $temporal->state('post', 1, $time);
+            $state = $temporal->getState('post', 1, $time);
             $this->assertNotNull('title', $state);
             $this->assertSame($state['title'], 'test post', "Validation: $time");
         }
 
         foreach (['+1 day', '+2 days', '+3 days', '+4 days -1 sec'] as $time) {
-            $state = $temporal->state('post', 1, $time);
+            $state = $temporal->getState('post', 1, $time);
             $this->assertNotNull('title', $state);
             $this->assertSame($state['title'], 'new title', "Validation: $time");
             $this->assertSame($state['notice'], 'my precious', "Validation: $time");
         }
 
         foreach (['midnight', 'tomorrow'] as $time) {
-            $state = $temporal->state('post', 1, $time);
+            $state = $temporal->getState('post', 1, $time);
             $this->assertArrayHasKey('title', $state);
             $this->assertSame($state['title'], 'hello world', "Validation: $time");
         }

@@ -12,38 +12,6 @@ class Temporal extends Plugin
     private $actor;
     private $timestamps = [];
 
-    public function __construct(Mapper $mapper)
-    {
-        $this->mapper = $mapper;
-
-        $this->mapper->getSchema()->once(__CLASS__.'_states', function (Mapper $mapper) {
-            $mapper->getSchema()
-                ->createSpace('_override', [
-                    'entity'     => 'unsigned',
-                    'id'         => 'unsigned',
-                    'begin'      => 'unsigned',
-                    'end'        => 'unsigned',
-                    'timestamp'  => 'unsigned',
-                    'actor'      => 'unsigned',
-                    'data'       => '*',
-                ])->addIndex([
-                    'fields' => ['entity', 'id', 'begin', 'timestamp', 'actor']
-                ]);
-
-            $mapper->getSchema()
-                ->createSpace('_override_aggregate', [
-                    'entity'     => 'unsigned',
-                    'id'         => 'unsigned',
-                    'begin'      => 'unsigned',
-                    'end'        => 'unsigned',
-                    'data'       => '*',
-                ])
-                ->addIndex([
-                    'fields' => ['entity', 'id', 'begin'],
-                ]);
-        });
-    }
-
     public function override(array $override)
     {
         if (!$this->actor) {
@@ -92,6 +60,7 @@ class Temporal extends Plugin
         $override['actor'] = $this->actor;
         $override['timestamp'] = Carbon::now()->timestamp;
 
+        $this->initSchema('override');
         $this->mapper->create('_override', $override);
         $this->updateState($override);
     }
@@ -102,7 +71,7 @@ class Temporal extends Plugin
         return $this;
     }
 
-    public function state($entity, $id, $date)
+    public function getState($entity, $id, $date)
     {
         if (!$this->mapper->getSchema()->hasSpace($entity)) {
             throw new Exception("invalid entity: " . $entity);
@@ -215,6 +184,41 @@ class Temporal extends Plugin
         foreach ($states as $state) {
             $this->mapper->create('_override_aggregate', $state);
         }
+    }
+
+    private function initSchema($name)
+    {
+        switch ($name) {
+            case 'override':
+                return $this->mapper->getSchema()->once(__CLASS__.'_states', function (Mapper $mapper) {
+                    $mapper->getSchema()
+                        ->createSpace('_override', [
+                            'entity'     => 'unsigned',
+                            'id'         => 'unsigned',
+                            'begin'      => 'unsigned',
+                            'end'        => 'unsigned',
+                            'timestamp'  => 'unsigned',
+                            'actor'      => 'unsigned',
+                            'data'       => '*',
+                        ])->addIndex([
+                            'fields' => ['entity', 'id', 'begin', 'timestamp', 'actor']
+                        ]);
+
+                    $mapper->getSchema()
+                        ->createSpace('_override_aggregate', [
+                            'entity'     => 'unsigned',
+                            'id'         => 'unsigned',
+                            'begin'      => 'unsigned',
+                            'end'        => 'unsigned',
+                            'data'       => '*',
+                        ])
+                        ->addIndex([
+                            'fields' => ['entity', 'id', 'begin'],
+                        ]);
+                });
+        }
+
+        throw new Exception("Invalid schema $name");
     }
 
     private function getTimestamp($string)
