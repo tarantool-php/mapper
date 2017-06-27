@@ -241,7 +241,17 @@ class Space
                     $this->indexes[] = $instance;
                 }
             } else {
-                $this->indexes = array_map('get_object_vars', $this->mapper->find('_index', ['id' => $this->id]));
+                $indexes = $this->mapper->find('_index', ['id' => $this->id]);
+                $this->indexes = [];
+                foreach ($indexes as $index) {
+                    $index = get_object_vars($index);
+                    foreach ($index as $key => $value) {
+                        if (is_object($value)) {
+                            unset($index[$key]);
+                        }
+                    }
+                    $this->indexes[] = $index;
+                }
             }
         }
         return $this->indexes;
