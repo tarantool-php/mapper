@@ -290,7 +290,7 @@ class Temporal extends Plugin
             }
 
             $data = [$ref];
-            if (property_exists($leaf, 'data')) {
+            if (property_exists($leaf, 'data') && $leaf->data) {
                 $data[] = $leaf->data;
             }
 

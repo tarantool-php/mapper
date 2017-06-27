@@ -28,6 +28,7 @@ class TemporalTest extends TestCase
 
         $links = $temporal->getLinks('person', 1, 'now');
         $this->assertCount(1, $links);
+        $this->assertArrayNotHasKey('data', $links[0]);
     }
 
     public function testLinks()
