@@ -18,11 +18,17 @@ class Space
 
     private $repository;
 
-    public function __construct(Mapper $mapper, $id, $name)
+    public function __construct(Mapper $mapper, $id, $name, $meta = null)
     {
         $this->mapper = $mapper;
         $this->id = $id;
         $this->name = $name;
+
+        if ($meta) {
+            foreach ($meta as $key => $value) {
+                $this->$key = $value;
+            }
+        }
     }
 
     public function addProperties($config)
@@ -189,6 +195,16 @@ class Space
     {
         $this->getFormat();
         return array_key_exists($name, $this->formatNamesHash);
+    }
+
+    public function getMeta()
+    {
+        return [
+            'formatNamesHash' => $this->formatNamesHash,
+            'formatTypesHash' => $this->formatTypesHash,
+            'indexes' => $this->indexes,
+            'format' => $this->format,
+        ];
     }
 
     public function getPropertyType($name)

@@ -10,11 +10,17 @@ class Schema
 
     private $names = [];
     private $spaces = [];
+    private $params = [];
 
-    public function __construct(Mapper $mapper)
+    public function __construct(Mapper $mapper, $meta = null)
     {
         $this->mapper = $mapper;
-        $this->reset();
+        if ($meta) {
+            $this->names = $meta['names'];
+            $this->params = $meta['params'];
+        } else {
+            $this->reset();
+        }
     }
 
     public function createSpace($space, $properties = null)
@@ -64,7 +70,9 @@ class Schema
         }
 
         if (!array_key_exists($id, $this->spaces)) {
-            $this->spaces[$id] = new Space($this->mapper, $id, array_search($id, $this->names));
+            $name = array_search($id, $this->names);
+            $meta = array_key_exists($id, $this->params) ? $this->params[$id] : null;
+            $this->spaces[$id] = new Space($this->mapper, $id, $name, $meta);
         }
         return $this->spaces[$id];
     }
@@ -111,5 +119,18 @@ class Schema
             end
             return spaces
         ")->getData()[0];
+    }
+
+    public function getMeta()
+    {
+        $params = [];
+        foreach ($this->getSpaces() as $space) {
+            $params[$space->getId()] = $space->getMeta();
+        }
+
+        return [
+            'names' => $this->names,
+            'params' => $params
+        ];
     }
 }

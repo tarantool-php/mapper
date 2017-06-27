@@ -70,6 +70,13 @@ class Mapper
         return $this->client;
     }
 
+    public function getMeta()
+    {
+        return [
+            'schema' => $this->getSchema()->getMeta(),
+        ];
+    }
+
     public function getPlugin($class)
     {
         if (!array_key_exists($class, $this->plugins)) {
@@ -121,5 +128,14 @@ class Mapper
     public function save(Entity $instance)
     {
         $this->findRepository($instance)->save($instance);
+    }
+
+    public function setMeta($meta)
+    {
+        if ($this->schema) {
+            $this->schema->setMeta($meta['schema']);
+        } else {
+            $this->schema = new Schema($this, $meta['schema']);
+        }
     }
 }
