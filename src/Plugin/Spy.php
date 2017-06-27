@@ -53,7 +53,7 @@ class Spy extends Plugin
         $key = [$space->getName()];
 
         $format = $space->getFormat();
-        foreach ($space->getPrimaryIndex()->parts as $part) {
+        foreach ($space->getPrimaryIndex()['parts'] as $part) {
             $key[] = $instance->{$format[$part[0]]['name']};
         }
 

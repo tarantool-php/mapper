@@ -116,11 +116,11 @@ class Repository
         }
         if (count($params) == 1 && array_key_exists(0, $params)) {
             $primary = $this->space->getPrimaryIndex();
-            if (count($primary->parts) == 1) {
-                $formatted = $this->getMapper()->getSchema()->formatValue($primary->parts[0][1], $params[0]);
+            if (count($primary['parts']) == 1) {
+                $formatted = $this->getMapper()->getSchema()->formatValue($primary['parts'][0][1], $params[0]);
                 if ($params[0] == $formatted) {
                     $params = [
-                        $this->space->getFormat()[$primary->parts[0][0]]['name'] => $params[0]
+                        $this->space->getFormat()[$primary['parts'][0][0]]['name'] => $params[0]
                     ];
                 }
             }
@@ -231,7 +231,7 @@ class Repository
         }
 
         $pk = [];
-        foreach ($this->space->getPrimaryIndex()->parts as $part) {
+        foreach ($this->space->getPrimaryIndex()['parts'] as $part) {
             $pk[] = $instance->{$this->space->getFormat()[$part[0]]['name']};
         }
 
@@ -280,7 +280,7 @@ class Repository
             unset($this->persisted[$key]);
 
             $pk = [];
-            foreach ($this->space->getPrimaryIndex()->parts as $part) {
+            foreach ($this->space->getPrimaryIndex()['parts'] as $part) {
                 $pk[] = $this->original[$key][$part[0]];
             }
 
@@ -329,7 +329,7 @@ class Repository
             }
 
             $pk = [];
-            foreach ($this->space->getPrimaryIndex()->parts as $part) {
+            foreach ($this->space->getPrimaryIndex()['parts'] as $part) {
                 $pk[] = $this->original[$key][$part[0]];
             }
 
@@ -370,7 +370,7 @@ class Repository
 
         // complete indexes fields
         foreach ($this->space->getIndexes() as $index) {
-            foreach ($index->parts as $part) {
+            foreach ($index['parts'] as $part) {
                 $name = $format[$part[0]]['name'];
                 if (!property_exists($instance, $name)) {
                     $instance->{$name} = null;

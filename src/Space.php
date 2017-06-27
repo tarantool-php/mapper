@@ -231,14 +231,14 @@ class Space
                 $indexTuples = $this->mapper->getClient()->getSpace(288)->select([$this->id])->getData();
                 $indexFormat = $this->mapper->getSchema()->getSpace(288)->getFormat();
                 foreach ($indexTuples as $tuple) {
-                    $instance = (object) [];
+                    $instance = [];
                     foreach ($indexFormat as $index => $format) {
-                        $instance->{$format['name']} = $tuple[$index];
+                        $instance[$format['name']] = $tuple[$index];
                     }
                     $this->indexes[] = $instance;
                 }
             } else {
-                $this->indexes = $this->mapper->find('_index', ['id' => $this->id]);
+                $this->indexes = array_map('get_object_vars', $this->mapper->find('_index', ['id' => $this->id]));
             }
         }
         return $this->indexes;
@@ -259,23 +259,23 @@ class Space
         // equals
         foreach ($this->getIndexes() as $index) {
             $equals = false;
-            if (count($keys) == count($index->parts)) {
+            if (count($keys) == count($index['parts'])) {
                 // same length
                 $equals = true;
-                foreach ($index->parts as $part) {
+                foreach ($index['parts'] as $part) {
                     $equals = $equals && in_array($part[0], $keys);
                 }
             }
 
             if ($equals) {
-                return $index->iid;
+                return $index['iid'];
             }
         }
 
         // index part
         foreach ($this->getIndexes() as $index) {
             $partial = [];
-            foreach ($index->parts as $n => $part) {
+            foreach ($index['parts'] as $n => $part) {
                 if (!array_key_exists($n, $keys)) {
                     break;
                 }
@@ -286,7 +286,7 @@ class Space
             }
 
             if (count($partial) == count($keys)) {
-                return $index->iid;
+                return $index['iid'];
             }
         }
 
@@ -299,7 +299,7 @@ class Space
     {
         $index = null;
         foreach ($this->getIndexes() as $candidate) {
-            if ($candidate->iid == $indexId) {
+            if ($candidate['iid'] == $indexId) {
                 $index = $candidate;
                 break;
             }
@@ -310,7 +310,7 @@ class Space
 
         $format = $this->getFormat();
         $values = [];
-        foreach ($index->parts as $part) {
+        foreach ($index['parts'] as $part) {
             $name = $format[$part[0]]['name'];
             if (!array_key_exists($name, $params)) {
                 break;
@@ -332,7 +332,7 @@ class Space
     public function getTupleKey($tuple)
     {
         $key = [];
-        foreach ($this->getPrimaryIndex()->parts as $part) {
+        foreach ($this->getPrimaryIndex()['parts'] as $part) {
             $key[] = $tuple[$part[0]];
         }
         return count($key) == 1 ? $key[0] : implode(':', $key);
@@ -342,7 +342,7 @@ class Space
     {
         $key = [];
 
-        foreach ($this->getPrimaryIndex()->parts as $part) {
+        foreach ($this->getPrimaryIndex()['parts'] as $part) {
             $name = $this->getFormat()[$part[0]]['name'];
             if (!property_exists($instance, $name)) {
                 throw new Exception("Field $name is undefined", 1);

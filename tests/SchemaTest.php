@@ -290,10 +290,10 @@ class SchemaTest extends TestCase
         $indexes = $anotherMapper->getSchema()->getSpace('task')->getIndexes();
         $this->assertCount(3, $indexes);
         list($id, $ymd, $symd) = $indexes;
-        $this->assertSame($id->name, 'id');
-        $this->assertSame($id->parts, [[0, 'unsigned']]);
-        $this->assertSame($ymd->name, 'year_month_day');
-        $this->assertSame($ymd->parts, [[1, 'unsigned'], [2, 'unsigned'], [3, 'unsigned']]);
-        $this->assertSame($symd->name, 'sector_year_month_day');
+        $this->assertSame($id['name'], 'id');
+        $this->assertSame($id['parts'], [[0, 'unsigned']]);
+        $this->assertSame($ymd['name'], 'year_month_day');
+        $this->assertSame($ymd['parts'], [[1, 'unsigned'], [2, 'unsigned'], [3, 'unsigned']]);
+        $this->assertSame($symd['name'], 'sector_year_month_day');
     }
 }
