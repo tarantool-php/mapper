@@ -314,7 +314,7 @@ class Repository
             $update = [];
 
             foreach ($tuple as $i => $v) {
-                if ($v !== $this->original[$key][$i]) {
+                if (!array_key_exists($i, $this->original[$key]) || $v !== $this->original[$key][$i]) {
                     $update[$i] = $v;
                 }
             }
