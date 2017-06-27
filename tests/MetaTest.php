@@ -33,12 +33,16 @@ class MetaTest extends TestCase
 
         $meta = $mapper->getMeta();
 
-        $mapper = $this->createMapper();
-        $mapper->getClient()->setLogging(true);
-        $mapper->setMeta($meta);
+        $mapper2 = $this->createMapper();
+        $mapper2->getClient()->setLogging(true);
+        $this->assertEquals($meta, $mapper2->getMeta());
 
-        $mapper->getSchema()->getSpace('tester')->getFormat();
-        $mapper->getSchema()->getSpace('tester2')->getFormat();
-        $this->assertCount(0, $mapper->getClient()->getLog());
+        $mapper3 = $this->createMapper();
+        $mapper3->getClient()->setLogging(true);
+        $mapper3->setMeta($meta);
+
+        $mapper3->getSchema()->getSpace('tester')->getFormat();
+        $mapper3->getSchema()->getSpace('tester2')->getFormat();
+        $this->assertCount(0, $mapper3->getClient()->getLog());
     }
 }

@@ -199,6 +199,9 @@ class Space
 
     public function getMeta()
     {
+        $this->getFormat();
+        $this->getIndexes();
+
         return [
             'formatNamesHash' => $this->formatNamesHash,
             'formatTypesHash' => $this->formatTypesHash,
