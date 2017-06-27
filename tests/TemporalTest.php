@@ -5,6 +5,63 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testLinks()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        foreach (['person', 'role', 'sector'] as $spaceName) {
+            $mapper->getSchema()
+                ->createSpace($spaceName, [
+                    'id' => 'unsigned',
+                ])
+                ->addIndex('id');
+        }
+
+        $temporal->link([
+            'begin'  => '-1 day',
+            'person' => 1,
+            'role'   => 2,
+            'sector' => 3,
+        ]);
+
+        $temporal->link([
+            'end'    => '+2 day',
+            'person' => 1,
+            'role'   => 4,
+            'sector' => 3,
+        ]);
+
+        $temporal->link([
+            'begin'  => '-1 week',
+            'end'    => '+1 week',
+            'person' => 2,
+            'role'   => 22,
+            'sector' => 3,
+            'data'   => ['superuser' => true],
+        ]);
+
+        // link data validation
+        $thirdSectorLinksForToday = $temporal->getLinks('sector', 3, 'today');
+
+        $this->assertCount(3, $thirdSectorLinksForToday);
+
+        $superuserLink = null;
+        foreach ($thirdSectorLinksForToday as $link) {
+            if ($link['person'] == 2) {
+                $superuserLink = $link;
+            }
+        }
+
+        $this->assertNotNull($superuserLink);
+        $this->assertArrayHasKey('data', $superuserLink);
+        $this->assertArrayHasKey('superuser', $superuserLink['data']);
+        $this->assertSame($superuserLink['data']['superuser'], true);
+    }
+
     public function testState()
     {
         $mapper = $this->createMapper();
