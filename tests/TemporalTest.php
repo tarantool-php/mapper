@@ -13,14 +13,6 @@ class TemporalTest extends TestCase
         $temporal = $mapper->addPlugin(Temporal::class);
         $temporal->setActor(1);
 
-        foreach (['person', 'role'] as $spaceName) {
-            $mapper->getSchema()
-                ->createSpace($spaceName, [
-                    'id' => 'unsigned',
-                ])
-                ->addIndex('id');
-        }
-
         $temporal->link([
             'person' => 1,
             'role'   => 2,
@@ -38,14 +30,6 @@ class TemporalTest extends TestCase
 
         $temporal = $mapper->addPlugin(Temporal::class);
         $temporal->setActor(1);
-
-        foreach (['person', 'role', 'sector'] as $spaceName) {
-            $mapper->getSchema()
-                ->createSpace($spaceName, [
-                    'id' => 'unsigned',
-                ])
-                ->addIndex('id');
-        }
 
         $temporal->link([
             'begin'  => '-1 day',
@@ -96,13 +80,6 @@ class TemporalTest extends TestCase
         $temporal = $mapper->addPlugin(Temporal::class);
         $temporal->setActor(1);
 
-        $mapper->getSchema()
-            ->createSpace('post', [
-                'id' => 'unsigned',
-                'title' => 'string',
-            ])
-            ->addIndex('id');
-
         $temporal->override([
             'post'  => 1,
             'begin' => '5 days ago',
@@ -126,7 +103,7 @@ class TemporalTest extends TestCase
 
         foreach (['5 days ago', '-2 days', '+2 days', '+1 year'] as $time) {
             $state = $temporal->getState('post', 1, $time);
-            $this->assertNotNull('title', $state);
+            $this->assertArrayHasKey('title', $state, "Validation: $time");
             $this->assertSame($state['title'], 'test post', "Validation: $time");
         }
 
