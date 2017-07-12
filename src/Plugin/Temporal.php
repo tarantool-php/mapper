@@ -40,7 +40,7 @@ class Temporal extends Plugin
             ->select([$entity, $id, $date], 0, 1, 0, 4) // [key, index, limit, offset, iterator = LE]
             ->getData();
 
-        if (count($rows)) {
+        if (count($rows) && $rows[0][0] == $entity && $rows[0][1] == $id) {
             $state = $this->mapper->findOne($space, [
                 'entity' => $entity,
                 'id' => $id,
