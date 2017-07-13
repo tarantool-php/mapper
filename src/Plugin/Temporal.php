@@ -12,6 +12,49 @@ class Temporal extends Plugin
     private $actor;
     private $timestamps = [];
 
+    public function getLinksLog($entity, $entityId, $filter = [])
+    {
+        $entity = $this->entityNameToId($entity);
+
+        $nodes = $this->mapper->find('_temporal_link', [
+            'entity' => $entity,
+            'entityId' => $entityId,
+        ]);
+
+        $links = [];
+
+        foreach ($nodes as $node) {
+            foreach ($this->getLeafs($node) as $leaf) {
+                $entityName = $this->entityIdToName($leaf->entity);
+                $link = [
+                    $entityName => $leaf->entityId,
+                    'begin'     => $leaf->begin,
+                    'end'       => $leaf->end,
+                    'timestamp' => $leaf->timestamp,
+                    'actor'     => $leaf->actor,
+                ];
+
+                $current = $leaf;
+                while ($current->parent) {
+                    $current = $this->mapper->findOne('_temporal_link', $current->parent);
+                    $entityName = $this->entityIdToName($current->entity);
+                    $link[$entityName] = $current->entityId;
+                }
+
+                if (count($filter)) {
+                    foreach ($filter as $required) {
+                        if (!array_key_exists($required, $link)) {
+                            continue 2;
+                        }
+                    }
+                }
+                $links[] = $link;
+            }
+        }
+
+        return $links;
+    }
+
     public function getLinks($entity, $id, $date)
     {
         $links = $this->getData($entity, $id, $date, '_temporal_link_aggregate');

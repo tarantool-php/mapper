@@ -5,6 +5,70 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testLinkLog()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->link([
+            'begin'  => 0,
+            'end'    => 0,
+            'person' => 1,
+            'role'   => 2,
+            'sector' => 3,
+        ]);
+
+        Carbon::setTestNow(Carbon::parse("+1 sec"));
+
+        $temporal->link([
+            'begin'  => 0,
+            'end'    => 0,
+            'person' => 1,
+            'role'   => 3,
+        ]);
+
+        Carbon::setTestNow(Carbon::parse("+2 sec"));
+
+        $temporal->link([
+            'begin'  => 0,
+            'end'    => 0,
+            'person' => 1,
+            'sector' => 5,
+        ]);
+
+        $this->assertCount(0, $temporal->getLinksLog('person', 2));
+        $this->assertCount(3, $temporal->getLinksLog('person', 1));
+        $this->assertCount(2, $temporal->getLinksLog('person', 1, ['sector']));
+        $this->assertCount(2, $temporal->getLinksLog('person', 1, ['role']));
+        $this->assertCount(1, $temporal->getLinksLog('sector', 5));
+        $this->assertCount(1, $temporal->getLinksLog('sector', 5, ['person']));
+        $this->assertCount(0, $temporal->getLinksLog('sector', 5, ['role']));
+    }
+
+    public function testThreeLinks()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->link([
+            'begin'  => 0,
+            'end'    => 0,
+            'person' => 1,
+            'role'   => 2,
+            'sector' => 3,
+        ]);
+
+        $links = $temporal->getLinks('person', 1, 'now');
+        $this->assertCount(1, $links);
+        $this->assertArrayNotHasKey('data', $links[0]);
+    }
+
     public function testTwoWayLinks()
     {
         $mapper = $this->createMapper();
