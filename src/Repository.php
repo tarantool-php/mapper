@@ -103,6 +103,15 @@ class Repository
         return $entity;
     }
 
+    public function findOrFail($params = [])
+    {
+        $entity = $this->findOne($params);
+        if (!$entity) {
+            throw new Exception("Invalid entity");
+        }
+        return $entity;
+    }
+
     public function find($params = [], $one = false)
     {
         $cacheKey = json_encode(func_get_args());

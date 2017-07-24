@@ -44,6 +44,11 @@ class Mapper
         return $this->getRepository($space)->findOrCreate($params)->save();
     }
 
+    public function findOrFail($space, $params = [])
+    {
+        return $this->getRepository($space)->findOrFail($params)->save();
+    }
+
     public function find($space, $params = [])
     {
         return $this->getRepository($space)->find($params);
