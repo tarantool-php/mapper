@@ -340,6 +340,19 @@ class Repository
                 $instance->beforeUpdate();
             }
 
+            $tuple = $this->getTuple($instance);
+            $update = [];
+
+            foreach ($tuple as $i => $v) {
+                if (!array_key_exists($i, $this->original[$key]) || $v !== $this->original[$key][$i]) {
+                    $update[$i] = $v;
+                }
+            }
+
+            if (!count($update)) {
+                return $instance;
+            }
+
             $operations = [];
             foreach ($update as $index => $value) {
                 $operations[] = ['=', $index, $value];
