@@ -323,6 +323,14 @@ class Repository
                 return $instance;
             }
 
+            foreach ($this->getMapper()->getPlugins() as $plugin) {
+                $plugin->beforeUpdate($instance, $this->space);
+            }
+
+            if (method_exists($instance, 'beforeUpdate')) {
+                $instance->beforeUpdate();
+            }
+
             $operations = [];
             foreach ($update as $index => $value) {
                 $operations[] = ['=', $index, $value];
@@ -331,14 +339,6 @@ class Repository
             $pk = [];
             foreach ($this->space->getPrimaryIndex()['parts'] as $part) {
                 $pk[] = $this->original[$key][$part[0]];
-            }
-
-            foreach ($this->getMapper()->getPlugins() as $plugin) {
-                $plugin->beforeUpdate($instance, $this->space);
-            }
-
-            if (method_exists($instance, 'beforeUpdate')) {
-                $instance->beforeUpdate();
             }
 
             $client->getSpace($this->space->getId())->update($pk, $operations);
