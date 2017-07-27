@@ -19,17 +19,21 @@ class Sequence extends Plugin
         }
     }
 
-    private function generateValue($space)
+    public function initSchema()
     {
-        $spaceId = $space->getId();
-
         if (!$this->mapper->getSchema()->hasSpace('sequence')) {
             $sequence = $this->mapper->getSchema()->createSpace('sequence');
             $sequence->addProperty('space', 'unsigned');
             $sequence->addProperty('counter', 'unsigned');
             $sequence->createIndex('space');
         }
+    }
 
+    private function generateValue($space)
+    {
+        $this->initSchema();
+
+        $spaceId = $space->getId();
         $entity = $this->mapper->findOne('sequence', $space->getId());
         if (!$entity) {
             $query = "return box.space.".$space->getName().".index[0]:max()";
