@@ -306,9 +306,9 @@ You can describe your entities using dobclock. Mapper will create space, format 
 ```php
 namespace Entity;
 
-use Tarantool\Mapper\Entity as MapperEntity;
+use Tarantool\Mapper\Entity;
 
-class Person extends MapperEntity
+class Person extends Entity
 {
     /**
      * @var integer
@@ -321,7 +321,7 @@ class Person extends MapperEntity
     public $name;
 }
 
-class Post extends MapperEntity
+class Post extends Entity
 {
     /**
      * @var integer
@@ -353,9 +353,9 @@ If you want to index fields, extend repository and define indexes property
 ```php
 namespace Repository;
 
-use Tarantool\Mapper\Repository as MapperRepository;
+use Tarantool\Mapper\Repository;
 
-class Post extends MapperRepository
+class Post extends Repository
 {
     public $indexes = [
         ['id'],
