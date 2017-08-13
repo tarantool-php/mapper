@@ -7,6 +7,24 @@ use Tarantool\Mapper\Repository;
 
 class AnnotationTest extends TestCase
 {
+    public function testFloatType()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->addPlugin(Sequence::class);
+        $annotation = $mapper->addPlugin(Annotation::class);
+        $annotation->register('Entity\\Paycode');
+        $annotation->migrate();
+
+        $paycode = $mapper->create('paycode', ['name' => 'overtime', 'factor' => "1.2"]);
+        $this->assertSame($paycode->factor, 1.2);
+
+        $mapper = $this->createMapper();
+        $anotherInstance = $mapper->findOne('paycode');
+        $this->assertSame($anotherInstance->factor, $paycode->factor);
+    }
+
     public function testInvalidIndexMessage()
     {
         $mapper = $this->createMapper();

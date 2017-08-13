@@ -48,7 +48,10 @@ class Schema
             case 'str':
                 return (string) $value;
 
-            case 'unsigned':
+            case 'float':
+                return (float) $value;
+
+           case 'unsigned':
             case 'UNSIGNED':
             case 'num':
             case 'NUM':
