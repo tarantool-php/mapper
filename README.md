@@ -386,6 +386,9 @@ $post = $mapper->create('post', [
   'body' => 'Now you can use mapper better way'
 ]);
 
+// in addition you can simple get related entity
+$post->getAuthor() == $nekufa; // true
+
 ```
 
 ## Internals
