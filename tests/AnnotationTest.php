@@ -55,6 +55,8 @@ class AnnotationTest extends TestCase
         ]);
 
         $annotation->migrate();
+
+        // no duplicate exceptions should be thrown
         $annotation->migrate();
 
         $this->assertSame('post', $annotation->getRepositorySpaceName('Repository\\Post'));
@@ -82,6 +84,8 @@ class AnnotationTest extends TestCase
 
         $this->assertInstanceOf('Entity\\Person', $nekufa);
         $this->assertInstanceOf('Repository\\Post', $mapper->getSchema()->getSpace('post')->getRepository());
+
+        $this->assertSame($post->getAuthor(), $nekufa);
 
         $this->assertSame($nekufa->name, 'Dmitry.Krokhin!');
     }

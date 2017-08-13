@@ -15,6 +15,7 @@ class Space
 
     private $formatNamesHash = [];
     private $formatTypesHash = [];
+    private $formatReferences = [];
 
     private $repository;
 
@@ -39,7 +40,7 @@ class Space
         return $this;
     }
 
-    public function addProperty($name, $type)
+    public function addProperty($name, $type, $reference = null)
     {
         $format = $this->getFormat();
         foreach ($format as $field) {
@@ -47,7 +48,11 @@ class Space
                 throw new Exception("Property $name exists");
             }
         }
-        $format[] = compact('name', 'type');
+        $row = compact('name', 'type');
+        if ($reference) {
+            $row['reference'] = $reference;
+        }
+        $format[] = $row;
         $this->format = $format;
         $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
 
@@ -184,11 +189,25 @@ class Space
     {
         $this->formatTypesHash = [];
         $this->formatNamesHash = [];
+        $this->formatReferences = [];
         foreach ($this->format as $key => $row) {
             $this->formatTypesHash[$row['name']] = $row['type'];
             $this->formatNamesHash[$row['name']] = $key;
+            if (array_key_exists('reference', $row)) {
+                $this->formatReferences[$row['name']] = $row['reference'];
+            }
         }
         return $this;
+    }
+
+    public function getReference($name)
+    {
+        return $this->isReference($name) ? $this->formatReferences[$name] : null;
+    }
+
+    public function isReference($name)
+    {
+        return array_key_exists($name, $this->formatReferences);
     }
 
     public function hasProperty($name)

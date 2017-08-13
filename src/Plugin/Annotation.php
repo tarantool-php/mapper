@@ -5,9 +5,9 @@ namespace Tarantool\Mapper\Plugin;
 use Exception;
 
 use phpDocumentor\Reflection\DocBlockFactory;
+use phpDocumentor\Reflection\Types\ContextFactory;
 use ReflectionClass;
 use ReflectionProperty;
-
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;
 use Tarantool\Mapper\Plugin\NestedSet;
@@ -73,6 +73,7 @@ class Annotation extends UserClasses
     public function migrate()
     {
         $factory = DocBlockFactory::createInstance();
+        $contextFactory = new ContextFactory();
 
         $schema = $this->mapper->getSchema();
 
@@ -85,7 +86,8 @@ class Annotation extends UserClasses
             $class = new ReflectionClass($entity);
 
             foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-                $description = $factory->create($property->getDocComment());
+                $context = $contextFactory->createFromReflector($property);
+                $description = $factory->create($property->getDocComment(), $context);
                 $tags = $description->getTags('var');
 
                 if (!count($tags)) {
@@ -96,11 +98,16 @@ class Annotation extends UserClasses
                     throw new Exception("Invalid var tag for ".$entity.'::'.$property->getName());
                 }
 
-                $property = $this->toUnderscore($property->getName());
-                $type = $this->getTarantoolType($tags[0]->getType());
+                $propertyName = $this->toUnderscore($property->getName());
+                $phpType = $tags[0]->getType();
+                $type = $this->getTarantoolType($phpType);
 
-                if (!$space->hasProperty($property)) {
-                    $space->addProperty($property, $type);
+                if (!$space->hasProperty($propertyName)) {
+                    if ($this->isReference($phpType)) {
+                        $space->addProperty($propertyName, $type, $this->getSpaceName((string) $phpType));
+                    } else {
+                        $space->addProperty($propertyName, $type);
+                    }
                 }
             }
             if ($this->mapper->hasPlugin(NestedSet::class)) {
@@ -217,13 +224,18 @@ class Annotation extends UserClasses
 
     private $tarantoolTypes = [];
 
+    private function isReference(string $type)
+    {
+        return $type[0] == '\\';
+    }
+
     private function getTarantoolType(string $type)
     {
         if (array_key_exists($type, $this->tarantoolTypes)) {
             return $this->tarantoolTypes[$type];
         }
 
-        if ($type[0] == '\\') {
+        if ($this->isReference($type)) {
             return $this->tarantoolTypes[$type] = 'unsigned';
         }
 
