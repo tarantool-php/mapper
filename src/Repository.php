@@ -365,6 +365,15 @@ class Repository
 
             $client->getSpace($this->space->getId())->update($pk, $operations);
             $this->original[$key] = $tuple;
+
+            foreach ($this->getMapper()->getPlugins() as $plugin) {
+                $plugin->afterUpdate($instance, $this->space);
+            }
+
+            if (method_exists($instance, 'afterUpdate')) {
+                $instance->afterUpdate();
+            }
+
         } else {
             $this->addDefaultValues($instance);
             foreach ($this->getMapper()->getPlugins() as $plugin) {
@@ -379,6 +388,14 @@ class Repository
             $client->getSpace($this->space->getId())->insert($tuple);
             $this->persisted[$key] = $instance;
             $this->original[$key] = $tuple;
+
+            foreach ($this->getMapper()->getPlugins() as $plugin) {
+                $plugin->afterCreate($instance, $this->space);
+            }
+
+            if (method_exists($instance, 'afterCreate')) {
+                $instance->afterCreate();
+            }
         }
 
         $this->flushCache();

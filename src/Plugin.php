@@ -26,7 +26,13 @@ abstract class Plugin
     public function beforeCreate(Entity $instance, Space $space)
     {
     }
+    public function afterCreate(Entity $instance, Space $space)
+    {
+    }
     public function beforeUpdate(Entity $instance, Space $space)
+    {
+    }
+    public function afterUpdate(Entity $instance, Space $space)
     {
     }
     public function beforeRemove(Entity $instance, Space $space)
