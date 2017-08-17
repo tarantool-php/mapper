@@ -3,6 +3,7 @@
 namespace Tarantool\Mapper;
 
 use Exception;
+use Tarantool\Client\Schema\Space as ClientSpace;
 
 class Space
 {
@@ -140,7 +141,7 @@ class Space
 
     public function isSpecial()
     {
-        return $this->id == 281 || $this->id == 289;
+        return $this->id == ClientSpace::VSPACE || $this->id == ClientSpace::VINDEX;
     }
 
     public function getId()
@@ -162,7 +163,7 @@ class Space
         if (!$this->format) {
             if ($this->isSpecial()) {
                 $this->format = $this->mapper->getClient()
-                    ->getSpace(281)->select([$this->id])->getData()[0][6];
+                    ->getSpace(ClientSpace::VSPACE)->select([$this->id])->getData()[0][6];
             } else {
                 $this->format = $this->mapper->findOne('_vspace', ['id' => $this->id])->format;
             }
@@ -250,8 +251,8 @@ class Space
         if (!$this->indexes) {
             if ($this->isSpecial()) {
                 $this->indexes = [];
-                $indexTuples = $this->mapper->getClient()->getSpace(289)->select([$this->id])->getData();
-                $indexFormat = $this->mapper->getSchema()->getSpace(289)->getFormat();
+                $indexTuples = $this->mapper->getClient()->getSpace(ClientSpace::VINDEX)->select([$this->id])->getData();
+                $indexFormat = $this->mapper->getSchema()->getSpace(ClientSpace::VINDEX)->getFormat();
                 foreach ($indexTuples as $tuple) {
                     $instance = [];
                     foreach ($indexFormat as $index => $format) {
