@@ -373,7 +373,6 @@ class Repository
             if (method_exists($instance, 'afterUpdate')) {
                 $instance->afterUpdate();
             }
-
         } else {
             $this->addDefaultValues($instance);
             foreach ($this->getMapper()->getPlugins() as $plugin) {
