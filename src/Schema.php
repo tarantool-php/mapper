@@ -117,7 +117,7 @@ class Schema
         $this->names = $this->mapper->getClient()->evaluate("
             local spaces = {}
             local i, s
-            for i, s in box.space._space:pairs() do
+            for i, s in box.space._vspace:pairs() do
                 spaces[s[3]] = s[1]
             end
             return spaces

@@ -80,7 +80,7 @@ class Space
     {
         $this->mapper->getClient()->evaluate("box.space[$this->id].index.$name:drop()");
         $this->indexes = [];
-        $this->mapper->getRepository('_index')->flushCache();
+        $this->mapper->getRepository('_vindex')->flushCache();
 
         return $this;
     }
@@ -133,14 +133,14 @@ class Space
         $this->mapper->getClient()->evaluate("box.space[$this->id]:create_index('$name', ...)", [$options]);
         $this->indexes = [];
 
-        $this->mapper->getSchema()->getSpace('_index')->getRepository()->flushCache();
+        $this->mapper->getSchema()->getSpace('_vindex')->getRepository()->flushCache();
 
         return $this;
     }
 
     public function isSpecial()
     {
-        return $this->id == 280 || $this->id == 288;
+        return $this->id == 281 || $this->id == 289;
     }
 
     public function getId()
@@ -162,9 +162,9 @@ class Space
         if (!$this->format) {
             if ($this->isSpecial()) {
                 $this->format = $this->mapper->getClient()
-                    ->getSpace(280)->select([$this->id])->getData()[0][6];
+                    ->getSpace(281)->select([$this->id])->getData()[0][6];
             } else {
-                $this->format = $this->mapper->findOne('_space', ['id' => $this->id])->format;
+                $this->format = $this->mapper->findOne('_vspace', ['id' => $this->id])->format;
             }
             if (!$this->format) {
                 $this->format = [];
@@ -250,8 +250,8 @@ class Space
         if (!$this->indexes) {
             if ($this->isSpecial()) {
                 $this->indexes = [];
-                $indexTuples = $this->mapper->getClient()->getSpace(288)->select([$this->id])->getData();
-                $indexFormat = $this->mapper->getSchema()->getSpace(288)->getFormat();
+                $indexTuples = $this->mapper->getClient()->getSpace(289)->select([$this->id])->getData();
+                $indexFormat = $this->mapper->getSchema()->getSpace(289)->getFormat();
                 foreach ($indexTuples as $tuple) {
                     $instance = [];
                     foreach ($indexFormat as $index => $format) {
@@ -260,7 +260,7 @@ class Space
                     $this->indexes[] = $instance;
                 }
             } else {
-                $indexes = $this->mapper->find('_index', ['id' => $this->id]);
+                $indexes = $this->mapper->find('_vindex', ['id' => $this->id]);
                 $this->indexes = [];
                 foreach ($indexes as $index) {
                     $index = get_object_vars($index);
