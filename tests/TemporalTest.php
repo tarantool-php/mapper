@@ -152,6 +152,8 @@ class TemporalTest extends TestCase
             ]
         ]);
 
+        $this->assertCount(1, $temporal->getOverrides('post', 1));
+
         Carbon::setTestNow(Carbon::parse("+1 sec"));
 
         $temporal->override([
@@ -162,6 +164,8 @@ class TemporalTest extends TestCase
                 'title' => 'hello world',
             ]
         ]);
+
+        $this->assertCount(2, $temporal->getOverrides('post', 1));
 
         $this->assertCount(0, $temporal->getState('post', 1, '1 year ago'));
 

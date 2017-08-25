@@ -103,6 +103,14 @@ class Temporal extends Plugin
         return [];
     }
 
+    public function getOverrides($entityName, $id)
+    {
+        return $this->mapper->find('_temporal_override', [
+            'entity' => $this->entityNameToId($entityName),
+            'id' => $id,
+        ]);
+    }
+
     public function override(array $override)
     {
         $override = $this->parseConfig($override);
