@@ -14,6 +14,8 @@ class Temporal extends Plugin
 
     public function getLinksLog($entity, $entityId, $filter = [])
     {
+        $this->initSchema('link');
+
         $entity = $this->entityNameToId($entity);
 
         $nodes = $this->mapper->find('_temporal_link', [
@@ -57,6 +59,8 @@ class Temporal extends Plugin
 
     public function getLinks($entity, $id, $date)
     {
+        $this->initSchema('link');
+
         $links = $this->getData($entity, $id, $date, '_temporal_link_aggregate');
         foreach ($links as $i => $source) {
             $link = array_key_exists(1, $source) ? ['data' => $source[1]] : [];
@@ -71,6 +75,8 @@ class Temporal extends Plugin
 
     public function getState($entity, $id, $date)
     {
+        $this->initSchema('override');
+
         return $this->getData($entity, $id, $date, '_temporal_override_aggregate');
     }
 
