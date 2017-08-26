@@ -319,7 +319,7 @@ class Temporal extends Plugin
     {
         if (!array_key_exists($string, $this->timestamps)) {
             if (strlen($string) == 8 && is_numeric($string)) {
-                $this->timestamps[$string] = Carbon::createFromFormat('Ymd', $string)->timestamp;
+                $this->timestamps[$string] = Carbon::createFromFormat('Ymd', $string)->setTime(0, 0, 0)->timestamp;
             } else {
                 $this->timestamps[$string] = Carbon::parse($string)->timestamp;
             }
