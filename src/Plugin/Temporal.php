@@ -139,6 +139,21 @@ class Temporal extends Plugin
         $this->updateOverrideAggregation($entityName, $override['id']);
     }
 
+    public function setOverrideIdle($entity, $id, $begin, $actor, $timestamp, $flag)
+    {
+        $override = $this->mapper->findOrFail('_temporal_override', [
+            'entity' => $this->entityNameToId($entity),
+            'id' => $id,
+            'begin' => $begin,
+            'actor' => $actor,
+            'timestamp' => $timestamp,
+        ]);
+        $idled = property_exists($override, 'idle') && $override->idle > 0;
+        if ($idled && !$flag || !$idled && $flag) {
+            return $this->toggleOverrideIdle($entity, $id, $begin, $actor, $timestamp);
+        }
+    }
+
     public function toggleOverrideIdle($entity, $id, $begin, $actor, $timestamp)
     {
         $override = $this->mapper->findOrFail('_temporal_override', [
