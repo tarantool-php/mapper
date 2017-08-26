@@ -146,7 +146,7 @@ class SchemaTest extends TestCase
         $this->assertTrue($space->hasProperty('id'));
         $this->assertFalse($space->hasProperty('uuid'));
 
-        $this->assertSame($space->getPropertyType('id'), 'num');
+        $this->assertContains($space->getPropertyType('id'), ['num', 'unsigned']);
     }
 
     public function testBasics()
