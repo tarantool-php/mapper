@@ -128,17 +128,22 @@ class Temporal extends Plugin
         }
 
         // set entity id
-        $override['entity'] = $this->entityNameToId($override['entity']);
-
+        $entityName = $override['entity'];
+        $override['entity'] = $this->entityNameToId($entityName);
         $override['actor'] = $this->actor;
         $override['timestamp'] = Carbon::now()->timestamp;
 
         $this->initSchema('override');
         $this->mapper->create('_temporal_override', $override);
 
+        $this->updateOverrideAggregation($entityName, $override['id']);
+    }
+
+    public function updateOverrideAggregation($entity, $id)
+    {
         $params = [
-            'entity' => $override['entity'],
-            'id'     => $override['id'],
+            'entity' => $this->entityNameToId($entity),
+            'id'     => $id,
         ];
 
         $changeaxis = [];
