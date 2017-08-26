@@ -275,7 +275,11 @@ class Temporal extends Plugin
     private function getTimestamp($string)
     {
         if (!array_key_exists($string, $this->timestamps)) {
-            $this->timestamps[$string] = Carbon::parse($string)->timestamp;
+            if (strlen($string) == 8 && is_numeric($string)) {
+                $this->timestamps[$string] = Carbon::createFromFormat('Ymd', $string)->timestamp;
+            } else {
+                $this->timestamps[$string] = Carbon::parse($string)->timestamp;
+            }
         }
         return $this->timestamps[$string];
     }
@@ -296,7 +300,7 @@ class Temporal extends Plugin
 
         foreach (['begin', 'end'] as $field) {
             if (array_key_exists($field, $data)) {
-                if (is_string($data[$field])) {
+                if (strlen($data[$field]) == 8 || is_string($data[$field])) {
                     $data[$field] = $this->getTimestamp($data[$field]);
                 }
             } else {
