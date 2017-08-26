@@ -139,6 +139,26 @@ class Temporal extends Plugin
         $this->updateOverrideAggregation($entityName, $override['id']);
     }
 
+    public function toggleOverrideIdle($entity, $id, $begin, $actor, $timestamp)
+    {
+        $override = $this->mapper->findOrFail('_temporal_override', [
+            'entity' => $this->entityNameToId($entity),
+            'id' => $id,
+            'begin' => $begin,
+            'actor' => $actor,
+            'timestamp' => $timestamp,
+        ]);
+
+        if (property_exists($override, 'idle') && $override->idle) {
+            $override->idle = 0;
+        } else {
+            $override->idle = time();
+        }
+        $override->save();
+
+        $this->updateOverrideAggregation($entity, $id);
+    }
+
     public function updateOverrideAggregation($entity, $id)
     {
         $params = [
@@ -149,6 +169,9 @@ class Temporal extends Plugin
         $changeaxis = [];
 
         foreach ($this->mapper->find('_temporal_override', $params) as $i => $override) {
+            if (property_exists($override, 'idle') && $override->idle) {
+                continue;
+            }
             if (!array_key_exists($override->timestamp, $changeaxis)) {
                 $changeaxis[$override->timestamp] = [];
             }
@@ -428,7 +451,7 @@ class Temporal extends Plugin
     {
         switch ($name) {
             case 'override':
-                return $this->mapper->getSchema()->once(__CLASS__.'@states', function (Mapper $mapper) {
+                $this->mapper->getSchema()->once(__CLASS__.'@states', function (Mapper $mapper) {
                     $mapper->getSchema()
                         ->createSpace('_temporal_override', [
                             'entity'     => 'unsigned',
@@ -451,6 +474,10 @@ class Temporal extends Plugin
                         ])
                         ->addIndex(['entity', 'id', 'begin']);
                 });
+                $this->mapper->getSchema()->once(__CLASS__.'@override-idle', function (Mapper $mapper) {
+                    $mapper->getSchema()->getSpace('_temporal_override')->addProperty('idle', 'unsigned');
+                });
+                return;
 
             case 'link':
                 return $this->mapper->getSchema()->once(__CLASS__.'@link', function (Mapper $mapper) {

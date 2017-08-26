@@ -201,13 +201,35 @@ class TemporalTest extends TestCase
 
         foreach (['5 days ago', '-2 days', '+3 year', '+4 days'] as $time) {
             $state = $temporal->getState('post', 1, $time);
-            $this->assertNotNull('title', $state);
+            $this->assertArrayHasKey('title', $state);
             $this->assertSame($state['title'], 'test post', "Validation: $time");
         }
 
         foreach (['+1 day', '+2 days', '+3 days', '+4 days -1 sec'] as $time) {
             $state = $temporal->getState('post', 1, $time);
-            $this->assertNotNull('title', $state);
+            $this->assertArrayHasKey('title', $state);
+            $this->assertSame($state['title'], 'new title', "Validation: $time");
+            $this->assertSame($state['notice'], 'my precious', "Validation: $time");
+        }
+
+        foreach (['midnight', 'tomorrow'] as $time) {
+            $state = $temporal->getState('post', 1, $time);
+            $this->assertArrayHasKey('title', $state);
+            $this->assertSame($state['title'], 'hello world', "Validation: $time");
+        }
+
+        $override = $mapper->findOne('_temporal_override');
+        $this->assertSame($override->data, ['title' => 'test post']);
+        $temporal->toggleOverrideIdle('post', 1, $override->begin, $override->actor, $override->timestamp);
+
+        foreach (['5 days ago', '-2 days'] as $time) {
+            $state = $temporal->getState('post', 1, $time);
+            $this->assertArrayNotHasKey('title', $state);
+        }
+
+        foreach (['+1 day', '+2 days', '+3 days', '+4 days -1 sec'] as $time) {
+            $state = $temporal->getState('post', 1, $time);
+            $this->assertArrayHasKey('title', $state);
             $this->assertSame($state['title'], 'new title', "Validation: $time");
             $this->assertSame($state['notice'], 'my precious', "Validation: $time");
         }
