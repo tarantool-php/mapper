@@ -187,7 +187,7 @@ class Temporal extends Plugin
             if (property_exists($override, 'idle') && $override->idle) {
                 continue;
             }
-            if (!array_key_exists($override->timestamp, $changeaxis)) {
+            if (!array_key_exists($override->begin, $changeaxis)) {
                 $changeaxis[$override->begin] = [];
             }
             $changeaxis[$override->begin][] = [
