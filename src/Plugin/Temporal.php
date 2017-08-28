@@ -188,9 +188,9 @@ class Temporal extends Plugin
                 continue;
             }
             if (!array_key_exists($override->timestamp, $changeaxis)) {
-                $changeaxis[$override->timestamp] = [];
+                $changeaxis[$override->begin] = [];
             }
-            $changeaxis[$override->timestamp][] = [
+            $changeaxis[$override->begin][] = [
                 'begin' => $override->begin,
                 'end' => $override->end,
                 'data' => $override->data,

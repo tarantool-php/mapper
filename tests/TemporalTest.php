@@ -153,9 +153,10 @@ class TemporalTest extends TestCase
 
         $temporal->override([
             'post'  => 1,
-            'begin' => '5 days ago',
+            'begin' => 'yesterday',
+            'end'   => '+2 days',
             'data'  => [
-                'title' => 'test post',
+                'title' => 'hello world',
             ]
         ]);
 
@@ -165,10 +166,9 @@ class TemporalTest extends TestCase
 
         $temporal->override([
             'post'  => 1,
-            'begin' => 'yesterday',
-            'end'   => '+2 days',
+            'begin' => '5 days ago',
             'data'  => [
-                'title' => 'hello world',
+                'title' => 'test post',
             ]
         ]);
 
