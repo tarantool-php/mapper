@@ -422,7 +422,7 @@ class Temporal extends Plugin
             foreach ($states as $i => $state) {
                 if (array_key_exists($i+1, $states)) {
                     $next = $states[$i+1];
-                    if (!count(array_diff_assoc($state['data'], $next['data']))) {
+                    if (json_encode($state['data']) == json_encode($next['data'])) {
                         $states[$i]['end'] = $next['end'];
                         unset($states[$i+1]);
                         $states = array_values($states);

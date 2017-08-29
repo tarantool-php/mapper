@@ -240,4 +240,84 @@ class TemporalTest extends TestCase
             $this->assertSame($state['title'], 'hello world', "Validation: $time");
         }
     }
+
+    public function testStateComplex()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->override([
+            'post'  => 1,
+            'begin' => 20170801,
+            'data'  => ['key1' => 20170801]
+        ]);
+        $temporal->override([
+            'post'  => 1,
+            'begin' => 20170802,
+            'data'  => ['key2' => 20170802]
+        ]);
+        $this->assertCount(2, $mapper->find('_temporal_override_aggregate'));
+
+        $temporal->override([
+            'post'  => 1,
+            'begin' => 20170803,
+            'data'  => ['key1' => 20170803]
+        ]);
+        $temporal->override([
+            'post'  => 1,
+            'begin' => 20170805,
+            'data'  => ['key1' => 20170805]
+        ]);
+
+        $temporal->override([
+            'post'  => 1,
+            'begin' => 20170804,
+            'data'  => ['key2' => 20170804]
+        ]);
+        $temporal->override([
+            'post'  => 1,
+            'begin' => 20170806,
+            'data'  => ['key2' => 20170806]
+        ]);
+
+        Carbon::setTestNow(Carbon::parse("+1 sec"));
+
+        // [20170804, 20170805]
+        $temporal->override([
+            'post' => 1,
+            'begin' => 20170804,
+            'end' => 20170806,
+            'data' => ['period' => 'x'],
+        ]);
+
+        $this->assertSame($temporal->getState('post', 1, 20170801), [
+            'key1' => 20170801
+        ]);
+
+        $this->assertSame($temporal->getState('post', 1, 20170802), [
+            'key1' => 20170801,
+            'key2' => 20170802,
+        ]);
+        $this->assertSame($temporal->getState('post', 1, 20170803), [
+            'key1' => 20170803,
+            'key2' => 20170802,
+        ]);
+        $this->assertSame($temporal->getState('post', 1, 20170804), [
+            'key1' => 20170803,
+            'key2' => 20170804,
+            'period' => 'x',
+        ]);
+        $this->assertSame($temporal->getState('post', 1, 20170805), [
+            'key1' => 20170805,
+            'key2' => 20170804,
+            'period' => 'x',
+        ]);
+        $this->assertSame($temporal->getState('post', 1, 20170806), [
+            'key1' => 20170805,
+            'key2' => 20170806,
+        ]);
+    }
 }
