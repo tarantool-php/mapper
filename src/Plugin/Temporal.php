@@ -5,6 +5,7 @@ namespace Tarantool\Mapper\Plugin;
 use Carbon\Carbon;
 use Exception;
 use Tarantool\Mapper\Mapper;
+use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;
 
 class Temporal extends Plugin
@@ -34,6 +35,7 @@ class Temporal extends Plugin
                     'end'       => $leaf->end,
                     'timestamp' => $leaf->timestamp,
                     'actor'     => $leaf->actor,
+                    'idle'      => property_exists($leaf, 'idle') ? $leaf->idle : 0,
                 ];
 
                 $current = $leaf;
@@ -137,6 +139,28 @@ class Temporal extends Plugin
         $this->mapper->create('_temporal_override', $override);
 
         $this->updateOverrideAggregation($entityName, $override['id']);
+    }
+
+    public function setLinkIdle($id, $flag)
+    {
+        $link = $this->mapper->findOrFail('_temporal_link', $id);
+
+        $idled = property_exists($link, 'idle') && $link->idle > 0;
+        if ($idled && !$flag || !$idled && $flag) {
+            return $this->toggleLinkIdle($link);
+        }
+    }
+
+    public function toggleLinkIdle(Entity $link)
+    {
+        if (property_exists($link, 'idle') && $link->idle) {
+            $link->idle = 0;
+        } else {
+            $link->idle = time();
+        }
+        $link->save();
+
+        $this->updateLinkAggregation($link);
     }
 
     public function setOverrideIdle($entity, $id, $begin, $actor, $timestamp, $flag)
@@ -245,10 +269,23 @@ class Temporal extends Plugin
 
         $node->save();
 
-        foreach ($config as $entity => $id) {
-            if (in_array($entity, ['begin', 'end', 'data'])) {
-                continue;
-            }
+        $this->updateLinkAggregation($node);
+    }
+
+    public function updateLinkAggregation(Entity $node)
+    {
+        $todo = [
+            $this->entityIdToName($node->entity) => $node->entityId,
+        ];
+
+        $current = $node;
+        while ($current->parent) {
+            $current = $this->mapper->findOne('_temporal_link', ['id' => $current->parent]);
+            $todo[$this->entityIdToName($current->entity)] = $current->entityId;
+        }
+
+        foreach ($todo as $entity => $id) {
+
             $spaceId = $this->entityNameToId($entity);
             $source = $this->mapper->find('_temporal_link', [
                 'entity'   => $spaceId,
@@ -267,6 +304,10 @@ class Temporal extends Plugin
             foreach ($leafs as $leaf) {
                 $current = $leaf;
                 $ref = [];
+
+                if (property_exists($leaf, 'idle') && $leaf->idle) {
+                    continue;
+                }
 
                 while ($current) {
                     if ($current->entity != $spaceId) {
@@ -504,7 +545,7 @@ class Temporal extends Plugin
                 return;
 
             case 'link':
-                return $this->mapper->getSchema()->once(__CLASS__.'@link', function (Mapper $mapper) {
+                $this->mapper->getSchema()->once(__CLASS__.'@link', function (Mapper $mapper) {
                     $mapper->getSchema()
                         ->createSpace('_temporal_link', [
                             'id'        => 'unsigned',
@@ -534,6 +575,10 @@ class Temporal extends Plugin
                         ])
                         ->addIndex(['entity', 'id', 'begin']);
                 });
+                $this->mapper->getSchema()->once(__CLASS__.'@link-idle', function (Mapper $mapper) {
+                    $mapper->getSchema()->getSpace('_temporal_link')->addProperty('idle', 'unsigned');
+                });
+                return;
         }
 
         throw new Exception("Invalid schema $name");

@@ -5,6 +5,52 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testLinkIdle()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->link([
+            'begin' => 20170801,
+            'end' => 20170802,
+            'person' => 1,
+            'role' => 1,
+        ]);
+
+        $temporal->link([
+            'begin' => 20170805,
+            'end' => 20170806,
+            'person' => 1,
+            'role' => 1,
+        ]);
+
+        $links = $mapper->find('_temporal_link');
+        $this->assertCount(3, $links);
+
+        $this->assertCount(1, $temporal->getLinks('person', 1, 20170805));
+
+        // last link 0805-0806
+        $this->assertSame(date('Ymd', $links[2]->begin), '20170805');
+
+        $temporal->setLinkIdle($links[2]->id, true);
+
+        $log = $temporal->getLinksLog('person', 1);
+        $this->assertCount(2, $log);
+        $this->assertSame($log[0]['idle'], 0);
+        $this->assertNotSame($log[1]['idle'], 0);
+        $this->assertCount(0, $temporal->getLinks('person', 1, 20170805));
+
+        $temporal->setLinkIdle($links[2]->id, false);
+        $this->assertCount(1, $temporal->getLinks('person', 1, 20170805));
+        $log = $temporal->getLinksLog('person', 1);
+        $this->assertCount(2, $log);
+        $this->assertSame($log[0]['idle'], 0);
+        $this->assertSame($log[1]['idle'], 0);
+    }
+
     public function testMultipleLinks()
     {
         $mapper = $this->createMapper();
