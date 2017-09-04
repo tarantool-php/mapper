@@ -31,6 +31,7 @@ class TemporalTest extends TestCase
         $this->assertCount(3, $links);
 
         $this->assertCount(1, $temporal->getLinks('person', 1, 20170805));
+        $this->assertCount(1, $temporal->getLinks('role', 1, 20170805));
 
         // last link 0805-0806
         $this->assertSame(date('Ymd', $links[2]->begin), '20170805');
@@ -42,9 +43,11 @@ class TemporalTest extends TestCase
         $this->assertSame($log[0]['idle'], 0);
         $this->assertNotSame($log[1]['idle'], 0);
         $this->assertCount(0, $temporal->getLinks('person', 1, 20170805));
+        $this->assertCount(0, $temporal->getLinks('role', 1, 20170805));
 
         $temporal->setLinkIdle($links[2]->id, false);
         $this->assertCount(1, $temporal->getLinks('person', 1, 20170805));
+        $this->assertCount(1, $temporal->getLinks('role', 1, 20170805));
         $log = $temporal->getLinksLog('person', 1);
         $this->assertCount(2, $log);
         $this->assertSame($log[0]['idle'], 0);
