@@ -206,19 +206,28 @@ class Temporal extends Plugin
 
         $this->initSchema('link');
 
-        ksort($link);
-        $node = null;
+        $config = [];
         foreach ($link as $entity => $id) {
-            if (in_array($entity, ['begin', 'end', 'data'])) {
-                continue;
+            if (!in_array($entity, ['begin', 'end', 'data'])) {
+                $config[$entity] = $id;
             }
-            $spaceId = $this->entityNameToId($entity);
+        }
 
+        ksort($config);
+        $node = null;
+
+        foreach (array_keys($config) as $i => $entity) {
+            $id = $config[$entity];
+            $spaceId = $this->entityNameToId($entity);
             $params = [
                 'entity'   => $spaceId,
                 'entityId' => $id,
                 'parent'   => $node ? $node->id : 0,
             ];
+            if (count($config) == $i+1) {
+                $params['begin'] = $link['begin'];
+                $params['timestamp'] = 0;
+            }
             $node = $this->mapper->findOrCreate('_temporal_link', $params);
         }
 
@@ -236,7 +245,7 @@ class Temporal extends Plugin
 
         $node->save();
 
-        foreach ($link as $entity => $id) {
+        foreach ($config as $entity => $id) {
             if (in_array($entity, ['begin', 'end', 'data'])) {
                 continue;
             }

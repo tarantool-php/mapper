@@ -5,6 +5,33 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testMultipleLinks()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->link([
+            'begin' => 20170801,
+            'end' => 20170802,
+            'person' => 1,
+            'role' => 1,
+        ]);
+
+        $temporal->link([
+            'begin' => 20170805,
+            'end' => 20170806,
+            'person' => 1,
+            'role' => 1,
+        ]);
+
+        $links = $mapper->find('_temporal_link');
+        $this->assertCount(3, $links);
+        $this->assertCount(2, $temporal->getLinksLog('person', 1));
+    }
+
     public function testEmptyString()
     {
         $mapper = $this->createMapper();
