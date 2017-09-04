@@ -342,7 +342,7 @@ class Temporal extends Plugin
         }
 
         foreach (['begin', 'end'] as $field) {
-            if (array_key_exists($field, $data)) {
+            if (array_key_exists($field, $data) && strlen($data[$field])) {
                 if (strlen($data[$field]) == 8 || is_string($data[$field])) {
                     $data[$field] = $this->getTimestamp($data[$field]);
                 }

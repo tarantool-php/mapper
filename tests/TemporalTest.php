@@ -5,6 +5,35 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testEmptyString()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->link([
+            'begin'  => 0,
+            'end'    => "",
+            'person' => 1,
+            'role'   => 1,
+        ]);
+
+        $links = $mapper->find('_temporal_link');
+        $this->assertCount(2, $links);
+        $target = null;
+        foreach ($links as $link) {
+            if ($link->actor) {
+                $target = $link;
+                break;
+            }
+        }
+        $this->assertNotNull($target);
+        $this->assertSame($target->begin, 0);
+        $this->assertSame($target->end, 0);
+    }
+
     public function testLinkLog()
     {
         $mapper = $this->createMapper();
