@@ -40,6 +40,7 @@ class TemporalTest extends TestCase
 
         $log = $temporal->getLinksLog('person', 1);
         $this->assertCount(2, $log);
+        $this->assertArrayHasKey('id', $log[0]);
         $this->assertSame($log[0]['idle'], 0);
         $this->assertNotSame($log[1]['idle'], 0);
         $this->assertCount(0, $temporal->getLinks('person', 1, 20170805));

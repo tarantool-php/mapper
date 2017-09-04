@@ -31,6 +31,7 @@ class Temporal extends Plugin
                 $entityName = $this->entityIdToName($leaf->entity);
                 $link = [
                     $entityName => $leaf->entityId,
+                    'id'        => $leaf->id,
                     'begin'     => $leaf->begin,
                     'end'       => $leaf->end,
                     'timestamp' => $leaf->timestamp,
