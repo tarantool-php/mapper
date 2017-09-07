@@ -415,4 +415,4 @@ Table contains overhead in **milliseconds** per entity. In some cases, overhead 
 | one select for all entites | - | - | 0.002 | 0.006 |
 
 Perfomance test was made on (intel i5-6400), bash for windows 10 using php 7.0.18.
-For example, when select will create 10 000 entites overhead will be 19ms.
+For example, when single select will produce 10 000 entites, you will get 20ms overhead.
