@@ -11,6 +11,11 @@ abstract class Plugin
         $this->mapper = $mapper;
     }
 
+    public function getMapper()
+    {
+        return $this->mapper;
+    }
+
     public function afterInstantiate(Entity $instance)
     {
     }

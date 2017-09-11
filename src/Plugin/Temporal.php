@@ -7,15 +7,25 @@ use Exception;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;
+use Tarantool\Mapper\Plugin\Temporal\Aggregator;
+use Tarantool\Mapper\Plugin\Temporal\Schema;
 
 class Temporal extends Plugin
 {
     private $actor;
     private $timestamps = [];
+    private $aggregator;
+
+    public function __construct(Mapper $mapper)
+    {
+        $this->mapper = $mapper;
+        $this->schema = new Schema($mapper);
+        $this->aggregator = new Aggregator($this);
+    }
 
     public function getLinksLog($entity, $entityId, $filter = [])
     {
-        $this->initSchema('link');
+        $this->schema->init('link');
 
         $entity = $this->entityNameToId($entity);
 
@@ -27,7 +37,7 @@ class Temporal extends Plugin
         $links = [];
 
         foreach ($nodes as $node) {
-            foreach ($this->getLeafs($node) as $leaf) {
+            foreach ($this->aggregator->getLeafs($node) as $leaf) {
                 $entityName = $this->entityIdToName($leaf->entity);
                 $link = [
                     $entityName => $leaf->entityId,
@@ -62,7 +72,7 @@ class Temporal extends Plugin
 
     public function getLinks($entity, $id, $date)
     {
-        $this->initSchema('link');
+        $this->schema->init('link');
 
         $links = $this->getData($entity, $id, $date, '_temporal_link_aggregate');
         foreach ($links as $i => $source) {
@@ -78,7 +88,7 @@ class Temporal extends Plugin
 
     public function getState($entity, $id, $date)
     {
-        $this->initSchema('override');
+        $this->schema->init('override');
 
         return $this->getData($entity, $id, $date, '_temporal_override_aggregate');
     }
@@ -136,10 +146,10 @@ class Temporal extends Plugin
         $override['actor'] = $this->actor;
         $override['timestamp'] = Carbon::now()->timestamp;
 
-        $this->initSchema('override');
+        $this->schema->init('override');
         $this->mapper->create('_temporal_override', $override);
 
-        $this->updateOverrideAggregation($entityName, $override['id']);
+        $this->aggregator->updateOverrideAggregation($entityName, $override['id']);
     }
 
     public function setLinkIdle($id, $flag)
@@ -161,7 +171,7 @@ class Temporal extends Plugin
         }
         $link->save();
 
-        $this->updateLinkAggregation($link);
+        $this->aggregator->updateLinkAggregation($link);
     }
 
     public function setOverrideIdle($entity, $id, $begin, $actor, $timestamp, $flag)
@@ -196,40 +206,15 @@ class Temporal extends Plugin
         }
         $override->save();
 
-        $this->updateOverrideAggregation($entity, $id);
+        $this->aggregator->updateOverrideAggregation($entity, $id);
     }
 
-    public function updateOverrideAggregation($entity, $id)
-    {
-        $params = [
-            'entity' => $this->entityNameToId($entity),
-            'id'     => $id,
-        ];
-
-        $changeaxis = [];
-
-        foreach ($this->mapper->find('_temporal_override', $params) as $i => $override) {
-            if (property_exists($override, 'idle') && $override->idle) {
-                continue;
-            }
-            if (!array_key_exists($override->begin, $changeaxis)) {
-                $changeaxis[$override->begin] = [];
-            }
-            $changeaxis[$override->begin][] = [
-                'begin' => $override->begin,
-                'end' => $override->end,
-                'data' => $override->data,
-            ];
-        }
-
-        $this->updateAggregation('override', $params, $changeaxis);
-    }
 
     public function link(array $link)
     {
         $link = $this->parseConfig($link);
 
-        $this->initSchema('link');
+        $this->schema->init('link');
 
         $config = [];
         foreach ($link as $entity => $id) {
@@ -270,100 +255,13 @@ class Temporal extends Plugin
 
         $node->save();
 
-        $this->updateLinkAggregation($node);
-    }
-
-    public function updateLinkAggregation(Entity $node)
-    {
-        $todo = [
-            $this->entityIdToName($node->entity) => $node->entityId,
-        ];
-
-        $current = $node;
-        while ($current->parent) {
-            $current = $this->mapper->findOne('_temporal_link', ['id' => $current->parent]);
-            $todo[$this->entityIdToName($current->entity)] = $current->entityId;
-        }
-
-        foreach ($todo as $entity => $id) {
-
-            $spaceId = $this->entityNameToId($entity);
-            $source = $this->mapper->find('_temporal_link', [
-                'entity'   => $spaceId,
-                'entityId' => $id,
-            ]);
-
-            $leafs = [];
-            foreach ($source as $node) {
-                foreach ($this->getLeafs($node) as $detail) {
-                    $leafs[] = $detail;
-                }
-            }
-
-            $changeaxis = [];
-
-            foreach ($leafs as $leaf) {
-                $current = $leaf;
-                $ref = [];
-
-                if (property_exists($leaf, 'idle') && $leaf->idle) {
-                    continue;
-                }
-
-                while ($current) {
-                    if ($current->entity != $spaceId) {
-                        $ref[$current->entity] = $current->entityId;
-                    }
-                    if ($current->parent) {
-                        $current = $this->mapper->findOne('_temporal_link', $current->parent);
-                    } else {
-                        $current = null;
-                    }
-                }
-
-                $data = [$ref];
-                if (property_exists($leaf, 'data') && $leaf->data) {
-                    $data[] = $leaf->data;
-                }
-
-                if (!array_key_exists($leaf->timestamp, $changeaxis)) {
-                    $changeaxis[$leaf->timestamp] = [];
-                }
-                $changeaxis[$leaf->timestamp][] = [
-                    'begin' => $leaf->begin,
-                    'end' => $leaf->end,
-                    'data' => $data
-                ];
-            }
-
-            $params = [
-                'entity' => $spaceId,
-                'id'     => $id,
-            ];
-
-            $this->updateAggregation('link', $params, $changeaxis);
-        }
+        $this->aggregator->updateLinkAggregation($node);
     }
 
     public function setActor($actor)
     {
         $this->actor = $actor;
         return $this;
-    }
-
-    private function getLeafs($link)
-    {
-        if ($link->timestamp) {
-            return [$link];
-        }
-
-        $leafs = [];
-        foreach ($this->mapper->find('_temporal_link', ['parent' => $link->id]) as $child) {
-            foreach ($this->getLeafs($child) as $leaf) {
-                $leafs[] = $leaf;
-            }
-        }
-        return $leafs;
     }
 
     private function getTimestamp($string)
@@ -405,91 +303,7 @@ class Temporal extends Plugin
         return $data;
     }
 
-    private function updateAggregation($type, $params, $changeaxis)
-    {
-        $isLink = $type === 'link';
-        $space = $isLink ? '_temporal_link_aggregate' : '_temporal_override_aggregate';
-
-        $timeaxis = [];
-        foreach ($changeaxis as $timestamp => $changes) {
-            foreach ($changes as $change) {
-                foreach (['begin', 'end'] as $field) {
-                    if (!array_key_exists($change[$field], $timeaxis)) {
-                        $timeaxis[$change[$field]] = [
-                            'begin' => $change[$field],
-                            'end'   => $change[$field],
-                            'data'  => [],
-                        ];
-                    }
-                }
-            }
-        }
-
-        ksort($changeaxis);
-        ksort($timeaxis);
-
-        $nextSliceId = null;
-        foreach (array_reverse(array_keys($timeaxis)) as $timestamp) {
-            if ($nextSliceId) {
-                $timeaxis[$timestamp]['end'] = $nextSliceId;
-            } else {
-                $timeaxis[$timestamp]['end'] = 0;
-            }
-            $nextSliceId = $timestamp;
-        }
-
-        foreach ($this->mapper->find($space, $params) as $state) {
-            $this->mapper->remove($state);
-        }
-
-        $states = [];
-        foreach ($timeaxis as $state) {
-            foreach ($changeaxis as $changes) {
-                foreach ($changes as $change) {
-                    if ($change['begin'] > $state['begin']) {
-                        // future override
-                        continue;
-                    }
-                    if ($change['end'] && ($change['end'] < $state['end'] || !$state['end'])) {
-                        // complete override
-                        continue;
-                    }
-                    if ($isLink) {
-                        $state['data'][] = $change['data'];
-                    } else {
-                        $state['data'] = array_merge($state['data'], $change['data']);
-                    }
-                }
-            }
-            if (count($state['data'])) {
-                $states[] = array_merge($state, $params);
-            }
-        }
-
-        // merge states
-        $clean = $isLink;
-        while (!$clean) {
-            $clean = true;
-            foreach ($states as $i => $state) {
-                if (array_key_exists($i+1, $states)) {
-                    $next = $states[$i+1];
-                    if (json_encode($state['data']) == json_encode($next['data'])) {
-                        $states[$i]['end'] = $next['end'];
-                        unset($states[$i+1]);
-                        $states = array_values($states);
-                        $clean = false;
-                        break;
-                    }
-                }
-            }
-        }
-
-        foreach ($states as $state) {
-            $this->mapper->create($space, $state);
-        }
-    }
-
-    private function entityNameToId($name)
+    public function entityNameToId($name)
     {
         if (!$this->mapper->hasPlugin(Sequence::class)) {
             $this->mapper->addPlugin(Sequence::class);
@@ -508,80 +322,8 @@ class Temporal extends Plugin
         return $this->mapper->findOrCreate('_temporal_entity', compact('name'))->id;
     }
 
-    private function entityIdToName($id)
+    public function entityIdToName($id)
     {
         return $this->mapper->findOne('_temporal_entity', compact('id'))->name;
-    }
-
-    private function initSchema($name)
-    {
-        switch ($name) {
-            case 'override':
-                $this->mapper->getSchema()->once(__CLASS__.'@states', function (Mapper $mapper) {
-                    $mapper->getSchema()
-                        ->createSpace('_temporal_override', [
-                            'entity'     => 'unsigned',
-                            'id'         => 'unsigned',
-                            'begin'      => 'unsigned',
-                            'end'        => 'unsigned',
-                            'timestamp'  => 'unsigned',
-                            'actor'      => 'unsigned',
-                            'data'       => '*',
-                        ])
-                        ->addIndex(['entity', 'id', 'begin', 'timestamp', 'actor']);
-
-                    $mapper->getSchema()
-                        ->createSpace('_temporal_override_aggregate', [
-                            'entity'     => 'unsigned',
-                            'id'         => 'unsigned',
-                            'begin'      => 'unsigned',
-                            'end'        => 'unsigned',
-                            'data'       => '*',
-                        ])
-                        ->addIndex(['entity', 'id', 'begin']);
-                });
-                $this->mapper->getSchema()->once(__CLASS__.'@override-idle', function (Mapper $mapper) {
-                    $mapper->getSchema()->getSpace('_temporal_override')->addProperty('idle', 'unsigned');
-                });
-                return;
-
-            case 'link':
-                $this->mapper->getSchema()->once(__CLASS__.'@link', function (Mapper $mapper) {
-                    $mapper->getSchema()
-                        ->createSpace('_temporal_link', [
-                            'id'        => 'unsigned',
-                            'parent'    => 'unsigned',
-                            'entity'    => 'unsigned',
-                            'entityId'  => 'unsigned',
-                            'begin'     => 'unsigned',
-                            'end'       => 'unsigned',
-                            'timestamp' => 'unsigned',
-                            'actor'     => 'unsigned',
-                            'data'      => '*',
-                        ])
-                        ->addIndex(['id'])
-                        ->addIndex(['entity', 'entityId', 'parent', 'begin', 'timestamp', 'actor'])
-                        ->addIndex([
-                            'fields' => 'parent',
-                            'unique' => false,
-                        ]);
-
-                    $mapper->getSchema()
-                        ->createSpace('_temporal_link_aggregate', [
-                            'entity' => 'unsigned',
-                            'id'     => 'unsigned',
-                            'begin'  => 'unsigned',
-                            'end'    => 'unsigned',
-                            'data'   => '*',
-                        ])
-                        ->addIndex(['entity', 'id', 'begin']);
-                });
-                $this->mapper->getSchema()->once(__CLASS__.'@link-idle', function (Mapper $mapper) {
-                    $mapper->getSchema()->getSpace('_temporal_link')->addProperty('idle', 'unsigned');
-                });
-                return;
-        }
-
-        throw new Exception("Invalid schema $name");
     }
 }
