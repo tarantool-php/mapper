@@ -61,7 +61,7 @@ class Aggregator
         }
 
         foreach ($affected as $affect) {
-            [$entity, $entityId] = $affect;
+            list($entity, $entityId) = $affect;
             $changes = $mapper->find('_temporal_reference_state', [
                 'target' => $entity,
                 'targetId' => $entityId,
