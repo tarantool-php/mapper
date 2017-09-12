@@ -97,4 +97,47 @@ class Schema
             $mapper->getSchema()->getSpace('_temporal_override')->addProperty('idle', 'unsigned');
         });
     }
+
+    private function initReference()
+    {
+        $this->mapper->getSchema()->once(__CLASS__.'@reference', function (Mapper $mapper) {
+            $mapper->getSchema()
+                ->createSpace('_temporal_reference', [
+                    'idle'       => 'unsigned',
+                    'entity'     => 'unsigned',
+                    'id'         => 'unsigned',
+                    'begin'      => 'unsigned',
+                    'end'        => 'unsigned',
+                    'target'     => 'unsigned',
+                    'targetId'   => 'unsigned',
+                    'timestamp'  => 'unsigned',
+                    'actor'      => 'unsigned',
+                ])
+                ->addIndex(['entity', 'id', 'target', 'targetId', 'begin', 'timestamp', 'actor']);
+
+            $mapper->getSchema()
+                ->createSpace('_temporal_reference_state', [
+                    'entity'     => 'unsigned',
+                    'id'         => 'unsigned',
+                    'target'     => 'unsigned',
+                    'begin'      => 'unsigned',
+                    'end'        => 'unsigned',
+                    'targetId'   => 'unsigned',
+                ])
+                ->addIndex(['entity', 'id', 'target', 'begin'])
+                ->addIndex(['target', 'targetId', 'entity', 'begin', 'id'])
+                ;
+
+            $mapper->getSchema()
+                ->createSpace('_temporal_reference_aggregate', [
+                    'entity'     => 'unsigned',
+                    'id'         => 'unsigned',
+                    'source'     => 'unsigned',
+                    'begin'      => 'unsigned',
+                    'end'        => 'unsigned',
+                    'data'       => '*',
+                ])
+                ->addIndex(['entity', 'id', 'source', 'begin']);
+        });
+    }
 }

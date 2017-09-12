@@ -23,6 +23,96 @@ class Temporal extends Plugin
         $this->aggregator = new Aggregator($this);
     }
 
+    public function getReference($entity, $id, $target, $date)
+    {
+        $entity = $this->entityNameToId($entity);
+        $target = $this->entityNameToId($target);
+        $date = $this->getTimestamp($date);
+
+        $rows = $this->mapper->getClient()->getSpace('_temporal_reference_state')
+            ->select([$entity, $id, $target, $date], 0, 1, 0, 4) // [key, index, limit, offset, iterator = LE]
+            ->getData();
+
+        if (count($rows)) {
+            $row = $rows[0];
+            if ([$entity, $id, $target] == [$row[0], $row[1], $row[2]]) {
+                $state = $this->mapper->findOne('_temporal_reference_state', [
+                    'entity' => $entity,
+                    'id' => $id,
+                    'target' => $target,
+                    'begin' => $row[3]
+                ]);
+                if (!$state->end || $state->end >= $date) {
+                    return $state->targetId;
+                }
+            }
+        }
+    }
+
+    public function getReferences($target, $targetId, $source, $date)
+    {
+        $target = $this->entityNameToId($target);
+        $source = $this->entityNameToId($source);
+        $date = $this->getTimestamp($date);
+
+        $rows = $this->mapper->getClient()->getSpace('_temporal_reference_aggregate')
+            ->select([$target, $targetId, $source, $date], 0, 1, 0, 4) // [key, index, limit, offset, iterator = LE]
+            ->getData();
+
+        if (count($rows)) {
+            $row = $rows[0];
+            if ([$target, $targetId, $source] == [$row[0], $row[1], $row[2]]) {
+                $state = $this->mapper->findOne('_temporal_reference_aggregate', [
+                    'entity' => $target,
+                    'id'     => $targetId,
+                    'source' => $source,
+                    'begin'  => $row[3]
+                ]);
+
+                if (!$state->end || $state->end > $date) {
+                    return $state->data;
+                }
+            }
+        }
+        return [];
+    }
+
+    public function reference(array $reference)
+    {
+        $reference = $this->parseConfig($reference);
+
+        foreach ($reference as $k => $v) {
+            if (!in_array($k, ['entity', 'id', 'begin', 'end', 'data'])) {
+                $reference['entity'] = $k;
+                $reference['id'] = $v;
+                unset($reference[$k]);
+            }
+        }
+
+        if (!array_key_exists('entity', $reference)) {
+            throw new Exception("no entity defined");
+        }
+
+        if (count($reference['data']) != 1) {
+            throw new Exception("Invalid reference configuration");
+        }
+
+        $reference['target'] = $this->entityNameToId(array_keys($reference['data'])[0]);
+        $reference['targetId'] = array_values($reference['data'])[0];
+
+
+        // set entity id
+        $entityName = $reference['entity'];
+        $reference['entity'] = $this->entityNameToId($entityName);
+        $reference['actor'] = $this->actor;
+        $reference['timestamp'] = Carbon::now()->timestamp;
+
+        $this->schema->init('reference');
+        $this->mapper->create('_temporal_reference', $reference);
+
+        $this->aggregator->updateReferenceState($entityName, $reference['id']);
+    }
+
     public function getLinksLog($entity, $entityId, $filter = [])
     {
         $this->schema->init('link');

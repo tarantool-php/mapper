@@ -5,6 +5,83 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testTemporalReference()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->reference([
+            'person'  => 1,
+            'begin' => 20170801,
+            'data'  => [
+                'position' => 1,
+            ]
+        ]);
+
+        $this->assertCount(1, $mapper->find('_temporal_reference'));
+        $states = $mapper->find('_temporal_reference_state');
+        $this->assertCount(1, $states);
+        $this->assertSame($states[0]->id, 1);
+
+        $this->assertNull($temporal->getReference('person', 1, 'position', 20170705));
+        $this->assertEquals(1, $temporal->getReference('person', 1, 'position', 20170810));
+
+        $temporal->reference([
+            'person'  => 1,
+            'begin' => 20170815,
+            'data'  => [
+                'position' => 2,
+            ]
+        ]);
+
+        $temporal->reference([
+            'person'  => 2,
+            'begin' => 20170810,
+            'data'  => [
+                'position' => 1,
+            ]
+        ]);
+
+        $temporal->reference([
+            'person'  => 2,
+            'begin' => 20170825,
+            'data'  => [
+                'position' => 2,
+            ]
+        ]);
+
+        $this->assertNull($temporal->getReference('person', 1, 'position', 20170705));
+        $this->assertEquals(1, $temporal->getReference('person', 1, 'position', 20170801));
+        $this->assertEquals(1, $temporal->getReference('person', 1, 'position', 20170810));
+        $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170815));
+        $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170820));
+        $this->assertEquals(1, $temporal->getReference('person', 2, 'position', 20170810));
+        $this->assertEquals(1, $temporal->getReference('person', 2, 'position', 20170821));
+        $this->assertEquals(2, $temporal->getReference('person', 2, 'position', 20170825));
+        $this->assertEquals(2, $temporal->getReference('person', 2, 'position', 20170901));
+
+        $this->assertCount(0, $temporal->getReferences('position', 1, 'person', 20170707));
+        $this->assertCount(2, $temporal->getReferences('position', 1, 'person', 20170810));
+        $this->assertCount(1, $temporal->getReferences('position', 1, 'person', 20170820));
+        $this->assertCount(1, $temporal->getReferences('position', 1, 'person', 20170824));
+        $this->assertCount(0, $temporal->getReferences('position', 1, 'person', 20170825));
+        $this->assertCount(0, $temporal->getReferences('position', 1, 'person', 20170826));
+        $this->assertCount(0, $temporal->getReferences('position', 1, 'person', 20170901));
+        $this->assertSame($temporal->getReferences('position', 1, 'person', 20170810), [1, 2]);
+        $this->assertSame($temporal->getReferences('position', 1, 'person', 20170820), [2]);
+
+        $this->assertCount(0, $temporal->getReferences('position', 2, 'person', 20170810));
+        $this->assertCount(1, $temporal->getReferences('position', 2, 'person', 20170820));
+        $this->assertCount(2, $temporal->getReferences('position', 2, 'person', 20170825));
+        $this->assertCount(2, $temporal->getReferences('position', 2, 'person', 20171231));
+        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170820), [1]);
+        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170825), [1, 2]);
+        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170831), [1, 2]);
+    }
+
     public function testLinkIdle()
     {
         $mapper = $this->createMapper();

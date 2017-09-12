@@ -29,6 +29,178 @@ class Aggregator
         return $leafs;
     }
 
+    public function updateReferenceState($entity, $id)
+    {
+        $mapper = $this->temporal->getMapper();
+
+        $params = [
+            'entity' => $this->temporal->entityNameToId($entity),
+            'id'     => $id,
+        ];
+
+        // collect changes
+
+        $states = [];
+        $changeaxis = [];
+        foreach ($mapper->find('_temporal_reference', $params) as $i => $reference) {
+            if (property_exists($reference, 'idle') && $reference->idle) {
+                continue;
+            }
+            if (!array_key_exists($reference->target, $changeaxis)) {
+                $changeaxis[$reference->target] = [];
+            }
+            $changeaxis[$reference->target][] = get_object_vars($reference);
+        }
+
+        // calculate states
+
+        $timeaxis = [];
+        foreach ($changeaxis as $target => $references) {
+            $targetStates = [];
+            foreach ($references as $reference) {
+                foreach (['begin', 'end'] as $field) {
+                    if (!array_key_exists($reference[$field], $targetStates)) {
+                        $targetStates[$reference[$field]] = [
+                            'begin'  => $reference[$field],
+                            'end'    => $reference[$field],
+                        ];
+                    }
+                }
+            }
+            ksort($targetStates);
+
+            $nextSliceId = null;
+            foreach (array_reverse(array_keys($targetStates)) as $timestamp) {
+                if ($nextSliceId) {
+                    $targetStates[$timestamp]['end'] = $nextSliceId;
+                } else {
+                    $targetStates[$timestamp]['end'] = 0;
+                }
+                $nextSliceId = $timestamp;
+            }
+
+            foreach ($targetStates as $state) {
+                foreach ($changeaxis[$target] as $reference) {
+                    if ($reference['begin'] > $state['begin']) {
+                        // future reference
+                        continue;
+                    }
+                    if ($reference['end'] && ($reference['end'] < $state['end'] || !$state['end'])) {
+                        // complete reference
+                        continue;
+                    }
+                    $state['targetId'] = $reference['targetId'];
+                }
+                if (array_key_exists('targetId', $state)) {
+                    $states[] = array_merge($state, $params, ['target' => $target]);
+                }
+            }
+        }
+
+        // merge reference states
+
+        $clean = false;
+        while (!$clean) {
+            $clean = true;
+            foreach ($states as $i => $state) {
+                if (array_key_exists($i+1, $states)) {
+                    $next = $states[$i+1];
+                    if ($state['target'] == $next['target'] && $state['targetId'] == $next['targetId']) {
+                        $states[$i]['end'] = $next['end'];
+                        unset($states[$i+1]);
+                        $states = array_values($states);
+                        $clean = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // update states in database
+
+        $affected = [];
+        foreach ($mapper->find('_temporal_reference_state', $params) as $state) {
+            $mapper->remove($state);
+        }
+        foreach ($states as $state) {
+            if (!in_array([$state['target'], $state['targetId']], $affected)) {
+                $affected[] = [$state['target'], $state['targetId']];
+            }
+            $mapper->create('_temporal_reference_state', $state);
+        }
+
+
+        // update reference aggregation for affected targets
+        foreach ($affected as [$entity, $entityId]) {
+            // collect changes
+            $changeaxis = $mapper->find('_temporal_reference_state', [
+                'target' => $entity,
+                'targetId' => $entityId,
+                'entity' => $params['entity'],
+            ]);
+            $changeaxis = array_map('get_object_vars', $changeaxis);
+            // generate states
+            $targetStates = [];
+            foreach ($changeaxis as $state) {
+                foreach (['begin', 'end'] as $field) {
+                    if (!array_key_exists($state[$field], $targetStates)) {
+                        $targetStates[$state[$field]] = [
+                            'begin' => $state[$field],
+                            'end'   => $state[$field],
+                            'data'  => [],
+                        ];
+                    }
+                }
+            }
+            ksort($targetStates);
+            $nextSliceId = null;
+            foreach (array_reverse(array_keys($targetStates)) as $timestamp) {
+                if ($nextSliceId) {
+                    $targetStates[$timestamp]['end'] = $nextSliceId;
+                } else {
+                    $targetStates[$timestamp]['end'] = 0;
+                }
+                $nextSliceId = $timestamp;
+            }
+
+            $aggregateParams = [
+                'entity' => $entity,
+                'id' => $entityId,
+                'source' => $params['entity']
+            ];
+
+            // calculate aggregates
+            $aggregates = [];
+            foreach ($targetStates as $state) {
+                foreach ($changeaxis as $reference) {
+                    if ($reference['begin'] > $state['begin']) {
+                        // future reference
+                        continue;
+                    }
+                    if ($reference['end'] && ($reference['end'] < $state['end'] || !$state['end'])) {
+                        // complete reference
+                        continue;
+                    }
+                    if (!in_array($reference['id'], $state['data'])) {
+                        $state['data'][] = $reference['id'];
+                    }
+                }
+                if (count($state['data'])) {
+                    $aggregates[] = array_merge($state, $aggregateParams);
+                }
+            }
+
+            // sync aggregates
+            foreach ($mapper->find('_temporal_reference_aggregate', $aggregateParams) as $aggregate) {
+                $mapper->remove($aggregate);
+            }
+
+            foreach ($aggregates as $aggregate) {
+                $mapper->create('_temporal_reference_aggregate', $aggregate);
+            }
+        }
+    }
+
 
     public function updateLinkAggregation(Entity $node)
     {
@@ -43,7 +215,6 @@ class Aggregator
         }
 
         foreach ($todo as $entity => $id) {
-
             $spaceId = $this->temporal->entityNameToId($entity);
             $source = $this->temporal->getMapper()->find('_temporal_link', [
                 'entity'   => $spaceId,
@@ -211,5 +382,4 @@ class Aggregator
             $this->temporal->getMapper()->create($space, $state);
         }
     }
-
 }
