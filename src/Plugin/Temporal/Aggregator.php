@@ -49,50 +49,28 @@ class Aggregator
             if (!array_key_exists($reference->target, $changeaxis)) {
                 $changeaxis[$reference->target] = [];
             }
-            $changeaxis[$reference->target][] = get_object_vars($reference);
+            $changeaxis[$reference->target][] = $reference;
         }
 
         // calculate states
 
         $timeaxis = [];
         foreach ($changeaxis as $target => $references) {
-            $targetStates = [];
-            foreach ($references as $reference) {
-                foreach (['begin', 'end'] as $field) {
-                    if (!array_key_exists($reference[$field], $targetStates)) {
-                        $targetStates[$reference[$field]] = [
-                            'begin'  => $reference[$field],
-                            'end'    => $reference[$field],
-                        ];
-                    }
-                }
-            }
-            ksort($targetStates);
-
-            $nextSliceId = null;
-            foreach (array_reverse(array_keys($targetStates)) as $timestamp) {
-                if ($nextSliceId) {
-                    $targetStates[$timestamp]['end'] = $nextSliceId;
-                } else {
-                    $targetStates[$timestamp]['end'] = 0;
-                }
-                $nextSliceId = $timestamp;
-            }
-
+            $targetStates = $this->generateSlices($references);
             foreach ($targetStates as $state) {
                 foreach ($changeaxis[$target] as $reference) {
-                    if ($reference['begin'] > $state['begin']) {
+                    if ($reference->begin > $state->begin) {
                         // future reference
                         continue;
                     }
-                    if ($reference['end'] && ($reference['end'] < $state['end'] || !$state['end'])) {
+                    if ($reference->end && ($reference->end < $state->end || !$state->end)) {
                         // complete reference
                         continue;
                     }
-                    $state['targetId'] = $reference['targetId'];
+                    $state->targetId = $reference->targetId;
                 }
                 if (array_key_exists('targetId', $state)) {
-                    $states[] = array_merge($state, $params, ['target' => $target]);
+                    $states[] = (object) array_merge(get_object_vars($state), $params, ['target' => $target]);
                 }
             }
         }
@@ -105,8 +83,8 @@ class Aggregator
             foreach ($states as $i => $state) {
                 if (array_key_exists($i+1, $states)) {
                     $next = $states[$i+1];
-                    if ($state['target'] == $next['target'] && $state['targetId'] == $next['targetId']) {
-                        $states[$i]['end'] = $next['end'];
+                    if ($state->target == $next->target && $state->targetId == $next->targetId) {
+                        $states[$i]['end'] = $next->end;
                         unset($states[$i+1]);
                         $states = array_values($states);
                         $clean = false;
@@ -123,8 +101,8 @@ class Aggregator
             $mapper->remove($state);
         }
         foreach ($states as $state) {
-            if (!in_array([$state['target'], $state['targetId']], $affected)) {
-                $affected[] = [$state['target'], $state['targetId']];
+            if (!in_array([$state->target, $state->targetId], $affected)) {
+                $affected[] = [$state->target, $state->targetId];
             }
             $mapper->create('_temporal_reference_state', $state);
         }
@@ -138,30 +116,9 @@ class Aggregator
                 'targetId' => $entityId,
                 'entity' => $params['entity'],
             ]);
-            $changeaxis = array_map('get_object_vars', $changeaxis);
+
             // generate states
-            $targetStates = [];
-            foreach ($changeaxis as $state) {
-                foreach (['begin', 'end'] as $field) {
-                    if (!array_key_exists($state[$field], $targetStates)) {
-                        $targetStates[$state[$field]] = [
-                            'begin' => $state[$field],
-                            'end'   => $state[$field],
-                            'data'  => [],
-                        ];
-                    }
-                }
-            }
-            ksort($targetStates);
-            $nextSliceId = null;
-            foreach (array_reverse(array_keys($targetStates)) as $timestamp) {
-                if ($nextSliceId) {
-                    $targetStates[$timestamp]['end'] = $nextSliceId;
-                } else {
-                    $targetStates[$timestamp]['end'] = 0;
-                }
-                $nextSliceId = $timestamp;
-            }
+            $targetStates = $this->generateSlices($changeaxis);
 
             $aggregateParams = [
                 'entity' => $entity,
@@ -173,20 +130,20 @@ class Aggregator
             $aggregates = [];
             foreach ($targetStates as $state) {
                 foreach ($changeaxis as $reference) {
-                    if ($reference['begin'] > $state['begin']) {
+                    if ($reference->begin > $state->begin) {
                         // future reference
                         continue;
                     }
-                    if ($reference['end'] && ($reference['end'] < $state['end'] || !$state['end'])) {
+                    if ($reference->end && ($reference->end < $state->end || !$state->end)) {
                         // complete reference
                         continue;
                     }
-                    if (!in_array($reference['id'], $state['data'])) {
-                        $state['data'][] = $reference['id'];
+                    if (!in_array($reference->id, $state->data)) {
+                        $state->data[] = $reference->id;
                     }
                 }
-                if (count($state['data'])) {
-                    $aggregates[] = array_merge($state, $aggregateParams);
+                if (count($state->data)) {
+                    $aggregates[] = array_merge(get_object_vars($state), $aggregateParams);
                 }
             }
 
@@ -257,7 +214,7 @@ class Aggregator
                 if (!array_key_exists($leaf->timestamp, $changeaxis)) {
                     $changeaxis[$leaf->timestamp] = [];
                 }
-                $changeaxis[$leaf->timestamp][] = [
+                $changeaxis[$leaf->timestamp][] = (object) [
                     'begin' => $leaf->begin,
                     'end' => $leaf->end,
                     'data' => $data
@@ -289,7 +246,7 @@ class Aggregator
             if (!array_key_exists($override->begin, $changeaxis)) {
                 $changeaxis[$override->begin] = [];
             }
-            $changeaxis[$override->begin][] = [
+            $changeaxis[$override->begin][] = (object) [
                 'begin' => $override->begin,
                 'end' => $override->end,
                 'data' => $override->data,
@@ -308,10 +265,10 @@ class Aggregator
         foreach ($changeaxis as $timestamp => $changes) {
             foreach ($changes as $change) {
                 foreach (['begin', 'end'] as $field) {
-                    if (!array_key_exists($change[$field], $timeaxis)) {
-                        $timeaxis[$change[$field]] = [
-                            'begin' => $change[$field],
-                            'end'   => $change[$field],
+                    if (!array_key_exists($change->$field, $timeaxis)) {
+                        $timeaxis[$change->$field] = (object) [
+                            'begin' => $change->$field,
+                            'end'   => $change->$field,
                             'data'  => [],
                         ];
                     }
@@ -325,9 +282,9 @@ class Aggregator
         $nextSliceId = null;
         foreach (array_reverse(array_keys($timeaxis)) as $timestamp) {
             if ($nextSliceId) {
-                $timeaxis[$timestamp]['end'] = $nextSliceId;
+                $timeaxis[$timestamp]->end = $nextSliceId;
             } else {
-                $timeaxis[$timestamp]['end'] = 0;
+                $timeaxis[$timestamp]->end = 0;
             }
             $nextSliceId = $timestamp;
         }
@@ -340,23 +297,23 @@ class Aggregator
         foreach ($timeaxis as $state) {
             foreach ($changeaxis as $changes) {
                 foreach ($changes as $change) {
-                    if ($change['begin'] > $state['begin']) {
+                    if ($change->begin > $state->begin) {
                         // future override
                         continue;
                     }
-                    if ($change['end'] && ($change['end'] < $state['end'] || !$state['end'])) {
+                    if ($change->end && ($change->end < $state->end || !$state->end)) {
                         // complete override
                         continue;
                     }
                     if ($isLink) {
-                        $state['data'][] = $change['data'];
+                        $state->data[] = $change->data;
                     } else {
-                        $state['data'] = array_merge($state['data'], $change['data']);
+                        $state->data = array_merge($state->data, $change->data);
                     }
                 }
             }
-            if (count($state['data'])) {
-                $states[] = array_merge($state, $params);
+            if (count($state->data)) {
+                $states[] = (object) array_merge(get_object_vars($state), $params);
             }
         }
 
@@ -367,8 +324,8 @@ class Aggregator
             foreach ($states as $i => $state) {
                 if (array_key_exists($i+1, $states)) {
                     $next = $states[$i+1];
-                    if (json_encode($state['data']) == json_encode($next['data'])) {
-                        $states[$i]['end'] = $next['end'];
+                    if (json_encode($state->data) == json_encode($next->data)) {
+                        $states[$i]->end = $next->end;
                         unset($states[$i+1]);
                         $states = array_values($states);
                         $clean = false;
@@ -381,5 +338,33 @@ class Aggregator
         foreach ($states as $state) {
             $this->temporal->getMapper()->create($space, $state);
         }
+    }
+
+    private function generateSlices($changes)
+    {
+        $slices = [];
+        foreach ($changes as $change) {
+            foreach (['begin', 'end'] as $field) {
+                if (!array_key_exists($change->$field, $slices)) {
+                    $slices[$change->$field] = (object) [
+                        'begin'  => $change->$field,
+                        'end'    => $change->$field,
+                        'data'   => [],
+                    ];
+                }
+            }
+        }
+        ksort($slices);
+
+        $nextSliceId = null;
+        foreach (array_reverse(array_keys($slices)) as $timestamp) {
+            if ($nextSliceId) {
+                $slices[$timestamp]->end = $nextSliceId;
+            } else {
+                $slices[$timestamp]->end = 0;
+            }
+            $nextSliceId = $timestamp;
+        }
+        return $slices;
     }
 }
