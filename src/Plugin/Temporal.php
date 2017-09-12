@@ -97,7 +97,8 @@ class Temporal extends Plugin
             throw new Exception("Invalid reference configuration");
         }
 
-        $reference['target'] = $this->entityNameToId(array_keys($reference['data'])[0]);
+        $targetName = array_keys($reference['data'])[0];
+        $reference['target'] = $this->entityNameToId($targetName);
         $reference['targetId'] = array_values($reference['data'])[0];
 
 
@@ -110,7 +111,7 @@ class Temporal extends Plugin
         $this->schema->init('reference');
         $this->mapper->create('_temporal_reference', $reference);
 
-        $this->aggregator->updateReferenceState($entityName, $reference['id']);
+        $this->aggregator->updateReferenceState($entityName, $reference['id'], $targetName);
     }
 
     public function getLinksLog($entity, $entityId, $filter = [])

@@ -29,131 +29,62 @@ class Aggregator
         return $leafs;
     }
 
-    public function updateReferenceState($entity, $id)
+    public function updateReferenceState($entity, $id, $target)
     {
         $mapper = $this->temporal->getMapper();
 
         $params = [
             'entity' => $this->temporal->entityNameToId($entity),
             'id'     => $id,
+            'target' => $this->temporal->entityNameToId($target),
         ];
 
-        // collect changes
-
-        $states = [];
-        $changeaxis = [];
-        foreach ($mapper->find('_temporal_reference', $params) as $i => $reference) {
-            if (property_exists($reference, 'idle') && $reference->idle) {
-                continue;
-            }
-            if (!array_key_exists($reference->target, $changeaxis)) {
-                $changeaxis[$reference->target] = [];
-            }
-            $changeaxis[$reference->target][] = $reference;
-        }
-
-        // calculate states
-
-        $timeaxis = [];
-        foreach ($changeaxis as $target => $references) {
-            $targetStates = $this->generateSlices($references);
-            foreach ($targetStates as $state) {
-                foreach ($changeaxis[$target] as $reference) {
-                    if ($reference->begin > $state->begin) {
-                        // future reference
-                        continue;
-                    }
-                    if ($reference->end && ($reference->end < $state->end || !$state->end)) {
-                        // complete reference
-                        continue;
-                    }
-                    $state->targetId = $reference->targetId;
-                }
-                if (array_key_exists('targetId', $state)) {
-                    $states[] = (object) array_merge(get_object_vars($state), $params, ['target' => $target]);
-                }
-            }
-        }
-
-        // merge reference states
-
-        $clean = false;
-        while (!$clean) {
-            $clean = true;
-            foreach ($states as $i => $state) {
-                if (array_key_exists($i+1, $states)) {
-                    $next = $states[$i+1];
-                    if ($state->target == $next->target && $state->targetId == $next->targetId) {
-                        $states[$i]['end'] = $next->end;
-                        unset($states[$i+1]);
-                        $states = array_values($states);
-                        $clean = false;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // update states in database
+        $changes = $mapper->find('_temporal_reference', $params);
+        $states = $this->generateStates($changes, function ($state, $change) {
+            $state->data = $change->targetId;
+        });
 
         $affected = [];
         foreach ($mapper->find('_temporal_reference_state', $params) as $state) {
             $mapper->remove($state);
         }
+
         foreach ($states as $state) {
-            if (!in_array([$state->target, $state->targetId], $affected)) {
-                $affected[] = [$state->target, $state->targetId];
+            $entity = $mapper->create('_temporal_reference_state', array_merge($params, [
+                'begin' => $state->begin,
+                'end' => $state->end,
+                'targetId' => $state->data,
+            ]));
+            if (!in_array([$entity->target, $entity->targetId], $affected)) {
+                $affected[] = [$entity->target, $entity->targetId];
             }
-            $mapper->create('_temporal_reference_state', $state);
         }
 
-
-        // update reference aggregation for affected targets
         foreach ($affected as [$entity, $entityId]) {
-            // collect changes
-            $changeaxis = $mapper->find('_temporal_reference_state', [
+            $changes = $mapper->find('_temporal_reference_state', [
                 'target' => $entity,
                 'targetId' => $entityId,
                 'entity' => $params['entity'],
             ]);
-
-            // generate states
-            $targetStates = $this->generateSlices($changeaxis);
-
+            $aggregates = $this->generateStates($changes, function ($state, $change) {
+                if (!in_array($change->id, $state->data)) {
+                    $state->data[] = $change->id;
+                }
+            });
             $aggregateParams = [
                 'entity' => $entity,
                 'id' => $entityId,
                 'source' => $params['entity']
             ];
-
-            // calculate aggregates
-            $aggregates = [];
-            foreach ($targetStates as $state) {
-                foreach ($changeaxis as $reference) {
-                    if ($reference->begin > $state->begin) {
-                        // future reference
-                        continue;
-                    }
-                    if ($reference->end && ($reference->end < $state->end || !$state->end)) {
-                        // complete reference
-                        continue;
-                    }
-                    if (!in_array($reference->id, $state->data)) {
-                        $state->data[] = $reference->id;
-                    }
-                }
-                if (count($state->data)) {
-                    $aggregates[] = array_merge(get_object_vars($state), $aggregateParams);
-                }
-            }
-
-            // sync aggregates
             foreach ($mapper->find('_temporal_reference_aggregate', $aggregateParams) as $aggregate) {
                 $mapper->remove($aggregate);
             }
-
             foreach ($aggregates as $aggregate) {
-                $mapper->create('_temporal_reference_aggregate', $aggregate);
+                $mapper->create('_temporal_reference_aggregate', array_merge($aggregateParams, [
+                    'begin' => $aggregate->begin,
+                    'end' => $aggregate->end,
+                    'data' => $aggregate->data,
+                ]));
             }
         }
     }
@@ -226,117 +157,103 @@ class Aggregator
                 'id'     => $id,
             ];
 
-            $this->updateAggregation('link', $params, $changeaxis);
+            $timeaxis = [];
+            foreach ($changeaxis as $timestamp => $changes) {
+                foreach ($changes as $change) {
+                    foreach (['begin', 'end'] as $field) {
+                        if (!array_key_exists($change->$field, $timeaxis)) {
+                            $timeaxis[$change->$field] = (object) [
+                                'begin' => $change->$field,
+                                'end'   => $change->$field,
+                                'data'  => [],
+                            ];
+                        }
+                    }
+                }
+            }
+
+            ksort($changeaxis);
+            ksort($timeaxis);
+
+            $nextSliceId = null;
+            foreach (array_reverse(array_keys($timeaxis)) as $timestamp) {
+                if ($nextSliceId) {
+                    $timeaxis[$timestamp]->end = $nextSliceId;
+                } else {
+                    $timeaxis[$timestamp]->end = 0;
+                }
+                $nextSliceId = $timestamp;
+            }
+
+            foreach ($this->temporal->getMapper()->find('_temporal_link_aggregate', $params) as $state) {
+                $this->temporal->getMapper()->remove($state);
+            }
+
+            $states = [];
+            foreach ($timeaxis as $state) {
+                foreach ($changeaxis as $changes) {
+                    foreach ($changes as $change) {
+                        if ($change->begin > $state->begin) {
+                            // future override
+                            continue;
+                        }
+                        if ($change->end && ($change->end < $state->end || !$state->end)) {
+                            // complete override
+                            continue;
+                        }
+                        $state->data[] = $change->data;
+                    }
+                }
+                if (count($state->data)) {
+                    $states[] = (object) array_merge(get_object_vars($state), $params);
+                }
+            }
+
+            // merge states
+            $clean = false;
+            while (!$clean) {
+                $clean = true;
+                foreach ($states as $i => $state) {
+                    if (array_key_exists($i+1, $states)) {
+                        $next = $states[$i+1];
+                        if (json_encode($state->data) == json_encode($next->data)) {
+                            $states[$i]->end = $next->end;
+                            unset($states[$i+1]);
+                            $states = array_values($states);
+                            $clean = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            foreach ($states as $state) {
+                $this->temporal->getMapper()->create('_temporal_link_aggregate', $state);
+            }
         }
     }
 
     public function updateOverrideAggregation($entity, $id)
     {
+        $mapper = $this->temporal->getMapper();
         $params = [
             'entity' => $this->temporal->entityNameToId($entity),
             'id'     => $id,
         ];
 
-        $changeaxis = [];
-
-        foreach ($this->temporal->getMapper()->find('_temporal_override', $params) as $i => $override) {
-            if (property_exists($override, 'idle') && $override->idle) {
-                continue;
-            }
-            if (!array_key_exists($override->begin, $changeaxis)) {
-                $changeaxis[$override->begin] = [];
-            }
-            $changeaxis[$override->begin][] = (object) [
-                'begin' => $override->begin,
-                'end' => $override->end,
-                'data' => $override->data,
-            ];
+        $changes = $mapper->find('_temporal_override', $params);
+        $states = $this->generateStates($changes, function ($state, $change) {
+            $state->data = array_merge($state->data, $change->data);
+        });
+        foreach ($mapper->find('_temporal_override_aggregate', $params) as $aggregate) {
+            $mapper->remove($aggregate);
         }
-
-        $this->updateAggregation('override', $params, $changeaxis);
-    }
-
-    public function updateAggregation($type, $params, $changeaxis)
-    {
-        $isLink = $type === 'link';
-        $space = $isLink ? '_temporal_link_aggregate' : '_temporal_override_aggregate';
-
-        $timeaxis = [];
-        foreach ($changeaxis as $timestamp => $changes) {
-            foreach ($changes as $change) {
-                foreach (['begin', 'end'] as $field) {
-                    if (!array_key_exists($change->$field, $timeaxis)) {
-                        $timeaxis[$change->$field] = (object) [
-                            'begin' => $change->$field,
-                            'end'   => $change->$field,
-                            'data'  => [],
-                        ];
-                    }
-                }
-            }
-        }
-
-        ksort($changeaxis);
-        ksort($timeaxis);
-
-        $nextSliceId = null;
-        foreach (array_reverse(array_keys($timeaxis)) as $timestamp) {
-            if ($nextSliceId) {
-                $timeaxis[$timestamp]->end = $nextSliceId;
-            } else {
-                $timeaxis[$timestamp]->end = 0;
-            }
-            $nextSliceId = $timestamp;
-        }
-
-        foreach ($this->temporal->getMapper()->find($space, $params) as $state) {
-            $this->temporal->getMapper()->remove($state);
-        }
-
-        $states = [];
-        foreach ($timeaxis as $state) {
-            foreach ($changeaxis as $changes) {
-                foreach ($changes as $change) {
-                    if ($change->begin > $state->begin) {
-                        // future override
-                        continue;
-                    }
-                    if ($change->end && ($change->end < $state->end || !$state->end)) {
-                        // complete override
-                        continue;
-                    }
-                    if ($isLink) {
-                        $state->data[] = $change->data;
-                    } else {
-                        $state->data = array_merge($state->data, $change->data);
-                    }
-                }
-            }
-            if (count($state->data)) {
-                $states[] = (object) array_merge(get_object_vars($state), $params);
-            }
-        }
-
-        // merge states
-        $clean = $isLink;
-        while (!$clean) {
-            $clean = true;
-            foreach ($states as $i => $state) {
-                if (array_key_exists($i+1, $states)) {
-                    $next = $states[$i+1];
-                    if (json_encode($state->data) == json_encode($next->data)) {
-                        $states[$i]->end = $next->end;
-                        unset($states[$i+1]);
-                        $states = array_values($states);
-                        $clean = false;
-                        break;
-                    }
-                }
-            }
-        }
-
-        foreach ($states as $state) {
-            $this->temporal->getMapper()->create($space, $state);
+        foreach ($states as $aggregate) {
+            $mapper->create('_temporal_override_aggregate', array_merge($params, [
+                'begin' => $aggregate->begin,
+                'end' => $aggregate->end,
+                'data' => $aggregate->data,
+            ]));
         }
     }
 
@@ -366,5 +283,76 @@ class Aggregator
             $nextSliceId = $timestamp;
         }
         return $slices;
+    }
+
+    private function generateStates($changes, $callback)
+    {
+        $slices = [];
+        foreach ($changes as $i => $change) {
+            if (property_exists($change, 'idle') && $change->idle) {
+                unset($changes[$i]);
+            }
+        }
+        foreach ($changes as $change) {
+            foreach (['begin', 'end'] as $field) {
+                if (!array_key_exists($change->$field, $slices)) {
+                    $slices[$change->$field] = (object) [
+                        'begin'  => $change->$field,
+                        'end'    => $change->$field,
+                        'data'   => [],
+                    ];
+                }
+            }
+        }
+        ksort($slices);
+
+        $nextSliceId = null;
+        foreach (array_reverse(array_keys($slices)) as $timestamp) {
+            if ($nextSliceId) {
+                $slices[$timestamp]->end = $nextSliceId;
+            } else {
+                $slices[$timestamp]->end = 0;
+            }
+            $nextSliceId = $timestamp;
+        }
+
+        // calculate states
+        $states = [];
+        foreach ($slices as $slice) {
+            foreach ($changes as $change) {
+                if ($change->begin > $slice->begin) {
+                    // future change
+                    continue;
+                }
+                if ($change->end && ($change->end < $slice->end || !$slice->end)) {
+                    // complete change
+                    continue;
+                }
+                $callback($slice, $change);
+            }
+            if (count($slice->data)) {
+                $states[] = $slice;
+            }
+        }
+
+        // merge states
+        $clean = false;
+        while (!$clean) {
+            $clean = true;
+            foreach ($states as $i => $state) {
+                if (array_key_exists($i+1, $states)) {
+                    $next = $states[$i+1];
+                    if (json_encode($state->data) == json_encode($next->data)) {
+                        $state->end = $next->end;
+                        unset($states[$i+1]);
+                        $states = array_values($states);
+                        $clean = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $states;
     }
 }
