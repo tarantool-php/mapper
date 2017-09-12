@@ -258,34 +258,6 @@ class Aggregator
         }
     }
 
-    private function generateSlices($changes)
-    {
-        $slices = [];
-        foreach ($changes as $change) {
-            foreach (['begin', 'end'] as $field) {
-                if (!array_key_exists($change->$field, $slices)) {
-                    $slices[$change->$field] = (object) [
-                        'begin'  => $change->$field,
-                        'end'    => $change->$field,
-                        'data'   => [],
-                    ];
-                }
-            }
-        }
-        ksort($slices);
-
-        $nextSliceId = null;
-        foreach (array_reverse(array_keys($slices)) as $timestamp) {
-            if ($nextSliceId) {
-                $slices[$timestamp]->end = $nextSliceId;
-            } else {
-                $slices[$timestamp]->end = 0;
-            }
-            $nextSliceId = $timestamp;
-        }
-        return $slices;
-    }
-
     private function generateStates($changes, $callback)
     {
         $slices = [];
