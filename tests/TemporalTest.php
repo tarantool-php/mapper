@@ -14,7 +14,7 @@ class TemporalTest extends TestCase
         $temporal->setActor(1);
 
         $temporal->reference([
-            'person'  => 1,
+            'person'  => 11,
             'begin' => 20170801,
             'data'  => [
                 'position' => 1,
@@ -24,16 +24,16 @@ class TemporalTest extends TestCase
         $this->assertCount(1, $mapper->find('_temporal_reference'));
         $states = $mapper->find('_temporal_reference_state');
         $this->assertCount(1, $states);
-        $this->assertSame($states[0]->id, 1);
+        $this->assertSame($states[0]->id, 11);
 
-        $this->assertNull($temporal->getReference('person', 1, 'position', 20170705));
-        $this->assertEquals(1, $temporal->getReference('person', 1, 'position', 20170810));
+        $this->assertNull($temporal->getReference('person', 11, 'position', 20170705));
+        $this->assertEquals(1, $temporal->getReference('person', 11, 'position', 20170810));
 
 
-        $this->assertCount(1, $temporal->getReferenceLog('person', 1, 'position'));
+        $this->assertCount(1, $temporal->getReferenceLog('person', 11, 'position'));
 
         $temporal->reference([
-            'person'  => 1,
+            'person'  => 11,
             'begin' => 20170815,
             'data'  => [
                 'position' => 2,
@@ -41,34 +41,34 @@ class TemporalTest extends TestCase
         ]);
 
         $temporal->reference([
-            'person'  => 2,
-            'begin' => 20170810,
-            'data'  => [
-                'position' => 1,
-            ]
-        ]);
-
-        $temporal->reference([
-            'person'  => 2,
+            'person'  => 22,
             'begin' => 20170825,
             'data'  => [
                 'position' => 2,
             ]
         ]);
 
-        $this->assertCount(2, $temporal->getReferenceLog('person', 1, 'position'));
-        $this->assertCount(2, $temporal->getReferenceLog('person', 2, 'position'));
-        $this->assertCount(0, $temporal->getReferenceLog('person', 3, 'position'));
+        $temporal->reference([
+            'person'  => 22,
+            'begin' => 20170810,
+            'data'  => [
+                'position' => 1,
+            ]
+        ]);
 
-        $this->assertNull($temporal->getReference('person', 1, 'position', 20170705));
-        $this->assertEquals(1, $temporal->getReference('person', 1, 'position', 20170801));
-        $this->assertEquals(1, $temporal->getReference('person', 1, 'position', 20170810));
-        $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170815));
-        $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170820));
-        $this->assertEquals(1, $temporal->getReference('person', 2, 'position', 20170810));
-        $this->assertEquals(1, $temporal->getReference('person', 2, 'position', 20170821));
-        $this->assertEquals(2, $temporal->getReference('person', 2, 'position', 20170825));
-        $this->assertEquals(2, $temporal->getReference('person', 2, 'position', 20170901));
+        $this->assertCount(2, $temporal->getReferenceLog('person', 11, 'position'));
+        $this->assertCount(2, $temporal->getReferenceLog('person', 22, 'position'));
+        $this->assertCount(0, $temporal->getReferenceLog('person', 33, 'position'));
+
+        $this->assertNull($temporal->getReference('person', 11, 'position', 20170705));
+        $this->assertEquals(1, $temporal->getReference('person', 11, 'position', 20170801));
+        $this->assertEquals(1, $temporal->getReference('person', 11, 'position', 20170810));
+        $this->assertEquals(2, $temporal->getReference('person', 11, 'position', 20170815));
+        $this->assertEquals(2, $temporal->getReference('person', 11, 'position', 20170820));
+        $this->assertEquals(1, $temporal->getReference('person', 22, 'position', 20170810));
+        $this->assertEquals(1, $temporal->getReference('person', 22, 'position', 20170821));
+        $this->assertEquals(2, $temporal->getReference('person', 22, 'position', 20170825));
+        $this->assertEquals(2, $temporal->getReference('person', 22, 'position', 20170901));
 
         $this->assertCount(0, $temporal->getReferences('position', 1, 'person', 20170707));
         $this->assertCount(2, $temporal->getReferences('position', 1, 'person', 20170810));
@@ -77,30 +77,30 @@ class TemporalTest extends TestCase
         $this->assertCount(0, $temporal->getReferences('position', 1, 'person', 20170825));
         $this->assertCount(0, $temporal->getReferences('position', 1, 'person', 20170826));
         $this->assertCount(0, $temporal->getReferences('position', 1, 'person', 20170901));
-        $this->assertSame($temporal->getReferences('position', 1, 'person', 20170810), [1, 2]);
-        $this->assertSame($temporal->getReferences('position', 1, 'person', 20170820), [2]);
+        $this->assertSame($temporal->getReferences('position', 1, 'person', 20170810), [11, 22]);
+        $this->assertSame($temporal->getReferences('position', 1, 'person', 20170820), [22]);
 
         $this->assertCount(0, $temporal->getReferences('position', 2, 'person', 20170810));
         $this->assertCount(1, $temporal->getReferences('position', 2, 'person', 20170820));
         $this->assertCount(2, $temporal->getReferences('position', 2, 'person', 20170825));
         $this->assertCount(2, $temporal->getReferences('position', 2, 'person', 20171231));
-        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170820), [1]);
-        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170825), [1, 2]);
-        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170831), [1, 2]);
+        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170820), [11]);
+        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170825), [11, 22]);
+        $this->assertSame($temporal->getReferences('position', 2, 'person', 20170831), [11, 22]);
 
         $firstReference = $mapper->findOne('_temporal_reference');
         $temporal->setReferenceIdle('person', $firstReference->id, 'position', $firstReference->targetId, $firstReference->begin, $firstReference->actor, $firstReference->timestamp, true);
-        $this->assertNull($temporal->getReference('person', 1, 'position', 20170801));
-        $this->assertNull($temporal->getReference('person', 1, 'position', 20170810));
-        $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170815));
+        $this->assertNull($temporal->getReference('person', 11, 'position', 20170801));
+        $this->assertNull($temporal->getReference('person', 11, 'position', 20170810));
+        $this->assertEquals(2, $temporal->getReference('person', 11, 'position', 20170815));
         // idle exists in reference log
-        $this->assertCount(2, $temporal->getReferenceLog('person', 1, 'position'));
-        $this->assertCount(2, $temporal->getReferenceLog('person', 2, 'position'));
+        $this->assertCount(2, $temporal->getReferenceLog('person', 11, 'position'));
+        $this->assertCount(2, $temporal->getReferenceLog('person', 22, 'position'));
 
         $temporal->setReferenceIdle('person', $firstReference->id, 'position', $firstReference->targetId, $firstReference->begin, $firstReference->actor, $firstReference->timestamp, false);
-        $this->assertSame(1, $temporal->getReference('person', 1, 'position', 20170801));
-        $this->assertSame(1, $temporal->getReference('person', 1, 'position', 20170810));
-        $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170815));
+        $this->assertSame(1, $temporal->getReference('person', 11, 'position', 20170801));
+        $this->assertSame(1, $temporal->getReference('person', 11, 'position', 20170810));
+        $this->assertEquals(2, $temporal->getReference('person', 11, 'position', 20170815));
     }
 
     public function testLinkIdle()

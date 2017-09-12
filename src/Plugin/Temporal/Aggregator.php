@@ -72,6 +72,7 @@ class Aggregator
                     $state->data[] = $change->id;
                 }
             });
+
             $aggregateParams = [
                 'entity' => $entity,
                 'id' => $entityId,

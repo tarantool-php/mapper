@@ -113,7 +113,7 @@ class Temporal extends Plugin
 
         $targetName = array_keys($reference['data'])[0];
         $reference['target'] = $this->entityNameToId($targetName);
-        $reference['targetId'] = array_values($reference['data'])[0];
+        $reference['targetId'] = $reference['data'][$targetName];
 
 
         // set entity id
