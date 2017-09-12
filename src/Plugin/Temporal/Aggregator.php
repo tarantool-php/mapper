@@ -331,7 +331,7 @@ class Aggregator
                 }
                 $callback($slice, $change);
             }
-            if (count($slice->data)) {
+            if (count((array) $slice->data)) {
                 $states[] = $slice;
             }
         }
