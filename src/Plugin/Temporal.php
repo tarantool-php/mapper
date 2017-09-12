@@ -265,6 +265,45 @@ class Temporal extends Plugin
         $this->aggregator->updateLinkAggregation($link);
     }
 
+    public function setReferenceIdle($entity, $id, $target, $targetId, $begin, $actor, $timestamp, $flag)
+    {
+        $reference = $this->mapper->findOrFail('_temporal_reference', [
+            'entity' => $this->entityNameToId($entity),
+            'id' => $id,
+            'target' => $this->entityNameToId($target),
+            'targetId' => $targetId,
+            'begin' => $begin,
+            'actor' => $actor,
+            'timestamp' => $timestamp,
+        ]);
+        $idled = property_exists($reference, 'idle') && $reference->idle > 0;
+        if ($idled && !$flag || !$idled && $flag) {
+            return $this->toggleReferenceIdle($entity, $id, $target, $targetId, $begin, $actor, $timestamp);
+        }
+    }
+
+    public function toggleReferenceIdle($entity, $id, $target, $targetId, $begin, $actor, $timestamp)
+    {
+        $reference = $this->mapper->findOrFail('_temporal_reference', [
+            'entity' => $this->entityNameToId($entity),
+            'id' => $id,
+            'target' => $this->entityNameToId($target),
+            'targetId' => $targetId,
+            'begin' => $begin,
+            'actor' => $actor,
+            'timestamp' => $timestamp,
+        ]);
+
+        if (property_exists($reference, 'idle') && $reference->idle) {
+            $reference->idle = 0;
+        } else {
+            $reference->idle = time();
+        }
+        $reference->save();
+
+        $this->aggregator->updateReferenceState($entity, $id, $target);
+    }
+
     public function setOverrideIdle($entity, $id, $begin, $actor, $timestamp, $flag)
     {
         $override = $this->mapper->findOrFail('_temporal_override', [

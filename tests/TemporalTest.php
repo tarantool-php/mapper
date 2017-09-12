@@ -80,6 +80,17 @@ class TemporalTest extends TestCase
         $this->assertSame($temporal->getReferences('position', 2, 'person', 20170820), [1]);
         $this->assertSame($temporal->getReferences('position', 2, 'person', 20170825), [1, 2]);
         $this->assertSame($temporal->getReferences('position', 2, 'person', 20170831), [1, 2]);
+
+        $firstReference = $mapper->findOne('_temporal_reference');
+        $temporal->setReferenceIdle('person', $firstReference->id, 'position', $firstReference->targetId, $firstReference->begin, $firstReference->actor, $firstReference->timestamp, true);
+        $this->assertNull($temporal->getReference('person', 1, 'position', 20170801));
+        $this->assertNull($temporal->getReference('person', 1, 'position', 20170810));
+        $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170815));
+
+        $temporal->setReferenceIdle('person', $firstReference->id, 'position', $firstReference->targetId, $firstReference->begin, $firstReference->actor, $firstReference->timestamp, false);
+        $this->assertSame(1, $temporal->getReference('person', 1, 'position', 20170801));
+        $this->assertSame(1, $temporal->getReference('person', 1, 'position', 20170810));
+        $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170815));
     }
 
     public function testLinkIdle()
