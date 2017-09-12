@@ -29,6 +29,9 @@ class TemporalTest extends TestCase
         $this->assertNull($temporal->getReference('person', 1, 'position', 20170705));
         $this->assertEquals(1, $temporal->getReference('person', 1, 'position', 20170810));
 
+
+        $this->assertCount(1, $temporal->getReferenceLog('person', 1, 'position'));
+
         $temporal->reference([
             'person'  => 1,
             'begin' => 20170815,
@@ -52,6 +55,10 @@ class TemporalTest extends TestCase
                 'position' => 2,
             ]
         ]);
+
+        $this->assertCount(2, $temporal->getReferenceLog('person', 1, 'position'));
+        $this->assertCount(2, $temporal->getReferenceLog('person', 2, 'position'));
+        $this->assertCount(0, $temporal->getReferenceLog('person', 3, 'position'));
 
         $this->assertNull($temporal->getReference('person', 1, 'position', 20170705));
         $this->assertEquals(1, $temporal->getReference('person', 1, 'position', 20170801));
@@ -86,6 +93,9 @@ class TemporalTest extends TestCase
         $this->assertNull($temporal->getReference('person', 1, 'position', 20170801));
         $this->assertNull($temporal->getReference('person', 1, 'position', 20170810));
         $this->assertEquals(2, $temporal->getReference('person', 1, 'position', 20170815));
+        // idle exists in reference log
+        $this->assertCount(2, $temporal->getReferenceLog('person', 1, 'position'));
+        $this->assertCount(2, $temporal->getReferenceLog('person', 2, 'position'));
 
         $temporal->setReferenceIdle('person', $firstReference->id, 'position', $firstReference->targetId, $firstReference->begin, $firstReference->actor, $firstReference->timestamp, false);
         $this->assertSame(1, $temporal->getReference('person', 1, 'position', 20170801));

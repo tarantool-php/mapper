@@ -49,6 +49,20 @@ class Temporal extends Plugin
         }
     }
 
+    public function getReferenceLog($entity, $id, $target)
+    {
+        $log = [];
+        $params = [
+            'entity' => $this->entityNameToId($entity),
+            'id' => $id,
+            'target' => $this->entityNameToId($target),
+        ];
+        foreach ($this->mapper->find('_temporal_reference', $params) as $reference) {
+            $log[] = $reference;
+        }
+        return $log;
+    }
+
     public function getReferences($target, $targetId, $source, $date)
     {
         $target = $this->entityNameToId($target);
