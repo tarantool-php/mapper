@@ -3,13 +3,11 @@
 namespace Tarantool\Mapper\Plugin;
 
 use Exception;
-
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Types\ContextFactory;
 use ReflectionClass;
 use ReflectionProperty;
 use Tarantool\Mapper\Entity;
-use Tarantool\Mapper\Plugin;
 use Tarantool\Mapper\Plugin\NestedSet;
 use Tarantool\Mapper\Repository;
 

@@ -51,7 +51,7 @@ class Schema
             case 'float':
                 return (float) $value;
 
-           case 'unsigned':
+            case 'unsigned':
             case 'UNSIGNED':
             case 'num':
             case 'NUM':
