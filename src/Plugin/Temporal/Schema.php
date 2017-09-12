@@ -113,7 +113,7 @@ class Schema
                     'timestamp'  => 'unsigned',
                     'actor'      => 'unsigned',
                 ])
-                ->addIndex(['entity', 'id', 'target', 'targetId', 'begin', 'timestamp', 'actor']);
+                ->addIndex(['entity', 'id', 'target', 'begin', 'timestamp', 'targetId', 'actor']);
 
             $mapper->getSchema()
                 ->createSpace('_temporal_reference_state', [
