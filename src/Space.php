@@ -225,6 +225,7 @@ class Space
         return [
             'formatNamesHash' => $this->formatNamesHash,
             'formatTypesHash' => $this->formatTypesHash,
+            'formatReferences' => $this->formatReferences,
             'indexes' => $this->indexes,
             'format' => $this->format,
         ];
