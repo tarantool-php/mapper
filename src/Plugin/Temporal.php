@@ -457,7 +457,7 @@ class Temporal extends Plugin
             $this->mapper->getSchema()
                 ->createSpace('_temporal_entity', [
                     'id'   => 'unsigned',
-                    'name' => 'str',
+                    'name' => 'string',
                 ])
                 ->addIndex(['id'])
                 ->addIndex(['name']);

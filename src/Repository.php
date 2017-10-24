@@ -45,7 +45,7 @@ class Repository
             }
             $mapping = [
                 'is_numeric' => 'unsigned',
-                'is_string' => 'str',
+                'is_string' => 'string',
                 'is_array' => '*',
             ];
             foreach ($data as $k => $v) {

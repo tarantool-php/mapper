@@ -249,7 +249,7 @@ class Annotation extends UserClasses
                 return $this->tarantoolTypes[$type] = 'unsigned';
 
             default:
-                return $this->tarantoolTypes[$type] = 'str';
+                return $this->tarantoolTypes[$type] = 'string';
         }
     }
 }
