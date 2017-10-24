@@ -42,7 +42,7 @@ class MapperTest extends TestCase
         $mapper->getSchema()
             ->createSpace('tester', [
                 'id'    => 'unsigned',
-                'label' => 'str',
+                'label' => 'string',
             ])
             ->addIndex('id')
             ->addIndex('label');
@@ -69,7 +69,7 @@ class MapperTest extends TestCase
         $mapper->getSchema()
             ->createSpace('tester', [
                 'id'    => 'unsigned',
-                'label' => 'str',
+                'label' => 'string',
             ])
             ->addIndex('id')
             ->addIndex('label');
@@ -97,7 +97,7 @@ class MapperTest extends TestCase
 
         $space = $mapper->getSchema()
             ->createSpace('tester', [
-                'label' => 'str',
+                'label' => 'string',
                 'id' => 'unsigned'
             ])
             ->addIndex('id')
@@ -142,7 +142,7 @@ class MapperTest extends TestCase
         $mapper->getSchema()->createSpace('tester')
             ->addProperties([
                 'id' => 'unsigned',
-                'name' => 'str',
+                'name' => 'string',
             ])
             ->addIndex(['id']);
 
@@ -236,7 +236,7 @@ class MapperTest extends TestCase
         $mapper->getSchema()
             ->createSpace('tester', [
                 'id' => 'unsigned',
-                'name' => 'str',
+                'name' => 'string',
             ])
             ->addIndex('id')
             ->addIndex('name');
@@ -258,8 +258,8 @@ class MapperTest extends TestCase
         $mapper->getSchema()
             ->createSpace('tester', [
                 'id' => 'unsigned',
-                'name1' => 'str',
-                'name2' => 'str',
+                'name1' => 'string',
+                'name2' => 'string',
             ])
             ->addIndex('id')
             ->addIndex('name1')
@@ -286,7 +286,7 @@ class MapperTest extends TestCase
         $mapper->getSchema()
             ->createSpace('person', [
                 'id' => 'unsigned',
-                'name' => 'str',
+                'name' => 'string',
                 'children' => '*',
             ])
             ->addIndex(['id']);
@@ -304,7 +304,7 @@ class MapperTest extends TestCase
         $mapper->getSchema()->createSpace('tester')
             ->addProperties([
                 'id' => 'unsigned',
-                'name' => 'str',
+                'name' => 'string',
             ])
             ->addIndex(['id']);
 
@@ -371,7 +371,7 @@ class MapperTest extends TestCase
 
         $mapper->getSchema()->createSpace('session')
 
-            ->addProperty('uuid', 'str')
+            ->addProperty('uuid', 'string')
             ->addProperty('activity_at', 'unsigned')
             ->addProperty('login', 'unsigned')
             ->addProperty('ip', 'unsigned')
@@ -405,7 +405,7 @@ class MapperTest extends TestCase
         $mapper->getSchema()->createSpace('session')
 
             ->addProperties([
-                'uuid'        => 'str',
+                'uuid'        => 'string',
                 'activity_at' => 'unsigned',
                 'login'       => 'unsigned',
                 'ip'          => 'unsigned',
@@ -438,7 +438,7 @@ class MapperTest extends TestCase
         $schema = $mapper->getSchema();
 
         $session = $schema->createSpace('session');
-        $session->addProperty('uuid', 'str');
+        $session->addProperty('uuid', 'string');
         $session->addProperty('activity_at', 'unsigned');
         $session->addProperty('login', 'unsigned');
         $session->addProperty('ip', 'unsigned');

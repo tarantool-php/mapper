@@ -27,7 +27,7 @@ class UserClassesTest extends TestCase
 
         $test = $mapper->getSchema()->createSpace('test');
         $test->addProperty('id', 'unsigned');
-        $test->addProperty('name', 'str');
+        $test->addProperty('name', 'string');
         $test->createIndex('id');
 
         $this->expectException(Exception::class);
@@ -43,7 +43,7 @@ class UserClassesTest extends TestCase
 
         $test = $mapper->getSchema()->createSpace('test');
         $test->addProperty('id', 'unsigned');
-        $test->addProperty('name', 'str');
+        $test->addProperty('name', 'string');
         $test->createIndex('id');
 
         $this->expectException(Exception::class);
@@ -59,7 +59,7 @@ class UserClassesTest extends TestCase
 
         $test = $mapper->getSchema()->createSpace('test');
         $test->addProperty('id', 'unsigned');
-        $test->addProperty('name', 'str');
+        $test->addProperty('name', 'string');
         $test->createIndex('id');
 
         $plugin->mapEntity('test', TestEntity::class);
@@ -89,7 +89,7 @@ class UserClassesTest extends TestCase
 
         $test = $mapper->getSchema()->createSpace('test');
         $test->addProperty('id', 'unsigned');
-        $test->addProperty('name', 'str');
+        $test->addProperty('name', 'string');
         $test->createIndex('id');
 
         $this->expectException(Exception::class);
@@ -105,7 +105,7 @@ class UserClassesTest extends TestCase
 
         $test = $mapper->getSchema()->createSpace('test');
         $test->addProperty('id', 'unsigned');
-        $test->addProperty('name', 'str');
+        $test->addProperty('name', 'string');
         $test->createIndex('id');
 
         $this->expectException(Exception::class);
@@ -121,7 +121,7 @@ class UserClassesTest extends TestCase
 
         $test = $mapper->getSchema()->createSpace('test');
         $test->addProperty('id', 'unsigned');
-        $test->addProperty('name', 'str');
+        $test->addProperty('name', 'string');
         $test->createIndex('id');
 
         $plugin->mapRepository('test', TestRepository::class);

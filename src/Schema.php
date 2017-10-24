@@ -45,7 +45,9 @@ class Schema
     {
         switch ($type) {
             case 'STR':
+            case 'STRING':
             case 'str':
+            case 'string':
                 return (string) $value;
 
             case 'float':

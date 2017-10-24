@@ -12,7 +12,7 @@ class SchemaTest extends TestCase
 
         $tester = $mapper->getSchema()->createSpace('tester', [
             'id' => 'unsigned',
-            'name' => 'str',
+            'name' => 'string',
         ]);
 
         $tester->addIndex('id');
@@ -117,7 +117,7 @@ class SchemaTest extends TestCase
         $schema = $mapper->getSchema();
 
         $test = $schema->createSpace('test');
-        $test->addProperty('name', 'str');
+        $test->addProperty('name', 'string');
         $test->createIndex('name');
 
         $flag = $mapper->findOne('_schema', ['key' => 'onceinsert']);
@@ -156,9 +156,9 @@ class SchemaTest extends TestCase
 
         $person = $mapper->getSchema()->createSpace('person');
         $person->addProperty('id', 'unsigned');
-        $person->addProperty('name', 'str');
+        $person->addProperty('name', 'string');
         $person->addProperty('birthday', 'unsigned');
-        $person->addProperty('gender', 'str');
+        $person->addProperty('gender', 'string');
 
         // define type
         $person->createIndex([

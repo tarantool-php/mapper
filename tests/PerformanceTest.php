@@ -20,7 +20,7 @@ class PerformanceTest extends TestCase
         $mapper->getSchema()
             ->createSpace('tester', [
                 'id' => 'unsigned',
-                'text' => 'str',
+                'text' => 'string',
             ])
             ->addIndex('id');
 

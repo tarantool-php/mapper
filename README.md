@@ -87,15 +87,15 @@ $person = $mapper->getSchema()->createSpace('person');
 
 // add properties
 $person->addProperty('id', 'unsigned');
-$person->addProperty('name', 'str');
+$person->addProperty('name', 'string');
 $person->addProperty('birthday', 'unsigned');
-$person->addProperty('gender', 'str');
+$person->addProperty('gender', 'string');
 
 // add multiple properties
 $person->addProperties([
-  'telegram' => 'str',
-  'vk' => 'str',
-  'facebook' => 'str',
+  'telegram' => 'string',
+  'vk' => 'string',
+  'facebook' => 'string',
 ]);
 
 // add indexes
@@ -134,7 +134,7 @@ class InitTesterSchema implements Migration
   {
     $tester = $mapper->getSchema()->createSpace('tester');
     $tester->addProperty('id', 'unsigned');
-    $tester->addProperty('name', 'str');
+    $tester->addProperty('name', 'string');
     $tester->createIndex('id');
   }
 }
@@ -158,7 +158,7 @@ class InitTesterSchema implements Migration
   {
     $mapper->getSchema()->createSpace('person')
       ->addProperty('id', 'unsigned')
-      ->addProperty('name', 'str')
+      ->addProperty('name', 'string')
       ->addIndex('id');
   }
 }
@@ -200,9 +200,9 @@ $mapper->save($helloWorld);
 ## Indexes
 ```php
 $note = $mapper->getSchema()->createSpace('note');
-$note->addProperty('slug', 'str');
-$note->addProperty('title', 'str',
-$note->addProperty('status', 'str');
+$note->addProperty('slug', 'string');
+$note->addProperty('title', 'string',
+$note->addProperty('status', 'string');
 
 $note->addIndex('slug');
 $note->addIndex([
@@ -241,7 +241,7 @@ You can store arrays as property without any serialization to string.
 ```php
 $pattern = $mapper->getSchema()->createSpace('shift_pattern');
 $pattern->addProperty('id', 'unsigned');
-$pattern->addProperty('title', 'str');
+$pattern->addProperty('title', 'string');
 $pattern->addProperty('pattern', '*');
 
 $pattern->addIndex('id');
@@ -269,8 +269,8 @@ Or you can implement id generator using any other source, for example with raft 
 ```php
 $mapper->getSchema()->createSpace('post')
   ->addProperty('id', 'unsigned')
-  ->addProperty('title', 'str')
-  ->addProperty('body', 'str')
+  ->addProperty('title', 'string')
+  ->addProperty('body', 'string')
   ->addIndex('id');
 
 $mapper->addPlugin(Tarantool\Mapper\Plugin\Sequence::class);

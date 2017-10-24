@@ -51,7 +51,7 @@ class Repository
             foreach ($data as $k => $v) {
                 foreach ($mapping as $function => $type) {
                     if (call_user_func($function, $v)) {
-                        if (count($byType[$type]) == 1) {
+                        if (array_key_exists($type, $byType) && count($byType[$type]) == 1) {
                             $data[$byType[$type][0]] = $v;
                             unset($data[$k]);
                         }

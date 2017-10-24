@@ -16,7 +16,7 @@ class SpyTest extends TestCase
 
         $person = $mapper->getSchema()->createSpace('person');
         $person->addProperty('id', 'unsigned');
-        $person->addProperty('email', 'str');
+        $person->addProperty('email', 'string');
         $person->createIndex('id');
 
         $nekufa = $mapper->create('person', ['email' => 'nekufa@gmail.com']);

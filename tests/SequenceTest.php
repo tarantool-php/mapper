@@ -15,7 +15,7 @@ class SequenceTest extends TestCase
 
         $person = $mapper->getSchema()->createSpace('person');
         $person->addProperty('id', 'unsigned');
-        $person->addProperty('email', 'str');
+        $person->addProperty('email', 'string');
         $person->createIndex('id');
 
         $mapper->create('person', [1, 'nekufa@gmail.com']);
@@ -35,7 +35,7 @@ class SequenceTest extends TestCase
 
         $person = $mapper->getSchema()->createSpace('person');
         $person->addProperty('id', 'unsigned');
-        $person->addProperty('email', 'str');
+        $person->addProperty('email', 'string');
         $person->createIndex('id');
 
         $nekufa = $mapper->create('person', ['email' => 'nekufa@gmail.com']);
@@ -57,7 +57,7 @@ class SequenceTest extends TestCase
 
         $person = $mapper->getSchema()->createSpace('person');
         $person->addProperty('id', 'unsigned');
-        $person->addProperty('email', 'str');
+        $person->addProperty('email', 'string');
         $person->createIndex('id');
 
         $nekufa = $mapper->create('person', ['email' => 'nekufa@gmail.com']);
