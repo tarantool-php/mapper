@@ -50,7 +50,9 @@ class Schema
             case 'string':
                 return (string) $value;
 
+            case 'double':
             case 'float':
+            case 'number':
                 return (float) $value;
 
             case 'unsigned':

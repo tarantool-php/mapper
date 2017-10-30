@@ -239,7 +239,7 @@ class Annotation extends UserClasses
                 return $this->tarantoolTypes[$type] = '*';
 
             case 'float':
-                return $this->tarantoolTypes[$type] = 'float';
+                return $this->tarantoolTypes[$type] = 'number';
 
             case 'int':
                 return $this->tarantoolTypes[$type] = 'unsigned';
