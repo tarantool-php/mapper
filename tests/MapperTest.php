@@ -183,8 +183,7 @@ class MapperTest extends TestCase
                 'rule' => 'unsigned',
             ])
             ->addIndex('id')
-            ->addIndex('module')
-            ->addIndex('rule');
+            ->addIndex('module');
 
         $rule = $mapper->create('rules', [
             'id' => "1",

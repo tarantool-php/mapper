@@ -57,6 +57,15 @@ class Space
         return $this;
     }
 
+    public function isPropertyNullable($name)
+    {
+        foreach($this->getFormat() as $field) {
+            if ($field['name'] == $name) {
+                return array_key_exists('is_nullable', $field) ? $field['is_nullable'] : false;
+            }
+        }
+    }
+
     public function setPropertyNullable($name, $nullable = true)
     {
         $format = $this->getFormat();

@@ -430,9 +430,16 @@ class Repository
             if(!property_exists($instance, $name)) {
                 $instance->$name = null;
             }
+
             $instance->$name = $schema->formatValue($info['type'], $instance->$name);
+            if (is_null($instance->$name)) {
+                if (!$this->space->isPropertyNullable($name)) {
+                    $instance->$name = $schema->getDefaultValue($info['type']);
+                }
+            }
 
             $tuple[$index] = $instance->$name;
+
         }
 
         return $tuple;

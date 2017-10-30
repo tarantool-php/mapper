@@ -41,9 +41,14 @@ class Schema
         return $this->spaces[$id];
     }
 
-    public function formatValue($type, $value)
+    public function getDefaultValue($type)
     {
-        if(is_null($value)) {
+        return $this->formatValue($type, null, true);
+    }
+
+    public function formatValue($type, $value, $forceCasting = false)
+    {
+        if(!$forceCasting && is_null($value)) {
             return null;
         }
         switch ($type) {
