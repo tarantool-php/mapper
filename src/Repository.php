@@ -7,8 +7,6 @@ use SplObjectStorage;
 
 class Repository
 {
-    public $enforceCompleteTuple = true;
-
     private $space;
     private $persisted = [];
     private $original = [];
@@ -408,24 +406,11 @@ class Repository
     {
         $format = $this->space->getFormat();
 
-        if($this->enforceCompleteTuple) {
-            // complete format fields
-            foreach ($format as $info) {
-                $name = $info['name'];
-                if (!property_exists($instance, $name)) {
-                    $instance->$name = null;
-                }
-            }
-            return;
-        }
-
-        // complete indexes fields
-        foreach ($this->space->getIndexes() as $index) {
-            foreach ($index['parts'] as $part) {
-                $name = $format[$part[0]]['name'];
-                if (!property_exists($instance, $name)) {
-                    $instance->{$name} = null;
-                }
+        // complete format fields
+        foreach ($format as $info) {
+            $name = $info['name'];
+            if (!property_exists($instance, $name)) {
+                $instance->$name = null;
             }
         }
     }
@@ -437,24 +422,17 @@ class Repository
 
     private function getTuple(Entity $instance)
     {
+        $schema = $this->getMapper()->getSchema();
         $tuple = [];
 
-        $size = count(get_object_vars($instance));
-        $skipped = 0;
-
         foreach ($this->space->getFormat() as $index => $info) {
-            if (!property_exists($instance, $info['name'])) {
-                $skipped++;
-                $instance->{$info['name']} = null;
+            $name = $info['name'];
+            if(!property_exists($instance, $name)) {
+                $instance->$name = null;
             }
+            $instance->$name = $schema->formatValue($info['type'], $instance->$name);
 
-            $instance->{$info['name']} = $this->getMapper()->getSchema()
-                ->formatValue($info['type'], $instance->{$info['name']});
-            $tuple[$index] = $instance->{$info['name']};
-
-            if (count($tuple) == $size + $skipped) {
-                break;
-            }
+            $tuple[$index] = $instance->$name;
         }
 
         return $tuple;
