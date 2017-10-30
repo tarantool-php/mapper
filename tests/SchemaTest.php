@@ -206,7 +206,7 @@ class SchemaTest extends TestCase
         $this->assertSame($nekufa->id, 1);
         $this->assertSame($nekufa->name, 'nekufa');
         $this->assertSame($nekufa->birthday, 19840127);
-        $this->assertFalse(property_exists($nekufa, 'gender'));
+        $this->assertNull($nekufa->gender);
 
         $person = $mapper->findOne('person', ['birthday' => '19840127']);
         $this->assertSame($person, $nekufa);

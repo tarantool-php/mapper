@@ -43,6 +43,9 @@ class Schema
 
     public function formatValue($type, $value)
     {
+        if(is_null($value)) {
+            return null;
+        }
         switch ($type) {
             case 'STR':
             case 'STRING':
