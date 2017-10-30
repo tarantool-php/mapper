@@ -40,7 +40,7 @@ class Space
         return $this;
     }
 
-    public function addProperty($name, $type)
+    public function addProperty($name, $type, $is_nullable = true)
     {
         $format = $this->getFormat();
         foreach ($format as $field) {
@@ -48,14 +48,30 @@ class Space
                 throw new Exception("Property $name exists");
             }
         }
-        $row = compact('name', 'type');
-        $format[] = $row;
+        $format[] = compact('name', 'type', 'is_nullable');
         $this->format = $format;
         $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
 
         $this->parseFormat();
 
         return $this;
+    }
+
+    public function setPropertyNullable($name, $nullable = true)
+    {
+        $format = $this->getFormat();
+        foreach ($format as $i => $field) {
+            if ($field['name'] == $name) {
+                $format[$i]['is_nullable'] = $nullable;
+            }
+        }
+        $this->format = $format;
+        $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
+
+        $this->parseFormat();
+
+        return $this;
+
     }
 
     public function removeProperty($name)
@@ -123,6 +139,7 @@ class Space
             }
             $options['parts'][] = $this->getPropertyIndex($property)+1;
             $options['parts'][] = $this->getPropertyType($property);
+            $this->setPropertyNullable($property, false);
         }
 
         $name = array_key_exists('name', $config) ? $config['name'] : implode('_', $config['fields']);
