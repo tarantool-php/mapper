@@ -7,6 +7,8 @@ use SplObjectStorage;
 
 class Repository
 {
+    public $enforceCompleteTuple = true;
+
     private $space;
     private $persisted = [];
     private $original = [];
@@ -405,6 +407,17 @@ class Repository
     private function addDefaultValues(Entity $instance)
     {
         $format = $this->space->getFormat();
+
+        if($this->enforceCompleteTuple) {
+            // complete format fields
+            foreach ($format as $info) {
+                $name = $info['name'];
+                if (!property_exists($instance, $name)) {
+                    $instance->$name = null;
+                }
+            }
+            return;
+        }
 
         // complete indexes fields
         foreach ($this->space->getIndexes() as $index) {
