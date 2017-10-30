@@ -25,18 +25,6 @@ class Entity
 
     public function __call($name, $arguments)
     {
-        if (strpos($name, 'get') === 0) {
-            $property = strtolower(substr($name, 3));
-            if (property_exists($this, $property)) {
-                $reference = $this->getRepository()->getSpace()->getReference($property);
-                if ($reference) {
-                    return $this->getRepository()->getMapper()
-                        ->findOrFail($reference, [
-                            'id' => $this->$property,
-                        ]);
-                }
-            }
-        }
         throw new BadMethodCallException("Call to undefined method ". get_class($this).'::'.$name);
     }
 
