@@ -43,12 +43,34 @@ class Schema
 
     public function getDefaultValue($type)
     {
+        switch ($type) {
+            case 'STR':
+            case 'STRING':
+            case 'str':
+            case 'string':
+                return (string) null;
+
+            case 'double':
+            case 'float':
+            case 'number':
+                return (float) null;
+
+            case 'unsigned':
+            case 'UNSIGNED':
+            case 'num':
+            case 'NUM':
+                return (int) null;
+
+            default:
+                return $value;
+        }
+
         return $this->formatValue($type, null, true);
     }
 
-    public function formatValue($type, $value, $forceCasting = false)
+    public function formatValue($type, $value)
     {
-        if(!$forceCasting && is_null($value)) {
+        if(is_null($value)) {
             return null;
         }
         switch ($type) {
