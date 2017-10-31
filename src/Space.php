@@ -356,7 +356,11 @@ class Space
             if (!array_key_exists($name, $params)) {
                 break;
             }
-            $values[] = $this->mapper->getSchema()->formatValue($part[1], $params[$name]);
+            $value = $this->mapper->getSchema()->formatValue($part[1], $params[$name]);
+            if(is_null($value) && !$this->isPropertyNullable($name)) {
+                $value = $this->mapper->getSchema()->getDefaultValue($format[$part[0]]['type']);
+            }
+            $values[] = $value;
         }
         return $values;
     }
