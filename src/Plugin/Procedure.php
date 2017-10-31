@@ -36,7 +36,7 @@ class Procedure extends Plugin
 
         $procedure = new $class($this);
 
-        if($instance->hash != md5($procedure->getBody())) {
+        if ($instance->hash != md5($procedure->getBody())) {
             $nick = $this->getNick($class);
             $params = implode(', ', $procedure->getParams());
             $body = $procedure->getBody();
@@ -54,7 +54,7 @@ class Procedure extends Plugin
 
     private function initSchema()
     {
-        $this->mapper->getSchema()->once(__CLASS__, function($mapper) {
+        $this->mapper->getSchema()->once(__CLASS__, function ($mapper) {
             $mapper->getSchema()
                 ->createSpace('_procedure')
                 ->addProperties([
@@ -65,7 +65,6 @@ class Procedure extends Plugin
                     'fields' => ['name'],
                     'type' => 'hash',
                 ]);
-
         });
     }
 

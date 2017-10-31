@@ -59,7 +59,7 @@ class Space
 
     public function isPropertyNullable($name)
     {
-        foreach($this->getFormat() as $field) {
+        foreach ($this->getFormat() as $field) {
             if ($field['name'] == $name) {
                 return array_key_exists('is_nullable', $field) ? $field['is_nullable'] : false;
             }
@@ -80,7 +80,6 @@ class Space
         $this->parseFormat();
 
         return $this;
-
     }
 
     public function removeProperty($name)
@@ -368,7 +367,7 @@ class Space
                 break;
             }
             $value = $this->mapper->getSchema()->formatValue($part[1], $params[$name]);
-            if(is_null($value) && !$this->isPropertyNullable($name)) {
+            if (is_null($value) && !$this->isPropertyNullable($name)) {
                 $value = $this->mapper->getSchema()->getDefaultValue($format[$part[0]]['type']);
             }
             $values[] = $value;

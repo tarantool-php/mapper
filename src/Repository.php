@@ -153,7 +153,6 @@ class Repository
         if ($this->space->getIndextype($index) == 'hash' && !count($values)) {
             //  iterator box.index.ALL == 2
             $data = $client->getSpace($this->space->getId())->select($values, $index, null, null, 2)->getData();
-
         } else {
             $data = $client->getSpace($this->space->getId())->select($values, $index)->getData();
         }
@@ -432,7 +431,7 @@ class Repository
 
         foreach ($this->space->getFormat() as $index => $info) {
             $name = $info['name'];
-            if(!property_exists($instance, $name)) {
+            if (!property_exists($instance, $name)) {
                 $instance->$name = null;
             }
 
@@ -444,7 +443,6 @@ class Repository
             }
 
             $tuple[$index] = $instance->$name;
-
         }
 
         return $tuple;

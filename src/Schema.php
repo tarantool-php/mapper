@@ -70,7 +70,7 @@ class Schema
 
     public function formatValue($type, $value)
     {
-        if(is_null($value)) {
+        if (is_null($value)) {
             return null;
         }
         switch ($type) {
