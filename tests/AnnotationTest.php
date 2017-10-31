@@ -43,7 +43,7 @@ class AnnotationTest extends TestCase
         $annotation->register('Entity\\InvalidIndex');
         $annotation->register('Repository\\InvalidIndex');
 
-        $this->expectExceptionMessage('Failed to add index ["name"]');
+        $this->expectException(Exception::class);
         $annotation->migrate();
     }
 
