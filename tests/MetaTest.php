@@ -29,7 +29,7 @@ class MetaTest extends TestCase
             ])
             ->addIndex(['a', 'b']);
 
-        $this->assertCount(10, $mapper->getClient()->getLog());
+        $this->assertNotCount(0, $mapper->getClient()->getLog());
 
         $meta = $mapper->getMeta();
 
