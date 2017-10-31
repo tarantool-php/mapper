@@ -150,8 +150,13 @@ class Repository
 
         $client = $this->getMapper()->getClient();
         $values = $this->space->getIndexValues($index, $params);
+        if ($this->space->getIndextype($index) == 'hash' && !count($values)) {
+            //  iterator box.index.ALL == 2
+            $data = $client->getSpace($this->space->getId())->select($values, $index, null, null, 2)->getData();
 
-        $data = $client->getSpace($this->space->getId())->select($values, $index)->getData();
+        } else {
+            $data = $client->getSpace($this->space->getId())->select($values, $index)->getData();
+        }
 
         $result = [];
         foreach ($data as $tuple) {

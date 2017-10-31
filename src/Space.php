@@ -161,6 +161,17 @@ class Space
         return $this;
     }
 
+    public function getIndexType($id)
+    {
+        foreach ($this->getIndexes() as $index) {
+            if ($index['iid'] == $id) {
+                return $index['type'];
+            }
+        }
+
+        throw new Exception("Invalid index #$index");
+    }
+
     public function isSpecial()
     {
         return $this->id == ClientSpace::VSPACE || $this->id == ClientSpace::VINDEX;

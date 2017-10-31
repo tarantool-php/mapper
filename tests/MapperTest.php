@@ -8,6 +8,26 @@ use Tarantool\Client\Request\InsertRequest;
 
 class MapperTest extends TestCase
 {
+    public function testFindAllUsingHashIndex()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('tester', [
+                'id' => 'unsigned',
+                'name' => 'string',
+            ])
+            ->addIndex([
+                'fields' => ['id'],
+                'type' => 'hash'
+            ]);
+
+        $mapper->create('tester', [1, 'hello world']);
+
+        $this->assertCount(1, $mapper->find('tester'));
+    }
+
     public function testRemoveAndCreate()
     {
         $mapper = $this->createMapper();
