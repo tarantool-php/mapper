@@ -15,8 +15,8 @@ class Procedure extends Plugin
 
     public function invoke(BaseProcedure $procedure, $params)
     {
-        $nick = $this->getNick(get_class($procedure));
-        $result = $this->mapper->getClient()->call($nick, $params);
+        $name = $procedure->getName();
+        $result = $this->mapper->getClient()->call($name, $params);
         return $result->getData()[0];
     }
 
@@ -37,13 +37,13 @@ class Procedure extends Plugin
         $procedure = new $class($this);
 
         if ($instance->hash != md5($procedure->getBody())) {
-            $nick = $this->getNick($class);
+            $name = $procedure->getName();
             $params = implode(', ', $procedure->getParams());
             $body = $procedure->getBody();
 
             $script = "
-            $nick = function($params) $body end
-            box.schema.func.create('$nick', {if_not_exists=true})
+            $name = function($params) $body end
+            box.schema.func.create('$name', {if_not_exists=true})
             ";
             $this->mapper->getClient()->evaluate($script);
             $instance->hash = md5($body);
@@ -66,10 +66,5 @@ class Procedure extends Plugin
                     'type' => 'hash',
                 ]);
         });
-    }
-
-    private function getNick($className)
-    {
-        return 'php_'.strtolower(implode('_', explode('\\', $className)));
     }
 }
