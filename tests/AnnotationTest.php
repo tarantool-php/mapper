@@ -103,11 +103,15 @@ class AnnotationTest extends TestCase
         $this->assertInstanceOf('Entity\\Person', $nekufa);
         $this->assertInstanceOf('Repository\\Post', $mapper->getSchema()->getSpace('post')->getRepository());
 
+        $this->assertSame($post->getAuthor(), $nekufa);
+        $this->assertSame($nekufa->name, 'Dmitry.Krokhin!');
+
         $meta = $mapper->getMeta();
 
         $newMapper = $this->createMapper();
         $newMapper->setMeta($meta);
         $newPost = $newMapper->findOne('post', $post->id);
         $this->assertSame($newPost->author, $nekufa->id);
+        $this->assertSame($newPost->getAuthor()->id, $nekufa->id);
     }
 }

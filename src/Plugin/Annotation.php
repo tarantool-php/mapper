@@ -101,7 +101,11 @@ class Annotation extends UserClasses
                 $type = $this->getTarantoolType($phpType);
 
                 if (!$space->hasProperty($propertyName)) {
-                    $space->addProperty($propertyName, $type);
+                    if ($this->isReference($phpType)) {
+                        $space->addProperty($propertyName, $type, true, $this->getSpaceName((string) $phpType));
+                    } else {
+                        $space->addProperty($propertyName, $type);
+                    }
                 }
             }
             if ($this->mapper->hasPlugin(NestedSet::class)) {
