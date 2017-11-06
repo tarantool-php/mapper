@@ -16,7 +16,7 @@ class ProcedureTest extends TestCase
         $procedure->register(__CLASS__);
     }
 
-    public function testBasics()
+    public function testRegistration()
     {
         $mapper = $this->createMapper();
         $this->clean($mapper);
@@ -27,6 +27,16 @@ class ProcedureTest extends TestCase
         $this->assertTrue($procedure->isRegistered(Greet::class));
         $this->assertFalse($procedure->isRegistered(__CLASS__));
 
+        $greet = $procedure->get(Greet::class);
+        $this->assertSame($greet('nekufa'), 'Hello, nekufa!');
+    }
+
+    public function testNoRegistration()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $procedure = $mapper->addPlugin(Procedure::class);
         $greet = $procedure->get(Greet::class);
         $this->assertSame($greet('nekufa'), 'Hello, nekufa!');
     }
