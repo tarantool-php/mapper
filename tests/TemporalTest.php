@@ -11,6 +11,15 @@ class TemporalTest extends TestCase
         $this->clean($mapper);
 
         $temporal = $mapper->addPlugin(Temporal::class);
+        $this->assertSame(null, $temporal->getReference('person', 1, 'position', 'now'));
+    }
+
+    public function testReferencesSchema()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
         $this->assertSame([], $temporal->getReferences('person', 1, 'position', 'now'));
     }
 
