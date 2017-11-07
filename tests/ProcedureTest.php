@@ -2,6 +2,7 @@
 
 use Tarantool\Mapper\Plugin\Procedure;
 use Procedure\Greet;
+use Procedure\Info;
 
 class ProcedureTest extends TestCase
 {
@@ -39,5 +40,20 @@ class ProcedureTest extends TestCase
         $procedure = $mapper->addPlugin(Procedure::class);
         $greet = $procedure->get(Greet::class);
         $this->assertSame($greet('nekufa'), 'Hello, nekufa!');
+    }
+
+    public function testMapping()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $procedure = $mapper->addPlugin(Procedure::class);
+        $collect = $procedure->get(Info::class);
+
+        $result = $collect();
+
+        foreach ($collect->getMapping() as $property) {
+            $this->assertArrayHasKey($property, $result);
+        }
     }
 }

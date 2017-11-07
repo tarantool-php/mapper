@@ -16,15 +16,29 @@ abstract class Procedure
     abstract public function getBody() : string;
     abstract public function getParams() : array;
 
-    public function getName()
+    public function getName() : string
     {
         $class = get_class($this);
         $name = str_replace("Procedure\\", '', $class);
         return strtolower(implode('_', explode('\\', $name)));
     }
 
+    public function getMapping() : array
+    {
+        return [];
+    }
+
     public function __invoke()
     {
-        return $this->plugin->invoke($this, func_get_args());
+        $raw = $this->plugin->invoke($this, func_get_args());
+        if (!count($this->getMapping())) {
+            return $raw;
+        }
+
+        $result = [];
+        foreach ($this->getMapping() as $i => $name) {
+            $result[$name] = $raw[$i];
+        }
+        return $result;
     }
 }
