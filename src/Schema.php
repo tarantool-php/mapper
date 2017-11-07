@@ -137,7 +137,7 @@ class Schema
 
     public function once($name, $callback)
     {
-        $key = 'once' . $name;
+        $key = 'mapper-once' . $name;
 
         $rows = $this->mapper->find('_schema', ['key' => $key]);
         if (!count($rows)) {
