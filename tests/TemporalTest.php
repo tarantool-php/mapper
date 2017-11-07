@@ -5,6 +5,33 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testReferenceSchema()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $this->assertSame([], $temporal->getReferences('person', 1, 'position', 'now'));
+    }
+
+    public function testStateSchema()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $this->assertSame([], $temporal->getState('person', 1, 'now'));
+    }
+
+    public function testLinkSchema()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $this->assertSame([], $temporal->getLinks('person', 1, 'now'));
+    }
+
     public function testTemporalReference()
     {
         $mapper = $this->createMapper();

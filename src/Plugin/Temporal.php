@@ -65,6 +65,8 @@ class Temporal extends Plugin
 
     public function getReferences($target, $targetId, $source, $date)
     {
+        $this->schema->init('reference');
+
         $target = $this->entityNameToId($target);
         $source = $this->entityNameToId($source);
         $date = $this->getTimestamp($date);
