@@ -25,7 +25,7 @@ class Entity
 
     public function __call($name, $arguments)
     {
-       if (strpos($name, 'get') === 0) {
+        if (strpos($name, 'get') === 0) {
             $property = strtolower(substr($name, 3));
             if (property_exists($this, $property)) {
                 $reference = $this->getRepository()->getSpace()->getReference($property);
