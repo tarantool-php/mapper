@@ -17,16 +17,25 @@ class Mapper
         $this->client = $client;
     }
 
-    public function addPlugin($class)
+    public function addPlugin($mixed)
     {
-        if (!is_subclass_of($class, Plugin::class)) {
+        if (!is_subclass_of($mixed, Plugin::class)) {
             throw new Exception("Plugin should extend " . Plugin::class . " class");
         }
 
-        $plugin = is_object($class) ? $class : new $class($this);
-        $this->plugins[get_class($plugin)] = $plugin;
+        $plugin = is_object($mixed) ? $mixed : new $mixed($this);
+        $class = get_class($plugin);
 
-        return $plugin;
+        if ($plugin == $mixed && array_key_exists($class, $this->plugins)) {
+            // overwrite plugin instance
+            throw new Exception($class.' is registered');
+        }
+
+        if (!array_key_exists($class, $this->plugins)) {
+            $this->plugins[$class] = $plugin;
+        }
+
+        return $this->plugins[$class];
     }
 
     public function create($space, $data)
