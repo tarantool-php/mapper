@@ -17,7 +17,7 @@ class Mapper
         $this->client = $client;
     }
 
-    public function addPlugin($mixed)
+    public function getPlugin($mixed)
     {
         if (!is_subclass_of($mixed, Plugin::class)) {
             throw new Exception("Plugin should extend " . Plugin::class . " class");
@@ -89,14 +89,6 @@ class Mapper
         return [
             'schema' => $this->getSchema()->getMeta(),
         ];
-    }
-
-    public function getPlugin($class)
-    {
-        if (!array_key_exists($class, $this->plugins)) {
-            throw new Exception("No plugin $class");
-        }
-        return $this->plugins[$class];
     }
 
     public function hasPlugin($class)

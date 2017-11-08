@@ -10,7 +10,7 @@ class UserClassesTest extends TestCase
     public function testInvalidEntity()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(UserClasses::class);
+        $plugin = $mapper->getPlugin(UserClasses::class);
         $this->clean($mapper);
 
         $this->expectException(Exception::class);
@@ -22,7 +22,7 @@ class UserClassesTest extends TestCase
     public function testUnknownEntityClass()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(UserClasses::class);
+        $plugin = $mapper->getPlugin(UserClasses::class);
         $this->clean($mapper);
 
         $test = $mapper->getSchema()->createSpace('test');
@@ -38,7 +38,7 @@ class UserClassesTest extends TestCase
     public function testInvalidEntityClass()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(UserClasses::class);
+        $plugin = $mapper->getPlugin(UserClasses::class);
         $this->clean($mapper);
 
         $test = $mapper->getSchema()->createSpace('test');
@@ -54,7 +54,7 @@ class UserClassesTest extends TestCase
     public function testEntityClass()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(UserClasses::class);
+        $plugin = $mapper->getPlugin(UserClasses::class);
         $this->clean($mapper);
 
         $test = $mapper->getSchema()->createSpace('test');
@@ -72,7 +72,7 @@ class UserClassesTest extends TestCase
     public function testInvalidRepository()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(UserClasses::class);
+        $plugin = $mapper->getPlugin(UserClasses::class);
         $this->clean($mapper);
 
         $this->expectException(Exception::class);
@@ -84,7 +84,7 @@ class UserClassesTest extends TestCase
     public function testUnknownRepositoryClass()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(UserClasses::class);
+        $plugin = $mapper->getPlugin(UserClasses::class);
         $this->clean($mapper);
 
         $test = $mapper->getSchema()->createSpace('test');
@@ -100,7 +100,7 @@ class UserClassesTest extends TestCase
     public function testInvalidRepositoryClass()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(UserClasses::class);
+        $plugin = $mapper->getPlugin(UserClasses::class);
         $this->clean($mapper);
 
         $test = $mapper->getSchema()->createSpace('test');
@@ -116,7 +116,7 @@ class UserClassesTest extends TestCase
     public function testRepositoryClass()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(UserClasses::class);
+        $plugin = $mapper->getPlugin(UserClasses::class);
         $this->clean($mapper);
 
         $test = $mapper->getSchema()->createSpace('test');

@@ -458,7 +458,7 @@ class Temporal extends Plugin
     public function entityNameToId($name)
     {
         if (!$this->mapper->hasPlugin(Sequence::class)) {
-            $this->mapper->addPlugin(Sequence::class);
+            $this->mapper->getPlugin(Sequence::class);
         }
 
         $this->mapper->getSchema()->once(__CLASS__.'@entity', function (Mapper $mapper) {

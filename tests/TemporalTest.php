@@ -10,7 +10,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->reference([
@@ -38,7 +38,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $this->assertSame(null, $temporal->getReference('person', 1, 'position', 'now'));
     }
 
@@ -47,7 +47,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $this->assertSame([], $temporal->getReferences('person', 1, 'position', 'now'));
     }
 
@@ -56,7 +56,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $this->assertSame([], $temporal->getState('person', 1, 'now'));
     }
 
@@ -65,7 +65,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $this->assertSame([], $temporal->getLinks('person', 1, 'now'));
     }
 
@@ -74,7 +74,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->reference([
@@ -172,7 +172,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->link([
@@ -222,7 +222,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->link([
@@ -249,7 +249,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->link([
@@ -278,7 +278,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->link([
@@ -321,7 +321,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->link([
@@ -346,7 +346,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->link([
@@ -367,7 +367,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->link([
@@ -416,7 +416,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->override([
@@ -514,7 +514,7 @@ class TemporalTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
 
         $temporal->override([

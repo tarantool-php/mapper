@@ -9,7 +9,7 @@ class SpyTest extends TestCase
     public function test()
     {
         $mapper = $this->createMapper();
-        $mapper->addPlugin(Sequence::class);
+        $mapper->getPlugin(Sequence::class);
         $this->clean($mapper);
 
         $this->assertCount(1, $mapper->getPlugins());
@@ -21,7 +21,7 @@ class SpyTest extends TestCase
 
         $nekufa = $mapper->create('person', ['email' => 'nekufa@gmail.com']);
 
-        $mapper->addPlugin(Spy::class);
+        $mapper->getPlugin(Spy::class);
         $this->assertCount(2, $mapper->getPlugins());
 
         $rybakit = $mapper->create('person', ['email' => 'gen.work@gmail.com']);

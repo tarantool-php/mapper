@@ -273,7 +273,7 @@ $mapper->getSchema()->createSpace('post')
   ->addProperty('body', 'string')
   ->addIndex('id');
 
-$mapper->addPlugin(Tarantool\Mapper\Plugin\Sequence::class);
+$mapper->getPlugin(Tarantool\Mapper\Plugin\Sequence::class);
 
 $entity = $mapper->create('post', [
   'title' => 'Autoincrement implemented',
@@ -287,7 +287,7 @@ echo $entity->id; // will be set when you create an instance
 If you want you can specify classes to use for repository and entity instances.
 Entity and repository class implementation are ommited, but you should just extend base classes.
 ```php
-$userClasses = $mapper->addPlugin(Tarantool\Mapper\Plugin\UserClasses::class);
+$userClasses = $mapper->getPlugin(Tarantool\Mapper\Plugin\UserClasses::class);
 $userClasses->mapEntity('person', Application\Entity\Person::class);
 $userClasses->mapRepository('person', Application\Repository\Person::class);
 
@@ -370,8 +370,8 @@ class Post extends Repository
 ```
 Register plugin and all your classes:
 ```php
-$mapper->addPlugin(Tarantool\Mapper\Plugin\Sequence::class); // just not to fill id manually
-$mapper->addPlugin(Tarantool\Mapper\Plugin\Annotation::class)
+$mapper->getPlugin(Tarantool\Mapper\Plugin\Sequence::class); // just not to fill id manually
+$mapper->getPlugin(Tarantool\Mapper\Plugin\Annotation::class)
   ->register(Entity\Person::class)
   ->register(Entity\Post::class)
   ->register(Repository\Person::class)

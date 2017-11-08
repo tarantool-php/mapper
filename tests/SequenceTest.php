@@ -8,23 +8,23 @@ class SequenceTest extends TestCase
     public function testInstanceOverwriteOnPluginAdd()
     {
         $mapper = $this->createMapper();
-        $plugin = $mapper->addPlugin(Sequence::class);
-        $plugin2 = $mapper->addPlugin(Sequence::class);
+        $plugin = $mapper->getPlugin(Sequence::class);
+        $plugin2 = $mapper->getPlugin(Sequence::class);
         $this->assertSame($plugin, $plugin2);
     }
 
     public function testInstanceOverwriteExceptionOnPluginAdd()
     {
         $mapper = $this->createMapper();
-        $mapper->addPlugin(new Sequence($mapper));
+        $mapper->getPlugin(new Sequence($mapper));
         $this->expectExceptionMessage(Sequence::class. ' is registered');
-        $mapper->addPlugin(new Sequence($mapper));
+        $mapper->getPlugin(new Sequence($mapper));
     }
 
     public function testInitialization()
     {
         $mapper = $this->createMapper();
-        $mapper->addPlugin(new Sequence($mapper));
+        $mapper->getPlugin(new Sequence($mapper));
         $this->clean($mapper);
 
         $this->assertCount(1, $mapper->getPlugins());
@@ -44,7 +44,7 @@ class SequenceTest extends TestCase
     public function testPluginInstance()
     {
         $mapper = $this->createMapper();
-        $mapper->addPlugin(new Sequence($mapper));
+        $mapper->getPlugin(new Sequence($mapper));
         $this->clean($mapper);
 
         $this->assertCount(1, $mapper->getPlugins());
@@ -66,7 +66,7 @@ class SequenceTest extends TestCase
     public function testPluginClass()
     {
         $mapper = $this->createMapper();
-        $mapper->addPlugin(Sequence::class);
+        $mapper->getPlugin(Sequence::class);
         $this->clean($mapper);
 
         $this->assertCount(1, $mapper->getPlugins());

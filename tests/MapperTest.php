@@ -56,7 +56,7 @@ class MapperTest extends TestCase
     public function testDoubleCreation()
     {
         $mapper = $this->createMapper();
-        $mapper->addPlugin(new Sequence($mapper));
+        $mapper->getPlugin(new Sequence($mapper));
         $this->clean($mapper);
 
         $mapper->getSchema()
@@ -83,7 +83,7 @@ class MapperTest extends TestCase
     public function testFindOrCreateShortcut()
     {
         $mapper = $this->createMapper();
-        $mapper->addPlugin(new Sequence($mapper));
+        $mapper->getPlugin(new Sequence($mapper));
         $this->clean($mapper);
 
         $mapper->getSchema()
@@ -103,7 +103,7 @@ class MapperTest extends TestCase
         $this->assertSame($first, $mapper->findOrCreate('tester', $params));
 
         $anotherMapper = $this->createMapper();
-        $anotherMapper->addPlugin(new Sequence($mapper));
+        $anotherMapper->getPlugin(new Sequence($mapper));
         $anotherEntity = $anotherMapper->findOrCreate('tester', $params);
         $this->assertSame($anotherEntity->id, $first->id);
     }
@@ -300,7 +300,7 @@ class MapperTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $mapper->addPlugin(Sequence::class);
+        $mapper->getPlugin(Sequence::class);
 
         $mapper->getSchema()
             ->createSpace('person', [

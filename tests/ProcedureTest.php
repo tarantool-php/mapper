@@ -11,7 +11,7 @@ class ProcedureTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $procedure = $mapper->addPlugin(Procedure::class);
+        $procedure = $mapper->getPlugin(Procedure::class);
 
         $this->expectException(Exception::class);
         $procedure->register(__CLASS__);
@@ -22,7 +22,7 @@ class ProcedureTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $procedure = $mapper->addPlugin(Procedure::class);
+        $procedure = $mapper->getPlugin(Procedure::class);
         $procedure->register(Greet::class);
 
         $this->assertTrue($procedure->isRegistered(Greet::class));
@@ -37,7 +37,7 @@ class ProcedureTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $procedure = $mapper->addPlugin(Procedure::class);
+        $procedure = $mapper->getPlugin(Procedure::class);
         $greet = $procedure->get(Greet::class);
         $this->assertSame($greet('nekufa'), 'Hello, nekufa!');
     }
@@ -47,7 +47,7 @@ class ProcedureTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $procedure = $mapper->addPlugin(Procedure::class);
+        $procedure = $mapper->getPlugin(Procedure::class);
         $collect = $procedure->get(Info::class);
 
         $result = $collect();

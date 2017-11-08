@@ -12,8 +12,7 @@ class AnnotationTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $mapper->addPlugin(Sequence::class);
-        $annotation = $mapper->addPlugin(Annotation::class);
+        $annotation = $mapper->getPlugin(Annotation::class);
         $annotation->register('Entity\\Paycode');
         $annotation->migrate();
 
@@ -30,7 +29,7 @@ class AnnotationTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $mapper->addPlugin(Sequence::class);
+        $mapper->getPlugin(Sequence::class);
         $mapper->getSchema()
             ->createSpace('invalid_index', [
                 'id' => 'unsigned'
@@ -39,7 +38,7 @@ class AnnotationTest extends TestCase
 
         $i = $mapper->create('invalid_index', ['id' => 1]);
 
-        $annotation = $mapper->addPlugin(Annotation::class);
+        $annotation = $mapper->getPlugin(Annotation::class);
         $annotation->register('Entity\\InvalidIndex');
         $annotation->register('Repository\\InvalidIndex');
 
@@ -52,9 +51,9 @@ class AnnotationTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $mapper->addPlugin(Sequence::class);
+        $mapper->getPlugin(Sequence::class);
 
-        $annotation = $mapper->addPlugin(Annotation::class)
+        $annotation = $mapper->getPlugin(Annotation::class)
             ->register('Entity\\Post')
             ->register('Entity\\Person')
             ->register('Repository\\Post')
