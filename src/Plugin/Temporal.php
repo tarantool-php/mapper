@@ -25,7 +25,9 @@ class Temporal extends Plugin
 
     public function getReference($entity, $id, $target, $date)
     {
-        $this->schema->init('reference');
+        if (!$this->mapper->getSchema()->hasSpace('_temporal_reference_state')) {
+            return;
+        }
 
         $entity = $this->entityNameToId($entity);
         $target = $this->entityNameToId($target);
@@ -53,6 +55,9 @@ class Temporal extends Plugin
 
     public function getReferenceLog($entity, $id, $target)
     {
+        if (!$this->mapper->getSchema()->hasSpace('_temporal_reference')) {
+            return [];
+        }
         $log = [];
         $params = [
             'entity' => $this->entityNameToId($entity),
@@ -67,7 +72,9 @@ class Temporal extends Plugin
 
     public function getReferences($target, $targetId, $source, $date)
     {
-        $this->schema->init('reference');
+        if (!$this->mapper->getSchema()->hasSpace('_temporal_reference_aggregate')) {
+            return [];
+        }
 
         $target = $this->entityNameToId($target);
         $source = $this->entityNameToId($source);
@@ -134,7 +141,9 @@ class Temporal extends Plugin
 
     public function getLinksLog($entity, $entityId, $filter = [])
     {
-        $this->schema->init('link');
+        if (!$this->mapper->getSchema()->hasSpace('_temporal_link')) {
+            return [];
+        }
 
         $entity = $this->entityNameToId($entity);
 
@@ -181,7 +190,9 @@ class Temporal extends Plugin
 
     public function getLinks($entity, $id, $date)
     {
-        $this->schema->init('link');
+        if (!$this->mapper->getSchema()->hasSpace('_temporal_link_aggregate')) {
+            return [];
+        }
 
         $links = $this->getData($entity, $id, $date, '_temporal_link_aggregate');
         foreach ($links as $i => $source) {
@@ -197,7 +208,9 @@ class Temporal extends Plugin
 
     public function getState($entity, $id, $date)
     {
-        $this->schema->init('override');
+        if (!$this->mapper->getSchema()->hasSpace('_temporal_override_aggregate')) {
+            return [];
+        }
 
         return $this->getData($entity, $id, $date, '_temporal_override_aggregate');
     }
@@ -227,6 +240,10 @@ class Temporal extends Plugin
 
     public function getOverrides($entityName, $id)
     {
+        if (!$this->mapper->getSchema()->hasSpace('_temporal_override')) {
+            return [];
+        }
+
         return $this->mapper->find('_temporal_override', [
             'entity' => $this->entityNameToId($entityName),
             'id' => $id,

@@ -61,6 +61,15 @@ class TemporalTest extends TestCase
         $this->assertSame([], $temporal->getState('person', 1, 'now'));
     }
 
+    public function testOverrideSchema()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->getPlugin(Temporal::class);
+        $this->assertSame([], $temporal->getOverrides('person', 1));
+    }
+
     public function testLinkSchema()
     {
         $mapper = $this->createMapper();
