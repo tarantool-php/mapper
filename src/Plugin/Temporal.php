@@ -406,6 +406,11 @@ class Temporal extends Plugin
         $this->aggregator->updateLinkAggregation($node);
     }
 
+    public function getActor()
+    {
+        return $this->actor;
+    }
+
     public function setActor($actor)
     {
         $this->actor = $actor;

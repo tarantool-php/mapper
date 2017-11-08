@@ -12,6 +12,7 @@ class TemporalTest extends TestCase
 
         $temporal = $mapper->getPlugin(Temporal::class);
         $temporal->setActor(1);
+        $this->assertSame($temporal->getActor(), 1);
 
         $temporal->reference([
             'person' => 1,
