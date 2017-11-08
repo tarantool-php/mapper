@@ -5,6 +5,34 @@ use Carbon\Carbon;
 
 class TemporalTest extends TestCase
 {
+    public function testReferenceCacheClear()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->addPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->reference([
+            'person' => 1,
+            'data' => [
+                'position' => 1
+            ]
+        ]);
+
+        $this->assertSame($temporal->getReference('person', 1, 'position', 'now'), 1);
+
+        $temporal->reference([
+            'begin' => Carbon::now()->format('Ymd'),
+            'person' => 1,
+            'data' => [
+                'position' => 2
+            ]
+        ]);
+
+        $this->assertSame($temporal->getReference('person', 1, 'position', 'now'), 2);
+    }
+
     public function testReferenceSchema()
     {
         $mapper = $this->createMapper();

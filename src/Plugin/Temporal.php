@@ -414,12 +414,16 @@ class Temporal extends Plugin
 
     private function getTimestamp($string)
     {
-        if (!array_key_exists($string, $this->timestamps)) {
+        if (Carbon::hasTestNow() || !array_key_exists($string, $this->timestamps)) {
             if (strlen($string) == 8 && is_numeric($string)) {
-                $this->timestamps[$string] = Carbon::createFromFormat('Ymd', $string)->setTime(0, 0, 0)->timestamp;
+                $value = Carbon::createFromFormat('Ymd', $string)->setTime(0, 0, 0)->timestamp;
             } else {
-                $this->timestamps[$string] = Carbon::parse($string)->timestamp;
+                $value = Carbon::parse($string)->timestamp;
             }
+            if (Carbon::hasTestNow()) {
+                return $value;
+            }
+            $this->timestamps[$string] = $value;
         }
         return $this->timestamps[$string];
     }
