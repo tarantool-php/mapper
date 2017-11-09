@@ -55,7 +55,7 @@ class Mapper
 
     public function findOrFail($space, $params = [])
     {
-        return $this->getRepository($space)->findOrFail($params)->save();
+        return $this->getRepository($space)->findOrFail($params);
     }
 
     public function find($space, $params = [])
