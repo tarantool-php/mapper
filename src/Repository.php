@@ -107,7 +107,7 @@ class Repository
     {
         $entity = $this->findOne($params);
         if (!$entity) {
-            throw new Exception("Invalid entity");
+            throw new Exception("No ".$this->getSpace()->getName().' found using '.json_encode($params));
         }
         return $entity;
     }

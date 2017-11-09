@@ -108,6 +108,24 @@ class MapperTest extends TestCase
         $this->assertSame($anotherEntity->id, $first->id);
     }
 
+    public function testFindOrFail()
+    {
+        $mapper = $this->createMapper();
+        $mapper->getPlugin(new Sequence($mapper));
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('tester', [
+                'id'    => 'unsigned',
+                'label' => 'string',
+            ])
+            ->addIndex('id')
+            ->addIndex('label');
+
+        $this->expectException(Exception::class);
+        $mapper->findOrFail('tester', ['label' => 'test']);
+    }
+
     public function testFirstTupleValueIndexCasting()
     {
         $mapper = $this->createMapper();
