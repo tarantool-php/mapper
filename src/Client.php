@@ -17,9 +17,8 @@ class Client extends TarantoolClient
     public function connect()
     {
         $start = microtime(1);
-        $result = parent::connect();
+        parent::connect();
         $this->log($start, Connection::class);
-        return $result;
     }
 
     public function disableRequest($class)

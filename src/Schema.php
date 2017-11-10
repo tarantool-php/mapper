@@ -16,8 +16,7 @@ class Schema
     {
         $this->mapper = $mapper;
         if ($meta) {
-            $this->names = $meta['names'];
-            $this->params = $meta['params'];
+            $this->setMeta($meta);
         } else {
             $this->reset();
         }
@@ -169,5 +168,11 @@ class Schema
             'names' => $this->names,
             'params' => $params
         ];
+    }
+
+    public function setMeta($meta)
+    {
+        $this->names = $meta['names'];
+        $this->params = $meta['params'];
     }
 }

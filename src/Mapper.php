@@ -2,7 +2,7 @@
 
 namespace Tarantool\Mapper;
 
-use Tarantool\Client\Client;
+use Tarantool\Client\Client as TarantoolClient;
 use Exception;
 
 class Mapper
@@ -12,7 +12,7 @@ class Mapper
     private $schema;
     private $bootstrap;
 
-    public function __construct(Client $client)
+    public function __construct(TarantoolClient $client)
     {
         $this->client = $client;
     }
