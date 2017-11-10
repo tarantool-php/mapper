@@ -96,7 +96,7 @@ class Annotation extends UserClasses
                     throw new Exception("Invalid var tag for ".$entity.'::'.$property->getName());
                 }
 
-                $propertyName = $this->toUnderscore($property->getName());
+                $propertyName = $this->mapper->getSchema()->toUnderscore($property->getName());
                 $phpType = $tags[0]->getType();
                 $type = $this->getTarantoolType($phpType);
 
@@ -199,25 +199,10 @@ class Annotation extends UserClasses
                 }
             }
 
-            $this->spaceNames[$class] = $this->toUnderscore($className);
+            $this->spaceNames[$class] = $this->mapper->getSchema()->toUnderscore($className);
         }
 
         return $this->spaceNames[$class];
-    }
-
-    private $underscores = [];
-
-    private function toUnderscore($input)
-    {
-        if (!array_key_exists($input, $this->underscores)) {
-            preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $input, $matches);
-            $ret = $matches[0];
-            foreach ($ret as &$match) {
-                $match = $match == strtoupper($match) ? strtolower($match) : lcfirst($match);
-            }
-            $this->underscores[$input] = implode('_', $ret);
-        }
-        return $this->underscores[$input];
     }
 
     private $tarantoolTypes = [];

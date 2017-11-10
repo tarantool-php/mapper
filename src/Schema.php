@@ -175,4 +175,29 @@ class Schema
         $this->names = $meta['names'];
         $this->params = $meta['params'];
     }
+
+    private $underscores = [];
+
+    public function toUnderscore($input)
+    {
+        if (!array_key_exists($input, $this->underscores)) {
+            preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $input, $matches);
+            $ret = $matches[0];
+            foreach ($ret as &$match) {
+                $match = $match == strtoupper($match) ? strtolower($match) : lcfirst($match);
+            }
+            $this->underscores[$input] = implode('_', $ret);
+        }
+        return $this->underscores[$input];
+    }
+
+    private $camelcase = [];
+
+    public function toCamelCase($input)
+    {
+        if (!array_key_exists($input, $this->camelcase)) {
+            $this->camelcase[$input] = lcfirst(implode('', array_map('ucfirst', explode('_', $input))));
+        }
+        return $this->camelcase[$input];
+    }
 }

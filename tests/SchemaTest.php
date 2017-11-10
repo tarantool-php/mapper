@@ -2,9 +2,27 @@
 
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Space;
+use Tarantool\Mapper\Plugin\Sequence;
 
 class SchemaTest extends TestCase
 {
+    public function testCamelCased()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getPlugin(Sequence::class);
+
+        $tester = $mapper->getSchema()->createSpace('tester', [
+                'id' => 'unsigned',
+                'firstName' => 'string',
+            ])
+            ->addIndex('id')
+            ->addIndex('firstName');
+
+        $this->assertNotNull($mapper->findOrCreate('tester', ['firstName' => 'Dmitry']));
+    }
+
     public function testCreateSpaceWithProperties()
     {
         $mapper = $this->createMapper();

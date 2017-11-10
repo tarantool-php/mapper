@@ -229,10 +229,11 @@ class Space
         $this->formatNamesHash = [];
         $this->formatReferences = [];
         foreach ($this->format as $key => $row) {
-            $this->formatTypesHash[$row['name']] = $row['type'];
-            $this->formatNamesHash[$row['name']] = $key;
+            $name = $this->mapper->getSchema()->toCamelCase($row['name']);
+            $this->formatTypesHash[$name] = $row['type'];
+            $this->formatNamesHash[$name] = $key;
             if (array_key_exists('reference', $row)) {
-                $this->formatReferences[$row['name']] = $row['reference'];
+                $this->formatReferences[$name] = $row['reference'];
             }
         }
         return $this;
@@ -419,6 +420,7 @@ class Space
 
         foreach ($this->getPrimaryIndex()['parts'] as $part) {
             $name = $this->getFormat()[$part[0]]['name'];
+            $name = $this->mapper->getSchema()->toCamelCase($name);
             if (!property_exists($instance, $name)) {
                 throw new Exception("Field $name is undefined", 1);
             }
