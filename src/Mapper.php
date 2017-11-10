@@ -38,27 +38,27 @@ class Mapper
         return $this->plugins[$class];
     }
 
-    public function create($space, $data)
+    public function create(string $space, $data)
     {
         return $this->getRepository($space)->create($data)->save();
     }
 
-    public function findOne($space, $params = [])
+    public function findOne(string $space, $params = [])
     {
         return $this->getRepository($space)->findOne($params);
     }
 
-    public function findOrCreate($space, $params = [])
+    public function findOrCreate(string $space, $params = [])
     {
         return $this->getRepository($space)->findOrCreate($params)->save();
     }
 
-    public function findOrFail($space, $params = [])
+    public function findOrFail(string $space, $params = [])
     {
         return $this->getRepository($space)->findOrFail($params);
     }
 
-    public function find($space, $params = [])
+    public function find(string $space, $params = [])
     {
         return $this->getRepository($space)->find($params);
     }
