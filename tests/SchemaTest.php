@@ -20,7 +20,12 @@ class SchemaTest extends TestCase
             ->addIndex('id')
             ->addIndex('firstName');
 
-        $this->assertNotNull($mapper->findOrCreate('tester', ['firstName' => 'Dmitry']));
+        $tester = $mapper->findOrCreate('tester', ['firstName' => 'Dmitry']);
+
+        $this->assertNotNull($tester);
+        $this->assertNotNull($tester->firstName);
+
+        $this->assertSame($this->createMapper()->findOne('tester', ['id' => $tester->id])->firstName, $tester->firstName);
     }
 
     public function testCreateSpaceWithProperties()
