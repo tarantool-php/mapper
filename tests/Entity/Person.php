@@ -16,6 +16,11 @@ class Person extends MapperEntity
      */
     public $name;
 
+    /**
+     * @var string
+     */
+    public $fullName;
+
     public function beforeCreate()
     {
         $this->name = $this->name.'!';

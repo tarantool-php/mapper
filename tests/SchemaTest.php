@@ -22,6 +22,9 @@ class SchemaTest extends TestCase
 
         $d = $mapper->findOrCreate('tester', ['firstName' => 'Dmitry']);
 
+        $this->assertTrue($tester->hasProperty('firstName'));
+        $this->assertFalse($tester->hasProperty('first_name'));
+
         $this->assertNotNull($d);
         $this->assertNotNull($d->firstName);
 

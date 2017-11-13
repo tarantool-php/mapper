@@ -96,7 +96,7 @@ class Annotation extends UserClasses
                     throw new Exception("Invalid var tag for ".$entity.'::'.$property->getName());
                 }
 
-                $propertyName = $this->mapper->getSchema()->toUnderscore($property->getName());
+                $propertyName = $property->getName();
                 $phpType = $tags[0]->getType();
                 $type = $this->getTarantoolType($phpType);
 
