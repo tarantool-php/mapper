@@ -61,10 +61,8 @@ class Schema
                 return (int) null;
 
             default:
-                return $value;
+                return null;
         }
-
-        return $this->formatValue($type, null, true);
     }
 
     public function formatValue($type, $value)
