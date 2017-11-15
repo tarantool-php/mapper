@@ -59,10 +59,8 @@ class Schema
             case 'num':
             case 'NUM':
                 return (int) null;
-
-            default:
-                return null;
         }
+        throw new Exception("Invalid type $type");
     }
 
     public function formatValue($type, $value)
