@@ -6,6 +6,40 @@ use Tarantool\Mapper\Plugin\Sequence;
 
 class SchemaTest extends TestCase
 {
+    public function testDynamicIndexCreation()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getPlugin(Sequence::class);
+
+        $tester = $mapper->getSchema()->createSpace('tester', [
+                'id' => 'unsigned',
+                'name' => 'string',
+            ])
+            ->addIndex('id');
+
+        $tester->setPropertyNullable('name', false);
+
+        $mapper->create('tester', 'Dmitry');
+
+        try {
+            $tester->castIndex(['name' => 'Peter']);
+            $this->assertNull("Index not exists");
+         } catch (Exception $e) {
+            $this->assertNotNull("Index not exists");
+            $tester->createIndex('name');
+        }
+
+        try {
+            $tester->castIndex(['name' => 'Peter']);
+            $this->assertNotNull("Index exists");
+         } catch (Exception $e) {
+            $this->assertNull("Index exists");
+            $tester->createIndex('name');
+        }
+    }
+
     public function testCamelCased()
     {
         $mapper = $this->createMapper();
