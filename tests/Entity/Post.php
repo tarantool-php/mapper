@@ -25,4 +25,9 @@ class Post extends MapperEntity
      * @var Person
      */
     public $author;
+
+    /**
+     * @var integer
+     */
+    public $updatedAt;
 }
