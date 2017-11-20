@@ -8,6 +8,27 @@ use Tarantool\Client\Request\InsertRequest;
 
 class MapperTest extends TestCase
 {
+    public function testNullableColumns()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $tester = $mapper->getSchema()
+            ->createSpace('tester', [
+                'id' => 'unsigned',
+                'value' => '*',
+            ])
+            ->addIndex([
+                'fields' => ['id'],
+                'type' => 'hash'
+            ]);
+
+        $this->assertTrue($tester->isPropertyNullable('value'));
+
+        $instance = $mapper->findOrCreate('tester', ['id' => 1]);
+        $this->assertNull($instance->value);
+    }
+
     public function testFindAllUsingHashIndex()
     {
         $mapper = $this->createMapper();
