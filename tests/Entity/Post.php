@@ -30,4 +30,9 @@ class Post extends MapperEntity
      * @var integer
      */
     public $updatedAt;
+
+    /**
+     * @var integer
+     */
+    public $created_at;
 }

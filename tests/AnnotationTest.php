@@ -7,6 +7,29 @@ use Tarantool\Mapper\Repository;
 
 class AnnotationTest extends TestCase
 {
+    public function testAnnotationAddProperty()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $paycode = $mapper->getSchema()
+            ->createSpace('paycode', [
+                'id' => 'unsigned',
+                'name' => 'string',
+            ])
+            ->addIndex('id');
+
+        $mapper->create('paycode', [
+            'id' => 1,
+            'name' => 'tester'
+        ]);
+
+        $annotation = $mapper->getPlugin(Annotation::class);
+        $annotation->register('Entity\\Paycode');
+        $annotation->migrate();
+
+        $this->assertTrue($paycode->isPropertyNullable('factor'));
+    }
     public function testFloatType()
     {
         $mapper = $this->createMapper();
