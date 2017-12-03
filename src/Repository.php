@@ -180,7 +180,7 @@ class Repository
         }
     }
 
-    private function getInstance($tuple)
+    public function getInstance($tuple)
     {
         $key = $this->space->getTupleKey($tuple);
 
