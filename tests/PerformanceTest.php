@@ -11,7 +11,7 @@ class PerformanceTest extends TestCase
 
     public function test()
     {
-        if (extension_loaded('xdebug')) {
+        if (getenv('SKIP_PERFORMANCE_TEST')) {
             $this->markTestSkipped("Disable performance metrics with xdebug");
         }
         $mapper = $this->createMapper();
