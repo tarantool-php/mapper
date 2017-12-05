@@ -355,5 +355,23 @@ class SchemaTest extends TestCase
         $this->assertSame($ymd['name'], 'year_month_day');
         $this->assertSame($ymd['parts'], [[1, 'unsigned'], [2, 'unsigned'], [3, 'unsigned']]);
         $this->assertSame($symd['name'], 'sector_year_month_day');
+
+        $this->expectExceptionMessage("No index on task for [day]");
+        $anotherMapper->find('task', ['day' => 1]);
+    }
+
+    public function testNoIndexMessageForMultipleProperties()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $task = $mapper->getSchema()->createSpace('task');
+        $task->addProperty('id', 'unsigned');
+        $task->addProperty('year', 'unsigned');
+        $task->addProperty('month', 'unsigned');
+        $task->createIndex('id');
+
+        $this->expectExceptionMessage("No index on task for [year, month]");
+        $mapper->find('task', ['year' => 2017, 'month' => 12]);
     }
 }

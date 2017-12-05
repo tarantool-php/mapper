@@ -363,7 +363,7 @@ class Space
         }
 
         if (!$suppressException) {
-            throw new Exception("No index");
+            throw new Exception("No index on ".$this->name.' for ['.implode(', ', array_keys($params)).']');
         }
     }
 
