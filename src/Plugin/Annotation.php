@@ -25,19 +25,19 @@ class Annotation extends UserClasses
         $isRepository = is_subclass_of($class, Repository::class);
 
         if (!$isEntity && !$isRepository) {
-            throw new Exception("Invalid registration");
+            throw new Exception("Invalid registration for $class");
         }
 
         if ($isEntity) {
             if ($class == Entity::class) {
-                throw new Exception("Invalid entity registration");
+                throw new Exception("Invalid entity registration for $class");
             }
             $this->entityClasses[] = $class;
         }
 
         if ($isRepository) {
             if ($class == Repository::class) {
-                throw new Exception("Invalid repository registration");
+                throw new Exception("Invalid repository registration for $class");
             }
             $this->repositoryClasses[] = $class;
         }
@@ -120,7 +120,7 @@ class Annotation extends UserClasses
             $spaceName = $this->getSpaceName($repository);
 
             if (!$schema->hasSpace($spaceName)) {
-                throw new Exception("Repository with no entity definition");
+                throw new Exception("Repository $spaceName has no entity definition");
             }
 
             $this->mapRepository($spaceName, $repository);
