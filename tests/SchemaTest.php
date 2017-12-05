@@ -26,7 +26,7 @@ class SchemaTest extends TestCase
         try {
             $tester->castIndex(['name' => 'Peter']);
             $this->assertNull("Index not exists");
-         } catch (Exception $e) {
+        } catch (Exception $e) {
             $this->assertNotNull("Index not exists");
             $tester->createIndex('name');
         }
@@ -34,7 +34,7 @@ class SchemaTest extends TestCase
         try {
             $tester->castIndex(['name' => 'Peter']);
             $this->assertNotNull("Index exists");
-         } catch (Exception $e) {
+        } catch (Exception $e) {
             $this->assertNull("Index exists");
             $tester->createIndex('name');
         }
