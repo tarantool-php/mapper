@@ -7,6 +7,25 @@ use Tarantool\Mapper\Repository;
 
 class AnnotationTest extends TestCase
 {
+    public function testCamelCased()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+        $mapper->getPlugin(Sequence::class);
+
+        $annotation = $mapper->getPlugin(Annotation::class);
+        $annotation->register('Entity\\CamelParent');
+        $annotation->register('Entity\\CamelChild');
+        $annotation->register('Repository\\CamelChild');
+        $annotation->migrate();
+        $annotation->migrate();
+
+        $parent = $mapper->create('camel_parent', ['name' => 'p1']);
+        $child = $mapper->create('camel_child', ['camelParent' => $parent, 'name' => 'c1']);
+
+        $this->assertSame($child->getCamelParent(), $parent);
+    }
+
     public function testAnnotationAddProperty()
     {
         $mapper = $this->createMapper();
