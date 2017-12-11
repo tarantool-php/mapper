@@ -24,6 +24,7 @@ class AnnotationTest extends TestCase
         $child = $mapper->create('camel_child', ['camelParent' => $parent, 'name' => 'c1']);
 
         $this->assertSame($child->getCamelParent(), $parent);
+        $this->assertSame($parent->getCamelChildCollection(), [$child]);
     }
 
     public function testAnnotationAddProperty()
