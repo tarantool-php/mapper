@@ -3,6 +3,7 @@
 namespace Tarantool\Mapper;
 
 use BadMethodCallException;
+use Exception;
 use Tarantool\Mapper\Plugin\Annotation;
 
 class Entity
