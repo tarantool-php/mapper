@@ -308,6 +308,14 @@ class Repository
             $this->getMapper()->getClient()
                 ->getSpace($this->space->getId())
                 ->delete($pk);
+
+            foreach ($this->getMapper()->getPlugins() as $plugin) {
+                $plugin->afterRemove($instance, $this->space);
+            }
+
+            if (method_exists($instance, 'afterRemove')) {
+                $instance->afterRemove();
+            }
         }
 
         unset($this->original[$key]);

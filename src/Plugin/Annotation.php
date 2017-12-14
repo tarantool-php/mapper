@@ -2,10 +2,12 @@
 
 namespace Tarantool\Mapper\Plugin;
 
+use Closure;
 use Exception;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Types\ContextFactory;
 use ReflectionClass;
+use ReflectionMethod;
 use ReflectionProperty;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin\NestedSet;
@@ -75,6 +77,7 @@ class Annotation extends UserClasses
 
         $schema = $this->mapper->getSchema();
 
+        $computes = [];
         foreach ($this->entityClasses as $entity) {
             $spaceName = $this->getSpaceName($entity);
             $space = $schema->hasSpace($spaceName) ? $schema->getSpace($spaceName) : $schema->createSpace($spaceName);
@@ -114,7 +117,12 @@ class Annotation extends UserClasses
                     $nested->addIndexes($space);
                 }
             }
+
+            if ($class->hasMethod('compute')) {
+                $computes[] = $spaceName;
+            }
         }
+
 
         foreach ($this->repositoryClasses as $repository) {
             $spaceName = $this->getSpaceName($repository);
@@ -149,7 +157,6 @@ class Annotation extends UserClasses
                 }
             }
         }
-
         foreach ($schema->getSpaces() as $space) {
             if (!count($space->getIndexes())) {
                 if (!$space->hasProperty('id')) {
@@ -157,6 +164,17 @@ class Annotation extends UserClasses
                 }
                 $space->addIndex(['id']);
             }
+        }
+
+        foreach ($computes as $spaceName) {
+            $method = new ReflectionMethod($this->entityMapping[$spaceName], 'compute');
+            $type = (string) $method->getParameters()[0]->getType();
+            $sourceSpace = array_search($type, $this->entityMapping);
+            if (!$sourceSpace) {
+                throw new Exception("Invalid compute source $type");
+            }
+            $compute = Closure::fromCallable([$this->entityMapping[$spaceName], 'compute']);
+            $this->mapper->getPlugin(Compute::class)->register($sourceSpace, $spaceName, $compute);
         }
 
         return $this;

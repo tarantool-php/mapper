@@ -43,4 +43,7 @@ abstract class Plugin
     public function beforeRemove(Entity $instance, Space $space)
     {
     }
+    public function afterRemove(Entity $instance, Space $space)
+    {
+    }
 }
