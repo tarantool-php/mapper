@@ -18,8 +18,7 @@ class Compute extends Plugin
         $name = $space->getName();
 
         if (array_key_exists($name, $this->dependency)) {
-            foreach ($this->dependency[$name] as $info) {
-                list($target, $callback) = $info;
+            foreach ($this->dependency[$name] as [$target, $callback]) {
                 $this->initializePresenter($target, $callback, $entity);
             }
         }
@@ -30,8 +29,7 @@ class Compute extends Plugin
         $name = $space->getName();
 
         if (array_key_exists($name, $this->dependency)) {
-            foreach ($this->dependency[$name] as $info) {
-                list($target, $callback) = $info;
+            foreach ($this->dependency[$name] as [$target, $callback]) {
                 $this->getMapper()->remove($target, ['id' => $entity->id]);
             }
         }
@@ -42,8 +40,7 @@ class Compute extends Plugin
         $name = $space->getName();
 
         if (array_key_exists($name, $this->dependency)) {
-            foreach ($this->dependency[$name] as $info) {
-                list($target, $callback) = $info;
+            foreach ($this->dependency[$name] as [$target, $callback]) {
                 $child = $this->getMapper()->findOne($target, $entity->id);
                 foreach ($callback($entity) as $k => $v) {
                     $child->$k = $v;
@@ -59,8 +56,7 @@ class Compute extends Plugin
             return true;
         }
         foreach ($this->dependency as $source => $dependencies) {
-            foreach ($dependencies as $info) {
-                list($target) = $info;
+            foreach ($dependencies as [$target]) {
                 if ($target == $space->getName()) {
                     throw new Exception("Space $target is computed from $source");
                 }
