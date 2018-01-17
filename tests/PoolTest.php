@@ -21,6 +21,18 @@ class PoolTest extends TestCase
         $this->assertNotSame($pool->get('test2'), $mapper);
     }
 
+    public function testDynamic()
+    {
+        $pool = new Pool();
+        $pool->registerResolver(function() {
+            return $this->createMapper();
+        });
+
+        $this->assertNotNull($pool->get('mapper1'));
+        $this->assertSame($pool->get('mapper1'), $pool->get('mapper1'));
+        $this->assertNotSame($pool->get('mapper1'), $pool->get('mapper2'));
+    }
+
     public function testInvalidRegistration()
     {
         $pool = new Pool();
@@ -33,5 +45,18 @@ class PoolTest extends TestCase
         $pool = new Pool();
         $this->expectException(Exception::class);
         $pool->get('test');
+    }
+
+    public function testInvalidDynamicRetrieve()
+    {
+        $pool = new Pool();
+        $pool->registerResolver(function($service) {
+            return $service == 'tester' ? $this->createMapper() : null;
+        });
+
+        $this->assertNotNull($pool->get('tester'));
+
+        $this->expectException(Exception::class);
+        $pool->get('invalid');
     }
 }
