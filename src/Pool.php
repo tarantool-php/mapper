@@ -55,4 +55,9 @@ class Pool
 
         throw new Exception("Mapper $name is not registered");
     }
+
+    public function getMappers()
+    {
+        return array_values($this->mappers);
+    }
 }
