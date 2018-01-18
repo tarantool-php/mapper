@@ -22,16 +22,31 @@ class Schema
         }
     }
 
-    public function createSpace($space, $properties = null)
+    public function createSpace($space, $config = [])
     {
+        $engine = 'memtx';
+        if (array_key_exists('properties', $config)) {
+            if (array_key_exists('engine', $config)) {
+                $engine = $config['engine'];
+                if (!in_array($engine, ['memtx', 'vinyl'])) {
+                    throw new Exception("Invalid engine $engine");
+                }
+            }
+        }
+
         $id = $this->mapper->getClient()->evaluate("
-            box.schema.space.create('$space')
+            box.schema.space.create('$space', {
+                engine = '$engine'
+            })
             return box.space.$space.id
         ")->getData()[0];
 
         $this->names[$space] = $id;
+        $this->engines[$space] = $engine;
 
-        $this->spaces[$id] = new Space($this->mapper, $id, $space);
+        $this->spaces[$id] = new Space($this->mapper, $id, $space, $engine);
+
+        $properties = array_key_exists('properties', $config) ? $config['properties'] : $config;
 
         if ($properties) {
             $this->spaces[$id]->addProperties($properties);
@@ -104,7 +119,8 @@ class Schema
         if (!array_key_exists($id, $this->spaces)) {
             $name = array_search($id, $this->names);
             $meta = array_key_exists($id, $this->params) ? $this->params[$id] : null;
-            $this->spaces[$id] = new Space($this->mapper, $id, $name, $meta);
+            $engine = $this->engines[$name];
+            $this->spaces[$id] = new Space($this->mapper, $id, $name, $engine, $meta);
         }
         return $this->spaces[$id];
     }
@@ -143,14 +159,16 @@ class Schema
 
     public function reset()
     {
-        $this->names = $this->mapper->getClient()->evaluate("
+        [$this->names, $this->engines] = $this->mapper->getClient()->evaluate("
             local spaces = {}
+            local engines = {}
             local i, s
             for i, s in box.space._vspace:pairs() do
                 spaces[s[3]] = s[1]
+                engines[s[3]] = s[4]
             end
-            return spaces
-        ")->getData()[0];
+            return spaces, engines
+        ")->getData();
     }
 
     public function getMeta()
@@ -161,13 +179,15 @@ class Schema
         }
 
         return [
+            'engines' => $this->engines,
             'names' => $this->names,
-            'params' => $params
+            'params' => $params,
         ];
     }
 
     public function setMeta($meta)
     {
+        $this->engines = $meta['engines'];
         $this->names = $meta['names'];
         $this->params = $meta['params'];
     }

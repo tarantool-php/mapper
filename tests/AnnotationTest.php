@@ -23,6 +23,10 @@ class AnnotationTest extends TestCase
         $parent = $mapper->create('camel_parent', ['name' => 'p1']);
         $child = $mapper->create('camel_child', ['camelParent' => $parent, 'name' => 'c1']);
 
+        $repository = $mapper->getRepository('camel_child');
+        $this->assertInstanceOf('Repository\\CamelChild', $repository);
+        $this->assertSame($repository->getSpace()->getEngine(), 'vinyl');
+
         $this->assertSame($child->getCamelParent(), $parent);
         $this->assertSame($parent->getCamelChildCollection(), [$child]);
     }

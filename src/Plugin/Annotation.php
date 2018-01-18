@@ -79,10 +79,30 @@ class Annotation extends UserClasses
 
         $computes = [];
         foreach ($this->entityClasses as $entity) {
-            $spaceName = $this->getSpaceName($entity);
-            $space = $schema->hasSpace($spaceName) ? $schema->getSpace($spaceName) : $schema->createSpace($spaceName);
 
-            $this->mapEntity($spaceName, $entity);
+            $spaceName = $this->getSpaceName($entity);
+
+            $engine = 'memtx';
+            if (array_key_exists($spaceName, $this->repositoryMapping)) {
+                $repositoryClass = $this->repositoryMapping[$spaceName];
+                $repositoryReflection = new ReflectionClass($repositoryClass);
+                $repositoryProperties = $repositoryReflection->getDefaultProperties();
+                if (array_key_exists('engine', $repositoryProperties)) {
+                    $engine = $repositoryProperties['engine'];
+                }
+            }
+
+            if ($schema->hasSpace($spaceName)) {
+                $space = $schema->getSpace($spaceName);
+                if ($space->getEngine() != $engine) {
+                    throw new Exception("Space engine can't be updated");
+                }
+            } else {
+                $space = $schema->createSpace($spaceName, [
+                    'engine' => $engine,
+                    'properties' => [],
+                ]);
+            }
 
             $class = new ReflectionClass($entity);
 

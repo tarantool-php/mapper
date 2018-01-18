@@ -8,6 +8,27 @@ use Tarantool\Client\Request\InsertRequest;
 
 class MapperTest extends TestCase
 {
+    public function testVinylEngine()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $tester = $mapper->getSchema()
+            ->createSpace('tester', [
+                'engine' => 'vinyl',
+                'properties' => [
+                    'id' => 'unsigned',
+                    'value' => '*',
+                ]
+            ])
+            ->addIndex([
+                'fields' => ['id'],
+                'type' => 'tree'
+            ]);
+
+        $this->assertSame($tester->getEngine(), 'vinyl');
+    }
+
     public function testNullableColumns()
     {
         $mapper = $this->createMapper();
@@ -24,6 +45,7 @@ class MapperTest extends TestCase
             ]);
 
         $this->assertTrue($tester->isPropertyNullable('value'));
+        $this->assertSame($tester->getEngine(), 'memtx');
 
         $instance = $mapper->findOrCreate('tester', ['id' => 1]);
         $this->assertNull($instance->value);

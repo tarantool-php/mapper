@@ -11,6 +11,7 @@ class Space
 
     private $id;
     private $name;
+    private $engine;
     private $format;
     private $indexes;
 
@@ -20,17 +21,23 @@ class Space
 
     private $repository;
 
-    public function __construct(Mapper $mapper, $id, $name, $meta = null)
+    public function __construct(Mapper $mapper, $id, $name, $engine, $meta = null)
     {
         $this->mapper = $mapper;
         $this->id = $id;
         $this->name = $name;
+        $this->engine = $engine;
 
         if ($meta) {
             foreach ($meta as $key => $value) {
                 $this->$key = $value;
             }
         }
+    }
+
+    public function getEngine()
+    {
+        return $this->engine;
     }
 
     public function addProperties($config)

@@ -132,9 +132,13 @@ class InitTesterSchema implements Migration
 {
   public function migrate(Mapper $mapper)
   {
-    $tester = $mapper->getSchema()->createSpace('tester');
-    $tester->addProperty('id', 'unsigned');
-    $tester->addProperty('name', 'string');
+    $tester = $mapper->getSchema()->createSpace('tester', [
+      'engine' => 'memtx', // or vinyl
+      'properties' => [
+        'id' => 'unsigned',
+        'name' => 'string',
+      ]
+    ]);
     $tester->createIndex('id');
   }
 }
@@ -267,10 +271,11 @@ $mapper->get('shift_pattern', 1)->pattern[5]; // read element with index 5 from 
 If you want you can use sequence plugin that generates next value based on sequence space.
 Or you can implement id generator using any other source, for example with raft protocol.
 ```php
-$mapper->getSchema()->createSpace('post')
-  ->addProperty('id', 'unsigned')
-  ->addProperty('title', 'string')
-  ->addProperty('body', 'string')
+$mapper->getSchema()->createSpace('post', [
+    'id' => 'unsigned',
+    'title' => 'string',
+    'body' => 'string',
+  ])
   ->addIndex('id');
 
 $mapper->getPlugin(Tarantool\Mapper\Plugin\Sequence::class);
@@ -357,6 +362,8 @@ use Tarantool\Mapper\Repository;
 
 class Post extends Repository
 {
+    public $engine = 'memtx'; // or vinyl
+
     public $indexes = [
         ['id'],
         ['slug'],
