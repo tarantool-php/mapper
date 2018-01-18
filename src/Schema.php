@@ -11,6 +11,7 @@ class Schema
     private $names = [];
     private $spaces = [];
     private $params = [];
+    private $engines = [];
 
     public function __construct(Mapper $mapper, $meta = null)
     {
