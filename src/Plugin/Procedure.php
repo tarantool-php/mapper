@@ -47,6 +47,7 @@ class Procedure extends Plugin
             ";
             $this->mapper->getClient()->evaluate($script);
             $instance->hash = md5($body);
+            $instance->save();
         }
 
         return $procedure;
