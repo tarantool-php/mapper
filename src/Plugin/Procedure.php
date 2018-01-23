@@ -16,6 +16,7 @@ class Procedure extends Plugin
     public function invoke(BaseProcedure $procedure, $params)
     {
         $name = $procedure->getName();
+        $this->validatePresence($procedure);
         $result = $this->mapper->getClient()->call($name, $params);
         return $result->getData()[0];
     }
@@ -32,12 +33,21 @@ class Procedure extends Plugin
         }
         $this->initSchema();
 
-        $instance = $this->mapper->findOrCreate('_procedure', ['name' => $class]);
-
         $procedure = new $class($this);
+        $this->validatePresence($procedure);
+        return $procedure;
+    }
 
-        if ($instance->hash != md5($procedure->getBody())) {
-            $name = $procedure->getName();
+    private function validatePresence(BaseProcedure $procedure)
+    {
+        $name = $procedure->getName();
+        $exists = $this->mapper->getClient()->evaluate("return _G.$name ~= nil")->getData()[0];
+
+        $instance = $this->mapper->findOrCreate('_procedure', [
+            'name' => get_class($procedure)
+        ]);
+
+        if ($instance->hash != md5($procedure->getBody()) || !$exists) {
             $params = implode(', ', $procedure->getParams());
             $body = $procedure->getBody();
 
@@ -49,8 +59,6 @@ class Procedure extends Plugin
             $instance->hash = md5($body);
             $instance->save();
         }
-
-        return $procedure;
     }
 
     private function initSchema()

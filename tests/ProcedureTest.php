@@ -30,6 +30,10 @@ class ProcedureTest extends TestCase
 
         $greet = $procedure->get(Greet::class);
         $this->assertSame($greet('nekufa'), 'Hello, nekufa!');
+
+        $mapper->getClient()->evaluate("box.schema.func.drop('greet')");
+        $mapper->getClient()->evaluate("_G.greet = nil");
+        $this->assertSame($greet('nekufa'), 'Hello, nekufa!');
     }
 
     public function testNoRegistration()
