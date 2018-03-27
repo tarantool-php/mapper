@@ -17,7 +17,7 @@ services:
   - docker
 
 before_script:
-  - docker run -d --restart=always -p 3301:3301 --name tarantool progaudi/tarantool:1.7
+  - docker run -d --restart=always -p 3301:3301 --name tarantool progaudi/tarantool:2.0
   - composer self-update && composer global require hirak/prestissimo
   - composer install --no-interaction --prefer-source --optimize-autoloader
 
