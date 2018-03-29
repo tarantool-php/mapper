@@ -53,6 +53,11 @@ class Temporal extends Plugin
         }
     }
 
+    public function getAggregator()
+    {
+        return $this->aggregator;
+    }
+
     public function getReferenceLog($entity, $id, $target)
     {
         if (!$this->mapper->getSchema()->hasSpace('_temporal_reference')) {

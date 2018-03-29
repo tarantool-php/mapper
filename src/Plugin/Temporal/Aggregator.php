@@ -8,10 +8,16 @@ use Tarantool\Mapper\Plugin\Temporal;
 class Aggregator
 {
     private $temporal;
+    private $createReferenceAggregate = true;
 
     public function __construct(Temporal $temporal)
     {
         $this->temporal = $temporal;
+    }
+
+    public function setReferenceAggregation($value)
+    {
+        $this->createReferenceAggregate = $value;
     }
 
     public function getLeafs($link)
@@ -60,6 +66,10 @@ class Aggregator
             }
         }
 
+        if (!$this->createReferenceAggregate) {
+            return $affected;
+        }
+
         foreach ($affected as $affect) {
             list($entity, $entityId) = $affect;
             $changes = $mapper->find('_temporal_reference_state', [
@@ -71,6 +81,7 @@ class Aggregator
                 if (!in_array($change->id, $state->data)) {
                     $state->data[] = $change->id;
                 }
+                $state->exists = false;
             });
 
             $aggregateParams = [
@@ -79,9 +90,18 @@ class Aggregator
                 'source' => $params['entity']
             ];
             foreach ($mapper->find('_temporal_reference_aggregate', $aggregateParams) as $aggregate) {
+                foreach ($aggregates as $candidate) {
+                    if ($candidate->begin == $aggregate->begin && $candidate->end == $aggregate->end && $candidate->data == $aggregate->data) {
+                        $candidate->exists = true;
+                        continue 2;
+                    }
+                }
                 $mapper->remove($aggregate);
             }
             foreach ($aggregates as $aggregate) {
+                if ($aggregate->exists) {
+                    continue;
+                }
                 $mapper->create('_temporal_reference_aggregate', array_merge($aggregateParams, [
                     'begin' => $aggregate->begin,
                     'end' => $aggregate->end,
@@ -187,10 +207,6 @@ class Aggregator
                 $nextSliceId = $timestamp;
             }
 
-            foreach ($this->temporal->getMapper()->find('_temporal_link_aggregate', $params) as $state) {
-                $this->temporal->getMapper()->remove($state);
-            }
-
             $states = [];
             foreach ($timeaxis as $state) {
                 foreach ($changeaxis as $changes) {
@@ -229,6 +245,10 @@ class Aggregator
                 }
             }
 
+            foreach ($this->temporal->getMapper()->find('_temporal_link_aggregate', $params) as $state) {
+                $this->temporal->getMapper()->remove($state);
+            }
+
             foreach ($states as $state) {
                 $this->temporal->getMapper()->create('_temporal_link_aggregate', $state);
             }
@@ -246,11 +266,21 @@ class Aggregator
         $changes = $mapper->find('_temporal_override', $params);
         $states = $this->generateStates($changes, function ($state, $change) {
             $state->data = array_merge($state->data, $change->data);
+            $state->exists = false;
         });
         foreach ($mapper->find('_temporal_override_aggregate', $params) as $aggregate) {
+            foreach ($states as $state) {
+                if ($state->begin == $aggregate->begin && $state->end == $aggregate->end && $state->data == $aggregate->data) {
+                    $state->exists = true;
+                    continue 2;
+                }
+            }
             $mapper->remove($aggregate);
         }
         foreach ($states as $aggregate) {
+            if ($aggregate->exists) {
+                continue;
+            }
             $mapper->create('_temporal_override_aggregate', array_merge($params, [
                 'begin' => $aggregate->begin,
                 'end' => $aggregate->end,
