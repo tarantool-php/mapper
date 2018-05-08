@@ -144,11 +144,19 @@ class MapperTest extends TestCase
         $first = $mapper->findOrCreate('tester', $params);
         $this->assertNotNull($first);
         $this->assertSame($first, $mapper->findOrCreate('tester', $params));
+        $this->assertCount(1, $mapper->find('tester'));
 
         $anotherMapper = $this->createMapper();
         $anotherMapper->getPlugin(new Sequence($mapper));
         $anotherEntity = $anotherMapper->findOrCreate('tester', $params);
         $this->assertSame($anotherEntity->id, $first->id);
+
+        $params = ['label' => 'zzz'];
+        $second = $mapper->findOrCreate('tester', $params);
+        $this->assertNotNull($second);
+        $this->assertSame($second, $mapper->findOrCreate('tester', $params));
+        $this->assertCount(2, $mapper->find('tester'));
+
     }
 
     public function testFindOrFail()

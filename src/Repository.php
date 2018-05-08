@@ -109,6 +109,8 @@ class Repository
                 throw new Exception("Invalid key");
             }
 
+            $this->flushCache();
+
             return $this->findOrFail($key);
         }
 
