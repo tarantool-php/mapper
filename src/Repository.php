@@ -4,6 +4,8 @@ namespace Tarantool\Mapper;
 
 use Exception;
 use SplObjectStorage;
+use Tarantool\Mapper\Plugin\Procedure;
+use Tarantool\Mapper\Procedure\FindOrCreate;
 
 class Repository
 {
@@ -96,6 +98,20 @@ class Repository
 
     public function findOrCreate($params = [])
     {
+        if ($this->getSpace()->getName() != '_procedure') {
+
+            $key = $this->getMapper()
+                ->getPlugin(Procedure::class)
+                ->get(FindOrCreate::class)
+                ->execute($this->getSpace(), $this->normalize($params));
+
+            if (!$key) {
+                throw new Exception("Invalid key");
+            }
+
+            return $this->findOrFail($key);
+        }
+
         $entity = $this->findOne($params);
         if (!$entity) {
             $entity = $this->create($params);
