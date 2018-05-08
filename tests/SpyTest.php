@@ -18,13 +18,13 @@ class SpyTest extends TestCase
         $person->addProperty('id', 'unsigned');
         $person->addProperty('email', 'string');
         $person->createIndex('id');
+        $person->createIndex('email');
 
-        $nekufa = $mapper->create('person', ['email' => 'nekufa@gmail.com']);
+        $nekufa = $mapper->findOrCreate('person', ['email' => 'nekufa@gmail.com']);
 
         $mapper->getPlugin(Spy::class);
-        $this->assertCount(2, $mapper->getPlugins());
 
-        $rybakit = $mapper->create('person', ['email' => 'gen.work@gmail.com']);
+        $rybakit = $mapper->findOrCreate('person', ['email' => 'gen.work@gmail.com']);
         $nekufa->email = 'dmitry.krokhin@basis.company';
         $mapper->save($nekufa);
 

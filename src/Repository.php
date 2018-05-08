@@ -98,24 +98,32 @@ class Repository
 
     public function findOrCreate($params = [])
     {
-        if ($this->getSpace()->getName() != '_procedure') {
+        $space = $this->getSpace();
+
+        if ($space->getName() != '_procedure') {
 
             $result = $this->getMapper()
                 ->getPlugin(Procedure::class)
                 ->get(FindOrCreate::class)
-                ->execute($this->getSpace(), $this->normalize($params));
-
+                ->execute($space, $this->normalize($params));
 
             $instance = $this->findOrFail($result['key']);
             if ($result['created']) {
-                $this->flushCache();
                 if (method_exists($instance, 'beforeCreate')) {
                     $instance->beforeCreate();
                     $instance->save();
                 }
+                foreach ($this->getMapper()->getPlugins() as $plugin) {
+                    $plugin->beforeCreate($instance, $space);
+                }
+
+                foreach ($this->getMapper()->getPlugins() as $plugin) {
+                    $plugin->afterCreate($instance, $space);
+                }
                 if (method_exists($instance, 'afterCreate')) {
                     $instance->afterCreate();
                 }
+                $this->flushCache();
             }
         }
 
