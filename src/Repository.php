@@ -112,17 +112,12 @@ class Repository
         return $entity;
     }
 
-    public function find($params = [], $one = false)
+    public function normalize($params)
     {
-        $cacheKey = json_encode(func_get_args());
-
-        if (array_key_exists($cacheKey, $this->results)) {
-            return $this->results[$cacheKey];
-        }
-
         if (!is_array($params)) {
             $params = [$params];
         }
+
         if (count($params) == 1 && array_key_exists(0, $params)) {
             $primary = $this->space->getPrimaryIndex();
             if (count($primary['parts']) == 1) {
@@ -134,6 +129,19 @@ class Repository
                 }
             }
         }
+
+        return $params;
+    }
+
+    public function find($params = [], $one = false)
+    {
+        $cacheKey = json_encode(func_get_args());
+
+        if (array_key_exists($cacheKey, $this->results)) {
+            return $this->results[$cacheKey];
+        }
+
+        $params = $this->normalize($params);
 
         if (array_key_exists('id', $params)) {
             if (array_key_exists($params['id'], $this->persisted)) {
