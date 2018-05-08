@@ -29,7 +29,7 @@ class Sequence extends Plugin
         }
     }
 
-    private function generateValue($space)
+    public function initializeSequence($space)
     {
         $this->initSchema();
 
@@ -45,6 +45,13 @@ class Sequence extends Plugin
                 'counter' => $max,
             ]);
         }
+
+        return $entity;
+    }
+
+    private function generateValue($space)
+    {
+        $entity = $this->initializeSequence($space);
 
         $this->mapper->getSchema()->getSpace('sequence')
             ->getRepository()
