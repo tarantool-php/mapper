@@ -100,18 +100,23 @@ class Repository
     {
         if ($this->getSpace()->getName() != '_procedure') {
 
-            $key = $this->getMapper()
+            $result = $this->getMapper()
                 ->getPlugin(Procedure::class)
                 ->get(FindOrCreate::class)
                 ->execute($this->getSpace(), $this->normalize($params));
 
-            if (!$key) {
-                throw new Exception("Invalid key");
+
+            $instance = $this->findOrFail($result['key']);
+            if ($result['created']) {
+                $this->flushCache();
+                if (method_exists($instance, 'beforeCreate')) {
+                    $instance->beforeCreate();
+                    $instance->save();
+                }
+                if (method_exists($instance, 'afterCreate')) {
+                    $instance->afterCreate();
+                }
             }
-
-            $this->flushCache();
-
-            return $this->findOrFail($key);
         }
 
         $entity = $this->findOne($params);

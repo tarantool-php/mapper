@@ -135,9 +135,8 @@ class AnnotationTest extends TestCase
             'post'   => 'Entity\\Post',
         ]);
 
-
-        $nekufa = $mapper->create('person', [
-            'name' => 'Dmitry.Krokhin'
+        $nekufa = $mapper->findOrCreate('person', [
+            'name' => 'Dmitry.Krokhin',
         ]);
 
         $post = $mapper->create('post', [
@@ -150,7 +149,7 @@ class AnnotationTest extends TestCase
         $this->assertInstanceOf('Repository\\Post', $mapper->getSchema()->getSpace('post')->getRepository());
 
         $this->assertSame($post->getAuthor(), $nekufa);
-        $this->assertSame($nekufa->name, 'Dmitry.Krokhin!');
+        $this->assertSame($nekufa->fullName, 'Dmitry.Krokhin!');
 
         $meta = $mapper->getMeta();
 

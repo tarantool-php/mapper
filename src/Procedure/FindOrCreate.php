@@ -48,18 +48,21 @@ class FindOrCreate extends Procedure
             }
         }
 
-        $tuple = $this($space->getName(), $index, $values, $tuple, $sequence);
+        $result = $this($space->getName(), $index, $values, $tuple, $sequence);
 
-        if (is_string($tuple)) {
-            throw new Exception($tuple);
+        if (is_string($result)) {
+            throw new Exception($result);
         }
 
         $key = [];
         $format = $space->getFormat();
         foreach ($primary['parts'] as $part) {
-            $key[$format[$part[0]]['name']] = $tuple[$part[0]];
+            $key[$format[$part[0]]['name']] = $result['tuple'][$part[0]];
         }
-        return $key;
+        return [
+            'key' => $key,
+            'created' => !!$result['created'],
+        ];
     }
 
     public function getBody() : string
@@ -76,7 +79,7 @@ class FindOrCreate extends Procedure
         local instances = box.space[space].index[index]:select(params)
 
         if #instances > 0 then
-            return instances[1]
+            return {tuple = instances[1], created = 0}
         end
 
         if sequence == 1 then
@@ -87,7 +90,8 @@ class FindOrCreate extends Procedure
             tuple[1] = row[2];
         end
 
-        return box.space[space]:insert(tuple)
+        tuple = box.space[space]:insert(tuple)
+        return {tuple = tuple, created = 1}
 LUA;
     }
 

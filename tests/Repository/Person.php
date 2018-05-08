@@ -11,5 +11,6 @@ class Person extends MapperRepository
     public $indexes = [
         ['id'],
         ['fullName'],
+        ['name'],
     ];
 }
