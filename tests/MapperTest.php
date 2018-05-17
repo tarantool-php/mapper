@@ -131,6 +131,7 @@ class MapperTest extends TestCase
 
         $mapper->getSchema()
             ->createSpace('tester', [
+                'idle'  => 'unsigned',
                 'id'    => 'unsigned',
                 'label' => 'string',
             ])

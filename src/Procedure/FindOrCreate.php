@@ -38,8 +38,11 @@ class FindOrCreate extends Procedure
 
         $primary = $space->getPrimaryIndex();
         $sequence = 0;
+        $pkIndex = null;
         if (count($primary['parts']) == 1) {
-            $key = $space->getFormat()[$primary['parts'][0][0]]['name'];
+            $pkIndex = $primary['parts'][0][0];
+            $key = $space->getFormat()[$pkIndex]['name'];
+            $pkIndex++; // convert php to lua index
             if (!array_key_exists($key, $params) || !$params[$key]) {
                 $sequence = 1;
                 $space->getMapper()
@@ -48,7 +51,7 @@ class FindOrCreate extends Procedure
             }
         }
 
-        $result = $this($space->getName(), $index, $values, $tuple, $sequence);
+        $result = $this($space->getName(), $index, $values, $tuple, $sequence, $pkIndex);
 
         if (is_string($result)) {
             throw new Exception($result);
@@ -87,7 +90,7 @@ class FindOrCreate extends Procedure
                 return 'no _sequence space'
             end
             local row = box.space.sequence:update(box.space[space].id, {{'+', 2, 1}});
-            tuple[1] = row[2];
+            tuple[key] = row[2];
         end
 
         tuple = box.space[space]:insert(tuple)
@@ -97,7 +100,7 @@ LUA;
 
     public function getParams() : array
     {
-        return ['space', 'index', 'params', 'tuple', 'sequence'];
+        return ['space', 'index', 'params', 'tuple', 'sequence', 'key'];
     }
 
     public function getName() : string
