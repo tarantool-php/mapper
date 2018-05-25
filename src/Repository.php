@@ -107,6 +107,10 @@ class Repository
                 ->get(FindOrCreate::class)
                 ->execute($space, $this->normalize($params));
 
+            if ($result['created']) {
+                $this->flushCache();
+            }
+
             $instance = $this->findOrFail($result['key']);
             if ($result['created']) {
                 if (method_exists($instance, 'beforeCreate')) {

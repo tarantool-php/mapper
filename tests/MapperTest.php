@@ -123,27 +123,28 @@ class MapperTest extends TestCase
         ]);
     }
 
-    public function findOrCreateWithoutSequence()
+    public function testFindOrCreateWithoutSequence()
     {
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
         $mapper->getSchema()
             ->createSpace('tester', [
-                'year'    => 'unsigned',
-                'month'    => 'unsigned',
+                'flow'    => 'unsigned',
+                'entityId'    => 'unsigned',
             ])
-            ->addIndex(['year', 'month']);
+            ->addIndex(['flow', 'entityId']);
 
-        $instance = $mapper->findOrCreate('tester', ['year' => 2018, 'month' => 5]);
+        $instance = $mapper->findOne('tester', ['flow' => 1, 'entityId' => 2]);
+        $instance = $mapper->findOrCreate('tester', ['flow' => 1, 'entityId' => 2]);
         $this->assertNotNull($instance);
-        $this->assertSame($instance->id, 1);
+        $this->assertSame($instance->flow, 1);
 
         $anotherMapper = $this->createMapper();
-        $anotherInstance = $anotherMapper->findOrCreate('tester', ['year' => 2018, 'month' => 5]);
+        $anotherInstance = $anotherMapper->findOrCreate('tester', ['flow' => 1, 'entityId' => 2]);
 
         $this->assertNotNull($anotherInstance);
-        $this->assertSame($anotherInstance->id, $instance->id);
+        $this->assertSame($anotherInstance->flow, $instance->flow);
     }
 
     public function testFindOrCreateShortcut()
