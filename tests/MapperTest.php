@@ -123,6 +123,29 @@ class MapperTest extends TestCase
         ]);
     }
 
+    public function findOrCreateWithoutSequence()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('tester', [
+                'year'    => 'unsigned',
+                'month'    => 'unsigned',
+            ])
+            ->addIndex(['year', 'month']);
+
+        $instance = $mapper->findOrCreate('tester', ['year' => 2018, 'month' => 5]);
+        $this->assertNotNull($instance);
+        $this->assertSame($instance->id, 1);
+
+        $anotherMapper = $this->createMapper();
+        $anotherInstance = $anotherMapper->findOrCreate('tester', ['year' => 2018, 'month' => 5]);
+
+        $this->assertNotNull($anotherInstance);
+        $this->assertSame($anotherInstance->id, $instance->id);
+    }
+
     public function testFindOrCreateShortcut()
     {
         $mapper = $this->createMapper();
@@ -163,8 +186,8 @@ class MapperTest extends TestCase
     public function testFindOrFail()
     {
         $mapper = $this->createMapper();
-        $mapper->getPlugin(new Sequence($mapper));
         $this->clean($mapper);
+        $mapper->getPlugin(Sequence::class);
 
         $mapper->getSchema()
             ->createSpace('tester', [
