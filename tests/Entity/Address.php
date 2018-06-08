@@ -23,11 +23,13 @@ class Address extends Entity
 
     /**
      * @var string
+     * @required
      */
     public $street;
 
     /**
      * @var integer
+     * @type integer
      */
     public $house;
 }

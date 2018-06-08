@@ -115,19 +115,35 @@ class Annotation extends UserClasses
                     throw new Exception("No var tag for ".$entity.'::'.$property->getName());
                 }
 
-                if (count($tags) > 1) {
-                    throw new Exception("Invalid var tag for ".$entity.'::'.$property->getName());
+                $byTypes = [];
+                foreach ($tags as $candidate) {
+                    $byTypes[$candidate->getName()] = $candidate;
+                }
+
+                if (!array_key_exists('var', $byTypes)) {
+                    throw new Exception("No var tag for ".$entity.'::'.$property->getName());
                 }
 
                 $propertyName = $property->getName();
-                $phpType = $tags[0]->getType();
-                $type = $this->getTarantoolType($phpType);
+                $phpType = $byTypes['var']->getType();
+
+                if (array_key_exists('type', $byTypes)) {
+                    $type = (string) $byTypes['type']->getDescription();
+                } else {
+                    $type = $this->getTarantoolType($phpType);
+                }
+
+                $isNullable = true;
+
+                if (array_key_exists('required', $byTypes)) {
+                    $isNullable = false;
+                }
 
                 if (!$space->hasProperty($propertyName)) {
                     if ($this->isReference($phpType)) {
-                        $space->addProperty($propertyName, $type, true, $this->getSpaceName((string) $phpType));
+                        $space->addProperty($propertyName, $type, $isNullable, $this->getSpaceName((string) $phpType));
                     } else {
-                        $space->addProperty($propertyName, $type);
+                        $space->addProperty($propertyName, $type, $isNullable);
                     }
                 }
             }

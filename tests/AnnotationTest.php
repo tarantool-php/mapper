@@ -93,6 +93,26 @@ class AnnotationTest extends TestCase
         $annotation->migrate();
     }
 
+    public function testTarantoolTypeHint()
+    {
+        $mapper = $this->createMapper();
+
+        $annotation = $mapper->getPlugin(Annotation::class);
+        $annotation->register('Entity\\Address');
+        $annotation->migrate();
+
+        $space = $mapper->findOne('_space', ['name' => 'address']);
+
+        // required tag for address field
+        $this->assertSame(false, $space->format[3]['is_nullable']);
+
+        // house property
+        // tarantool type hint (allow negative values)
+        $this->assertSame('integer', $space->format[4]['type']);
+        // property is nullable by default
+        $this->assertSame(true, $space->format[4]['is_nullable']);
+    }
+
     public function testCorrectDefinition()
     {
         $mapper = $this->createMapper();
