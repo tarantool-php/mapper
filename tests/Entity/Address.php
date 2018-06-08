@@ -30,6 +30,13 @@ class Address extends Entity
     /**
      * @var integer
      * @type integer
+     * @required
      */
     public $house;
+
+    /**
+     * @var integer
+     * @type integer
+     */
+    public $flat;
 }

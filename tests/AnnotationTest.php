@@ -109,8 +109,19 @@ class AnnotationTest extends TestCase
         // house property
         // tarantool type hint (allow negative values)
         $this->assertSame('integer', $space->format[4]['type']);
-        // property is nullable by default
-        $this->assertSame(true, $space->format[4]['is_nullable']);
+        // property is required
+        $this->assertSame(false, $space->format[4]['is_nullable']);
+
+        // house property
+        // tarantool type hint (allow negative values)
+        $this->assertSame('integer', $space->format[5]['type']);
+        // property is not required
+        $this->assertSame(true, $space->format[5]['is_nullable']);
+
+        $address = $mapper->create('address', []);
+        $this->assertSame($address->street, "");
+        $this->assertSame($address->house, 0);
+        $this->assertNull($address->flat);
     }
 
     public function testCorrectDefinition()

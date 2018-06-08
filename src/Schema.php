@@ -70,6 +70,8 @@ class Schema
             case 'number':
                 return (float) null;
 
+            case 'integer':
+            case 'INTEGER':
             case 'unsigned':
             case 'UNSIGNED':
             case 'num':
@@ -96,6 +98,8 @@ class Schema
             case 'number':
                 return (float) $value;
 
+            case 'integer':
+            case 'INTEGER':
             case 'unsigned':
             case 'UNSIGNED':
             case 'num':
