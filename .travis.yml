@@ -8,6 +8,11 @@ php:
   - nightly
   - master
 
+env:
+  - TARANTOOL_TAG=1.9
+  - TARANTOOL_TAG=1.10
+  - TARANTOOL_TAG=2.0
+
 matrix:
   allow_failures:
     - php: nightly
@@ -17,7 +22,7 @@ services:
   - docker
 
 before_script:
-  - docker run -d --restart=always -p 3301:3301 --name tarantool progaudi/tarantool:2.0
+  - docker run -d --restart=always -p 3301:3301 --name tarantool progaudi/tarantool:$TARANTOOL_TAG
   - composer self-update && composer global require hirak/prestissimo
   - composer install --no-interaction --prefer-source --optimize-autoloader
 
