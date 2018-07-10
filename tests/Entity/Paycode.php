@@ -18,6 +18,7 @@ class Paycode extends MapperEntity
 
     /**
      * @var float
+     * @default 0.5
      */
     public $factor;
 }

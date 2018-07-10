@@ -488,7 +488,9 @@ class Repository
 
             $instance->$name = $schema->formatValue($info['type'], $instance->$name);
             if (is_null($instance->$name)) {
-                if (!$this->space->isPropertyNullable($name)) {
+                if ($this->space->hasDefaultValue($name)) {
+                    $instance->$name = $this->space->getDefaultValue($name);
+                } elseif (!$this->space->isPropertyNullable($name)) {
                     $instance->$name = $schema->getDefaultValue($info['type']);
                 }
             }

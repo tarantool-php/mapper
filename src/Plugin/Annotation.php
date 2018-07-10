@@ -140,11 +140,16 @@ class Annotation extends UserClasses
                 }
 
                 if (!$space->hasProperty($propertyName)) {
+                    $opts = [
+                        'is_nullable' => $isNullable,
+                    ];
                     if ($this->isReference($phpType)) {
-                        $space->addProperty($propertyName, $type, $isNullable, $this->getSpaceName((string) $phpType));
-                    } else {
-                        $space->addProperty($propertyName, $type, $isNullable);
+                        $opts['reference'] = $this->getSpaceName((string) $phpType);
                     }
+                    if (array_key_exists('default', $byTypes)) {
+                        $opts['default'] = $schema->formatValue($type, (string) $byTypes['default']);
+                    }
+                    $space->addProperty($propertyName, $type, $opts);
                 }
             }
             if ($this->mapper->hasPlugin(NestedSet::class)) {

@@ -48,7 +48,7 @@ class Space
         return $this;
     }
 
-    public function addProperty($name, $type, $is_nullable = true, $reference = null)
+    public function addProperty($name, $type, $opts = [])
     {
         $format = $this->getFormat();
         foreach ($format as $field) {
@@ -56,17 +56,40 @@ class Space
                 throw new Exception("Property $name exists");
             }
         }
-        $row = compact('name', 'type', 'is_nullable');
-        if ($reference) {
-            $row['reference'] = $reference;
+
+        $row = array_merge(compact('name', 'type'), $opts);
+        if (!array_key_exists('is_nullable', $row)) {
+            $row['is_nullable'] = true;
         }
+
         $format[] = $row;
+
         $this->format = $format;
         $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
 
         $this->parseFormat();
 
         return $this;
+    }
+
+    public function hasDefaultValue($name)
+    {
+        foreach ($this->getFormat() as $field) {
+            if ($field['name'] == $name) {
+                return array_key_exists('default', $field);
+            }
+        }
+    }
+
+    public function getDefaultValue($name)
+    {
+        foreach ($this->getFormat() as $field) {
+            if ($field['name'] == $name) {
+                if (array_key_exists('default', $field)) {
+                    return $field['default'];
+                }
+            }
+        }
     }
 
     public function isPropertyNullable($name)

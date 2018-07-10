@@ -36,23 +36,32 @@ class AnnotationTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
 
-        $paycode = $mapper->getSchema()
+        $paycodeSpace = $mapper->getSchema()
             ->createSpace('paycode', [
                 'id' => 'unsigned',
                 'name' => 'string',
             ])
             ->addIndex('id');
 
-        $mapper->create('paycode', [
+        $paycode = $mapper->create('paycode', [
             'id' => 1,
             'name' => 'tester'
         ]);
+        $this->assertObjectNotHasAttribute('factor', $paycode);
 
         $annotation = $mapper->getPlugin(Annotation::class);
         $annotation->register('Entity\\Paycode');
         $annotation->migrate();
 
-        $this->assertTrue($paycode->isPropertyNullable('factor'));
+        $this->assertTrue($paycodeSpace->isPropertyNullable('factor'));
+        $this->assertTrue($paycodeSpace->hasDefaultValue('factor'));
+
+        $paycode = $mapper->create('paycode', [
+            'id' => 2,
+            'name' => 'tester2'
+        ]);
+
+        $this->assertSame($paycode->factor, 0.5);
     }
     public function testFloatType()
     {

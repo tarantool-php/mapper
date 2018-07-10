@@ -158,7 +158,9 @@ class SchemaTest extends TestCase
         $schema = $mapper->getSchema();
 
         $test = $schema->createSpace('test');
-        $test->addProperty('a', 'unsigned');
+        $test->addProperty('a', 'unsigned', [
+            'default' => 42
+        ]);
         $test->addProperty('b', 'unsigned');
         $test->createIndex(['a', 'b']);
 
@@ -218,7 +220,9 @@ class SchemaTest extends TestCase
         $person->addProperty('id', 'unsigned');
         $person->addProperty('name', 'string');
         $person->addProperty('birthday', 'unsigned');
-        $person->addProperty('gender', 'string');
+        $person->addProperty('gender', 'string', [
+            'default' => 'male'
+        ]);
 
         // define type
         $person->createIndex([
@@ -249,7 +253,6 @@ class SchemaTest extends TestCase
         $this->assertSame($birthday->type, 'tree');
         $this->assertSame($nameBirthday->type, 'hash');
 
-
         $person = $mapper->findOne('person', ['birthday' => '19840127']);
         $this->assertNull($person);
 
@@ -266,7 +269,8 @@ class SchemaTest extends TestCase
         $this->assertSame($nekufa->id, 1);
         $this->assertSame($nekufa->name, 'nekufa');
         $this->assertSame($nekufa->birthday, 19840127);
-        $this->assertNull($nekufa->gender);
+        $this->assertSame($nekufa->gender, 'male');
+
 
         $person = $mapper->findOne('person', ['birthday' => '19840127']);
         $this->assertSame($person, $nekufa);
