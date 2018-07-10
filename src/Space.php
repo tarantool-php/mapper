@@ -51,10 +51,9 @@ class Space
     public function addProperty($name, $type, $opts = [])
     {
         $format = $this->getFormat();
-        foreach ($format as $field) {
-            if ($field['name'] == $name) {
-                throw new Exception("Property $name exists");
-            }
+
+        if ($this->getProperty($name, false)) {
+            throw new Exception("Property $name exists");
         }
 
         $row = array_merge(compact('name', 'type'), $opts);
@@ -64,41 +63,29 @@ class Space
 
         $format[] = $row;
 
-        $this->format = $format;
-        $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
-
-        $this->parseFormat();
-
-        return $this;
+        return $this->setFormat($format);
     }
 
     public function hasDefaultValue($name)
     {
-        foreach ($this->getFormat() as $field) {
-            if ($field['name'] == $name) {
-                return array_key_exists('default', $field);
-            }
-        }
+        return array_key_exists('default', $this->getProperty($name));
     }
 
     public function getDefaultValue($name)
     {
-        foreach ($this->getFormat() as $field) {
-            if ($field['name'] == $name) {
-                if (array_key_exists('default', $field)) {
-                    return $field['default'];
-                }
-            }
-        }
+        return $this->getPropertyFlag($name, 'default');
     }
 
     public function isPropertyNullable($name)
     {
-        foreach ($this->getFormat() as $field) {
-            if ($field['name'] == $name) {
-                return array_key_exists('is_nullable', $field) ? $field['is_nullable'] : false;
-            }
-        }
+        return $this->getPropertyFlag($name, 'is_nullable');
+    }
+
+    public function setFormat($format)
+    {
+        $this->format = $format;
+        $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
+        return $this->parseFormat();
     }
 
     public function setPropertyNullable($name, $nullable = true)
@@ -109,12 +96,8 @@ class Space
                 $format[$i]['is_nullable'] = $nullable;
             }
         }
-        $this->format = $format;
-        $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
 
-        $this->parseFormat();
-
-        return $this;
+        return $this->setFormat($format);
     }
 
     public function removeProperty($name)
@@ -124,12 +107,8 @@ class Space
         if ($last['name'] != $name) {
             throw new Exception("Remove only last property");
         }
-        $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
-        $this->format = $format;
 
-        $this->parseFormat();
-
-        return $this;
+        return $this->setFormat($format);
     }
 
     public function removeIndex($name)
@@ -151,7 +130,6 @@ class Space
         if (!is_array($config)) {
             $config = ['fields' => $config];
         }
-
 
         if (!array_key_exists('fields', $config)) {
             if (array_values($config) != $config) {
@@ -195,15 +173,20 @@ class Space
         return $this;
     }
 
-    public function getIndexType($id)
+    public function getIndex($id)
     {
         foreach ($this->getIndexes() as $index) {
             if ($index['iid'] == $id) {
-                return $index['type'];
+                return $index;
             }
         }
 
         throw new Exception("Invalid index #$index");
+    }
+
+    public function getIndexType($id)
+    {
+        return $this->getIndex($id)['type'];
     }
 
     public function isSpecial()
@@ -287,6 +270,27 @@ class Space
             'indexes' => $this->indexes,
             'format' => $this->format,
         ];
+    }
+
+    public function getProperty($name, $required = true)
+    {
+        foreach ($this->getFormat() as $field) {
+            if ($field['name'] == $name) {
+                return $field;
+            }
+        }
+
+        if ($required) {
+            throw new Exception("Invalid property $name");
+        }
+    }
+
+    public function getPropertyFlag($name, $flag)
+    {
+        $property = $this->getProperty($name);
+        if (array_key_exists($flag, $property)) {
+            return $property[$flag];
+        }
     }
 
     public function getPropertyType($name)
@@ -399,18 +403,9 @@ class Space
 
     public function getIndexValues($indexId, $params)
     {
-        $index = null;
-        foreach ($this->getIndexes() as $candidate) {
-            if ($candidate['iid'] == $indexId) {
-                $index = $candidate;
-                break;
-            }
-        }
-        if (!$index) {
-            throw new Exception("Undefined index: $indexId");
-        }
-
+        $index = $this->getIndex($indexId);
         $format = $this->getFormat();
+
         $values = [];
         foreach ($index['parts'] as $part) {
             $name = $format[$part[0]]['name'];
@@ -428,11 +423,7 @@ class Space
 
     public function getPrimaryIndex()
     {
-        $indexes = $this->getIndexes();
-        if (!count($indexes)) {
-            throw new Exception("No primary index");
-        }
-        return $indexes[0];
+        return $this->getIndex(0);
     }
 
     public function getTupleKey($tuple)
