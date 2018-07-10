@@ -61,6 +61,11 @@ class Space
             $row['is_nullable'] = true;
         }
 
+        if (array_key_exists('default', $row)) {
+            $row['defaultValue'] = $row['default'];
+            unset($row['default']);
+        }
+
         $format[] = $row;
 
         return $this->setFormat($format);
@@ -68,12 +73,12 @@ class Space
 
     public function hasDefaultValue($name)
     {
-        return array_key_exists('default', $this->getProperty($name));
+        return array_key_exists('defaultValue', $this->getProperty($name));
     }
 
     public function getDefaultValue($name)
     {
-        return $this->getPropertyFlag($name, 'default');
+        return $this->getPropertyFlag($name, 'defaultValue');
     }
 
     public function isPropertyNullable($name)
