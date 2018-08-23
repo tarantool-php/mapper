@@ -199,6 +199,11 @@ class Space
         return $this->id == ClientSpace::VSPACE || $this->id == ClientSpace::VINDEX;
     }
 
+    public function isSystem()
+    {
+        return $this->id < 512;
+    }
+
     public function getId()
     {
         return $this->id;

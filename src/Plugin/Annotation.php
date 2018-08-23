@@ -199,6 +199,9 @@ class Annotation extends UserClasses
             }
         }
         foreach ($schema->getSpaces() as $space) {
+            if ($space->isSystem()) {
+                continue;
+            }
             if (!count($space->getIndexes())) {
                 if (!$space->hasProperty('id')) {
                     throw new Exception("No primary index on ". $space->getName());
