@@ -221,6 +221,28 @@ class MapperTest extends TestCase
         $this->assertSame(1, $space->castIndex(['label' => 1]));
     }
 
+    public function testComplexIndexCasting()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $client = $mapper->getClient();
+
+        $space = $mapper->getSchema()
+            ->createSpace('stage', [
+                'id' => 'unsigned',
+                'year' => 'unsigned',
+                'month' => 'unsigned',
+                'day' => 'unsigned',
+            ])
+            ->addIndex('id')
+            ->addIndex(['year', 'month', 'day']);
+
+        $this->assertSame(0, $space->castIndex(['id' => 1]));
+        $this->assertSame(1, $space->castIndex(['year' => 1, 'month' => 2]));
+        $this->assertSame(1, $space->castIndex(['month' => 2, 'year' => 1]));
+    }
+
     public function testArray()
     {
         $mapper = $this->createMapper();

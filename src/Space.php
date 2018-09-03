@@ -365,11 +365,10 @@ class Space
         if (!count($this->getIndexes())) {
             return;
         }
-        $keys = array_keys($params);
 
         $keys = [];
         foreach ($params as $name => $value) {
-            $keys[] = $this->getPropertyIndex($name);
+            $keys[$this->getPropertyIndex($name)] = $name;
         }
 
         // equals
@@ -379,7 +378,7 @@ class Space
                 // same length
                 $equals = true;
                 foreach ($index['parts'] as $part) {
-                    $equals = $equals && in_array($part[0], $keys);
+                    $equals = $equals && array_key_exists($part[0], $keys);
                 }
             }
 
@@ -392,13 +391,10 @@ class Space
         foreach ($this->getIndexes() as $index) {
             $partial = [];
             foreach ($index['parts'] as $n => $part) {
-                if (!array_key_exists($n, $keys)) {
+                if (!array_key_exists($part[0], $keys)) {
                     break;
                 }
-                if ($keys[$n] != $part[0]) {
-                    break;
-                }
-                $partial[] = $keys[$n];
+                $partial[] = $keys[$part[0]];
             }
 
             if (count($partial) == count($keys)) {
