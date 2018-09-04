@@ -352,6 +352,12 @@ class Post extends Entity
      * @var Person
      */
     public $author;
+    
+    /**
+     * @var integer
+     * @required
+     */
+    public $salary;
 }
 ```
 If you want to index fields, extend repository and define indexes property
@@ -365,8 +371,13 @@ class Post extends Repository
     public $engine = 'memtx'; // or vinyl
 
     public $indexes = [
+        // if your index is unique, you can set property collection
         ['id'],
-        ['slug'],
+        // extended definition unique index with one field
+        [
+          'fields' => ['slug'],
+          'unique' => true,
+        ],
         // extended definition (similar to Space::addIndex params)
         // [
         //  'fields' => ['year', 'month', 'day'],
@@ -395,6 +406,9 @@ $post = $mapper->create('post', [
 
 // in addition you can simple get related entity
 $post->getAuthor() == $nekufa; // true
+
+// or related collection
+$nekufa->getPostCollection() == [$post]; // true
 
 ```
 
