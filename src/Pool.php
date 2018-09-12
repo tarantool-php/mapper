@@ -38,6 +38,11 @@ class Pool
 
     public function get($name)
     {
+        return $this->getMapper($name);
+    }
+
+    public function getMapper($name)
+    {
         if (array_key_exists($name, $this->mappers)) {
             return $this->mappers[$name];
         }
@@ -59,5 +64,39 @@ class Pool
     public function getMappers()
     {
         return array_values($this->mappers);
+    }
+
+    public function getRepository($space)
+    {
+        $parts = explode('.', $space);
+        if (count($parts) !== 2) {
+            throw new Exception("Invalid pool space name: $space");
+        }
+        return $this->getMapper($parts[0])->getRepository($parts[1]);
+    }
+
+    public function create(string $space, $data)
+    {
+        return $this->getRepository($space)->create($data)->save();
+    }
+
+    public function findOne(string $space, $params = [])
+    {
+        return $this->getRepository($space)->findOne($params);
+    }
+
+    public function findOrCreate(string $space, $params = [])
+    {
+        return $this->getRepository($space)->findOrCreate($params)->save();
+    }
+
+    public function findOrFail(string $space, $params = [])
+    {
+        return $this->getRepository($space)->findOrFail($params);
+    }
+
+    public function find(string $space, $params = [])
+    {
+        return $this->getRepository($space)->find($params);
     }
 }
