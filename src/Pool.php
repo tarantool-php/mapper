@@ -9,6 +9,7 @@ class Pool
     private $description = [];
     private $mappers = [];
     private $resolvers = [];
+    private $repositories = [];
 
     public function register($name, $handler)
     {
@@ -68,11 +69,14 @@ class Pool
 
     public function getRepository($space)
     {
-        $parts = explode('.', $space);
-        if (count($parts) !== 2) {
-            throw new Exception("Invalid pool space name: $space");
+        if (!array_key_exists($space, $this->repositories)) {
+            $parts = explode('.', $space);
+            if (count($parts) !== 2) {
+                throw new Exception("Invalid pool space name: $space");
+            }
+            $this->repositories[$space] = $this->getMapper($parts[0])->getRepository($parts[1]);
         }
-        return $this->getMapper($parts[0])->getRepository($parts[1]);
+        return $this->repositories[$space];
     }
 
     public function create(string $space, $data)
