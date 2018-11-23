@@ -114,6 +114,32 @@ class TemporalTest extends TestCase
             ]
         ]);
 
+        $states = $temporal->getReferenceStates('person', 11, 'position', 20170815, 20181123);
+        $this->assertCount(1, $states);
+        $this->assertSame($states[0]['begin'], 20170815);
+        $this->assertSame($states[0]['end'], 20181123);
+
+        $states = $temporal->getReferenceStates('person', 11, 'position', 20170819, 20181123);
+        $this->assertCount(1, $states);
+        $this->assertSame($states[0]['begin'], 20170819);
+        $this->assertSame($states[0]['end'], 20181123);
+
+        $states = $temporal->getReferenceStates('person', 11, 'position', 20170810, 20181123);
+        $this->assertCount(2, $states);
+        $this->assertSame($states[0]['begin'], 20170810);
+        $this->assertSame($states[0]['end'], 20170815);
+        $this->assertSame($states[1]['begin'], 20170815);
+        $this->assertSame($states[1]['end'], 20181123);
+
+
+        $states = $temporal->getReferenceStates('person', 11, 'position', 20170715, 20181123);
+        $this->assertCount(2, $states);
+        $this->assertSame($states[0]['begin'], 20170801);
+        $this->assertSame($states[0]['end'], 20170815);
+        $this->assertSame($states[1]['begin'], 20170815);
+        $this->assertSame($states[1]['end'], 20181123);
+
+
         $temporal->reference([
             'person'  => 22,
             'begin' => 20170825,
@@ -133,6 +159,7 @@ class TemporalTest extends TestCase
         $this->assertCount(2, $temporal->getReferenceLog('person', 11, 'position'));
         $this->assertCount(2, $temporal->getReferenceLog('person', 22, 'position'));
         $this->assertCount(0, $temporal->getReferenceLog('person', 33, 'position'));
+
 
         $this->assertNull($temporal->getReference('person', 11, 'position', 20170705));
         $this->assertEquals(1, $temporal->getReference('person', 11, 'position', 20170801));

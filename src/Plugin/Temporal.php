@@ -75,6 +75,35 @@ class Temporal extends Plugin
         return $log;
     }
 
+    public function getReferenceStates($entity, $entityId, $target, $begin, $end)
+    {
+        if (!$this->mapper->getSchema()->hasSpace('_temporal_reference_state')) {
+            return;
+        }
+
+        $states = $this->mapper->find('_temporal_reference_state', [
+            'entity' => $this->entityNameToId($entity),
+            'id' => $entityId,
+            'target' => $this->entityNameToId($target),
+        ]);
+
+        $begin = $this->getTimestamp($begin);
+        $end = $this->getTimestamp($end);
+
+        $slices = [];
+        foreach ($states as $state) {
+            if ($state->begin < $end && ($begin < $state->end || !$state->end)) {
+                $slices[] = [
+                    'begin' => +date('Ymd', max($state->begin, $begin)),
+                    'end' => +date('Ymd', min($state->end ?: $end, $end)),
+                    'value' => $state->targetId,
+                ];
+            }
+        }
+
+        return $slices;
+    }
+
     public function getReferences($target, $targetId, $source, $date)
     {
         if (!$this->mapper->getSchema()->hasSpace('_temporal_reference_aggregate')) {
