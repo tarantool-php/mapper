@@ -346,6 +346,10 @@ class Aggregator
             foreach ($states as $i => $state) {
                 if (array_key_exists($i+1, $states)) {
                     $next = $states[$i+1];
+                    if ($state->end && $state->end < $next->begin) {
+                        // unmergable
+                        continue;
+                    }
                     if (json_encode($state->data) == json_encode($next->data)) {
                         $state->end = $next->end;
                         unset($states[$i+1]);

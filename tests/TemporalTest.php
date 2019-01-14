@@ -625,4 +625,53 @@ class TemporalTest extends TestCase
             'key2' => 20170806,
         ]);
     }
+
+    public function testReferenceStateAggregation()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $temporal = $mapper->getPlugin(Temporal::class);
+        $temporal->setActor(1);
+
+        $temporal->reference([
+            'begin' => 20190114,
+            'end' => 20190115,
+            'person' => 27,
+            'data' => [
+                'position' => 2
+            ]
+        ]);
+
+        $temporal->reference([
+            'begin' => 20190121,
+            'end' => 20190122,
+            'person' => 27,
+            'data' => [
+                'position' => 2
+            ]
+        ]);
+
+        $this->assertCount(2, $mapper->find('_temporal_reference_state'));
+
+        $temporal->reference([
+            'begin' => 20190115,
+            'end' => 20190119,
+            'person' => 27,
+            'data' => [
+                'position' => 2
+            ]
+        ]);
+        $this->assertCount(2, $mapper->find('_temporal_reference_state'));
+
+        $temporal->reference([
+            'begin' => 20190119,
+            'end' => 20190121,
+            'person' => 27,
+            'data' => [
+                'position' => 2
+            ]
+        ]);
+        $this->assertCount(1, $mapper->find('_temporal_reference_state'));
+    }
 }
