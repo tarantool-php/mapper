@@ -4,6 +4,7 @@ namespace Tarantool\Mapper\Plugin;
 
 use Closure;
 use Exception;
+use LogicException;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Types\ContextFactory;
 use ReflectionClass;
@@ -12,6 +13,7 @@ use ReflectionProperty;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin\NestedSet;
 use Tarantool\Mapper\Repository;
+use Tarantool\Mapper\Space;
 
 class Annotation extends UserClasses
 {
@@ -20,6 +22,8 @@ class Annotation extends UserClasses
 
     protected $repositoryClasses = [];
     protected $repositoryPostifx;
+
+    protected $extensions;
 
     public function register($class)
     {
@@ -70,7 +74,34 @@ class Annotation extends UserClasses
         return parent::validateSpace($space);
     }
 
-    public function migrate()
+    public function getSpace($instance)
+    {
+        $class = get_class($instance);
+        $target = $this->isExtension($class) ? $this->getExtensions()[$class] : $class;
+        return $this->getSpaceName($target);
+    }
+
+    public function isExtension($class)
+    {
+        return array_key_exists($class, $this->getExtensions());
+    }
+
+    public function getExtensions()
+    {
+        if (is_null($this->extensions)) {
+            $this->extensions = [];
+            foreach ($this->entityClasses as $entity) {
+                $reflection = new ReflectionClass($entity);
+                $parentEntity = $reflection->getParentClass()->getName();
+                if (in_array($parentEntity, $this->entityClasses)) {
+                    $this->extensions[$entity] = $parentEntity;
+                }
+            }
+        }
+        return $this->extensions;
+    }
+
+    public function migrate($extensionInstances = true)
     {
         $factory = DocBlockFactory::createInstance();
         $contextFactory = new ContextFactory();
@@ -79,6 +110,9 @@ class Annotation extends UserClasses
 
         $computes = [];
         foreach ($this->entityClasses as $entity) {
+            if ($this->isExtension($entity)) {
+                continue;
+            }
 
             $spaceName = $this->getSpaceName($entity);
 
@@ -158,6 +192,12 @@ class Annotation extends UserClasses
                     $nested->addIndexes($space);
                 }
             }
+            if (in_array($entity, $this->extensions)) {
+                if (!$space->hasProperty('class')) {
+                    throw new Exception("$entity has extensions, but not class property is defined");
+                }
+                $space->addIndex('class');
+            }
 
             if ($class->hasMethod('compute')) {
                 $computes[] = $spaceName;
@@ -221,7 +261,28 @@ class Annotation extends UserClasses
             $this->mapper->getPlugin(Compute::class)->register($sourceSpace, $spaceName, $compute);
         }
 
+        if ($extensionInstances) {
+            foreach ($this->extensions as $class => $target) {
+                $space = $this->getSpaceName($target);
+                $this->mapper->findOrCreate($space, [
+                    'class' => $class,
+                ]);
+            }
+        }
+
         return $this;
+    }
+
+    public function getEntityClass(Space $space, array $data)
+    {
+        $class = parent::getEntityClass($space, $data);
+        if (in_array($class, $this->getExtensions())) {
+            if (!array_key_exists('class', $data) || !$data['class']) {
+                throw new LogicException("Extension without class defined");
+            }
+            return $data['class'];
+        }
+        return $class;
     }
 
     public function setEntityPostfix($postfix)

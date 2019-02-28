@@ -22,7 +22,7 @@ abstract class Plugin
     public function getRepositoryClass(Space $space)
     {
     }
-    public function getEntityClass(Space $space)
+    public function getEntityClass(Space $space, array $data)
     {
     }
     public function generateKey(Entity $instance, Space $space)

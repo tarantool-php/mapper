@@ -20,7 +20,7 @@ class UserClasses extends Plugin
         }
     }
 
-    public function getEntityClass(Space $space)
+    public function getEntityClass(Space $space, array $data)
     {
         if (array_key_exists($space->getName(), $this->entityMapping)) {
             return $this->entityMapping[$space->getName()];

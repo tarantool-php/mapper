@@ -27,7 +27,7 @@ class Repository
         $data = (array) $data;
         $class = Entity::class;
         foreach ($this->getMapper()->getPlugins() as $plugin) {
-            $entityClass = $plugin->getEntityClass($this->space);
+            $entityClass = $plugin->getEntityClass($this->space, $data);
             if ($entityClass) {
                 if ($class != Entity::class) {
                     throw new Exception('Entity class override');
@@ -231,9 +231,14 @@ class Repository
             return $this->persisted[$key];
         }
 
+        $data = [];
+        foreach ($this->space->getFormat() as $index => $info) {
+            $data[$info['name']] = array_key_exists($index, $tuple) ? $tuple[$index] : null;
+        }
+
         $class = Entity::class;
         foreach ($this->getMapper()->getPlugins() as $plugin) {
-            $entityClass = $plugin->getEntityClass($this->space);
+            $entityClass = $plugin->getEntityClass($this->space, $data);
             if ($entityClass) {
                 if ($class != Entity::class) {
                     throw new Exception('Entity class override');
@@ -246,8 +251,8 @@ class Repository
 
         $this->original[$key] = $tuple;
 
-        foreach ($this->space->getFormat() as $index => $info) {
-            $instance->{$info['name']} = array_key_exists($index, $tuple) ? $tuple[$index] : null;
+        foreach ($data as $k => $v) {
+            $instance->$k = $v;
         }
 
         $this->keys->offsetSet($instance, $key);

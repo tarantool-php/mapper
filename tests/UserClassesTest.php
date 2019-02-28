@@ -63,7 +63,7 @@ class UserClassesTest extends TestCase
         $test->createIndex('id');
 
         $plugin->mapEntity('test', TestEntity::class);
-        $this->assertSame($plugin->getEntityClass($test), TestEntity::class);
+        $this->assertSame($plugin->getEntityClass($test, []), TestEntity::class);
 
         $entity = $mapper->create('test', ['id' => 1, 'name' => 'hmm']);
         $this->assertInstanceOf(TestEntity::class, $entity);

@@ -4,9 +4,53 @@ use Tarantool\Mapper\Plugin\Annotation;
 use Tarantool\Mapper\Plugin\Sequence;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Repository;
+use Entity\Type\Complex;
+use Entity\Type\Simple;
 
 class AnnotationTest extends TestCase
 {
+    public function testInheritance()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+        $mapper->getPlugin(Sequence::class);
+
+        $annotation = $mapper->getPlugin(Annotation::class);
+        $annotation->register('Entity\\LegacyType');        
+        $annotation->register('Entity\\Type');        
+        $annotation->register('Entity\\Type\\Simple');        
+        $annotation->register('Entity\\Type\\Complex');
+        $annotation->migrate();
+
+        $schema = $mapper->getSchema();
+        $this->assertTrue($schema->hasSpace('type'));
+        $this->assertTrue(!$schema->hasSpace('type_simple'), 'no space for simple type');
+        $this->assertTrue(!$schema->hasSpace('simple'), 'no space for simple type');
+
+        $this->assertCount(2, $mapper->find('type'));
+
+        $complex = $mapper->findOrFail('type', [
+            'class' => Complex::class
+        ]);
+
+        $this->assertInstanceOf(Complex::class, $complex);
+        
+        $simple = $mapper->findOrFail('type', [
+            'class' => Simple::class,
+        ]);
+        $this->assertInstanceOf(Simple::class, $simple);
+
+        $types = $mapper->find('type');
+        $this->assertContains($simple, $types);
+        $this->assertContains($complex, $types);
+
+        $legacy = $mapper->create('legacy_type', [
+            'class' => 'blablabla'
+        ]);
+        $this->assertSame($legacy->class, "blablabla");
+        $this->assertInstanceOf(Entity::class, $legacy);
+    }
+
     public function testCamelCased()
     {
         $mapper = $this->createMapper();
