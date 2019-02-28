@@ -192,22 +192,11 @@ class Annotation extends UserClasses
                     $nested->addIndexes($space);
                 }
             }
-            if (in_array($entity, $this->extensions)) {
-                if (!$space->hasProperty('class')) {
-                    throw new Exception("$entity has extensions, but not class property is defined");
-                }
-                if ($space->castIndex(['class' => ''], true) === null) {
-                    $space->addIndex('class', [
-                        'unique' => true,
-                    ]);
-                }
-            }
 
             if ($class->hasMethod('compute')) {
                 $computes[] = $spaceName;
             }
         }
-
 
         foreach ($this->repositoryClasses as $repository) {
             $spaceName = $this->getSpaceName($repository);
@@ -263,6 +252,22 @@ class Annotation extends UserClasses
             }
             $compute = Closure::fromCallable([$this->entityMapping[$spaceName], 'compute']);
             $this->mapper->getPlugin(Compute::class)->register($sourceSpace, $spaceName, $compute);
+        }
+
+        foreach ($this->entityClasses as $entity) {
+            if ($this->isExtension($entity)) {
+                continue;
+            }
+            if (in_array($entity, $this->extensions)) {
+                if (!$space->hasProperty('class')) {
+                    throw new Exception("$entity has extensions, but not class property is defined");
+                }
+                if ($space->castIndex(['class' => ''], true) === null) {
+                    $space->addIndex('class', [
+                        'unique' => true,
+                    ]);
+                }
+            }
         }
 
         if ($extensionInstances) {
