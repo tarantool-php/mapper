@@ -22,6 +22,9 @@ class AnnotationTest extends TestCase
         $annotation->register('Entity\\Type\\Complex');
         $annotation->migrate();
 
+        // no error on second call
+        $annotation->migrate();
+
         $schema = $mapper->getSchema();
         $this->assertTrue($schema->hasSpace('type'));
         $this->assertTrue(!$schema->hasSpace('type_simple'), 'no space for simple type');

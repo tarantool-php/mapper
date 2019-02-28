@@ -196,7 +196,11 @@ class Annotation extends UserClasses
                 if (!$space->hasProperty('class')) {
                     throw new Exception("$entity has extensions, but not class property is defined");
                 }
-                $space->addIndex('class');
+                if ($space->castIndex(['class' => ''], true) === null) {
+                    $space->addIndex('class', [
+                        'unique' => true,
+                    ]);
+                }
             }
 
             if ($class->hasMethod('compute')) {
