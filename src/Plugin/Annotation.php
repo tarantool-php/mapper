@@ -259,6 +259,8 @@ class Annotation extends UserClasses
                 continue;
             }
             if (in_array($entity, $this->extensions)) {
+                $spaceName = $this->getSpaceName($entity);
+                $space = $schema->getSpace($spaceName);
                 if (!$space->hasProperty('class')) {
                     throw new Exception("$entity has extensions, but not class property is defined");
                 }
