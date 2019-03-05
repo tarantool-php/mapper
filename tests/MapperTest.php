@@ -305,6 +305,9 @@ class MapperTest extends TestCase
         // connect
         // ping
         $this->assertCount(2, $client->getLog());
+
+        $client->resetLog();
+        $this->assertCount(0, $client->getLog());
     }
 
     public function testTypeCasting()

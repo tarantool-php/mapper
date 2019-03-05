@@ -70,4 +70,9 @@ class Client extends TarantoolClient
     {
         return $this->log;
     }
+
+    public function resetLog()
+    {
+        $this->log = [];
+    }
 }
