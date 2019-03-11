@@ -310,8 +310,8 @@ class Repository
     public function truncate()
     {
         $this->results = [];
-        $id = $this->space->getId();
-        $this->getMapper()->getClient()->evaluate("box.space[$id]:truncate()");
+        $name = $this->space->getName();
+        $this->getMapper()->getClient()->call("box.space.$name:truncate");
     }
 
     public function remove($params = [])

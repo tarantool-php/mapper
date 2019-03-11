@@ -89,7 +89,7 @@ class Space
     public function setFormat($format)
     {
         $this->format = $format;
-        $this->mapper->getClient()->evaluate("box.space[$this->id]:format(...)", [$format]);
+        $this->mapper->getClient()->call("box.space.$this->name:format", [$format]);
         return $this->parseFormat();
     }
 
@@ -118,7 +118,7 @@ class Space
 
     public function removeIndex($name)
     {
-        $this->mapper->getClient()->evaluate("box.space[$this->id].index.$name:drop()");
+        $this->mapper->getClient()->call("box.space.$this->name.index.$name:drop");
         $this->indexes = [];
         $this->mapper->getRepository('_vindex')->flushCache();
 
@@ -170,7 +170,7 @@ class Space
 
         $name = array_key_exists('name', $config) ? $config['name'] : implode('_', $config['fields']);
 
-        $this->mapper->getClient()->evaluate("box.space[$this->id]:create_index('$name', ...)", [$options]);
+        $this->mapper->getClient()->call("box.space.$this->name:create_index", [$name, $options]);
         $this->indexes = [];
 
         $this->mapper->getSchema()->getSpace('_vindex')->getRepository()->flushCache();

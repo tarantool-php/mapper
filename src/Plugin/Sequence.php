@@ -36,8 +36,9 @@ class Sequence extends Plugin
         $spaceId = $space->getId();
         $entity = $this->mapper->findOne('sequence', $space->getId());
         if (!$entity) {
-            $query = "return box.space.".$space->getName().".index[0]:max()";
-            $data = $this->mapper->getClient()->evaluate($query)->getData();
+            $primaryIndex = $space->getIndexes()[0]['name'];
+            $query = "box.space.".$space->getName().".index.$primaryIndex:max";
+            $data = $this->mapper->getClient()->call($query)->getData();
             $max = $data ? $data[0][0] : 0;
 
             $entity = $this->mapper->create('sequence', [
