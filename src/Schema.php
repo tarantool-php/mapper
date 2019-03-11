@@ -164,16 +164,14 @@ class Schema
 
     public function reset()
     {
-        [$this->names, $this->engines] = $this->mapper->getClient()->evaluate("
-            local spaces = {}
-            local engines = {}
-            local i, s
-            for i, s in box.space._vspace:pairs() do
-                spaces[s[3]] = s[1]
-                engines[s[3]] = s[4]
-            end
-            return spaces, engines
-        ")->getData();
+        $this->names = [];
+        $this->engines = [];
+
+        $data = $this->mapper->getClient()->getSpace('_vspace')->select()->getData();
+        foreach ($data as $tuple) {
+            $this->names[$tuple[2]] = $tuple[0];
+            $this->engines[$tuple[2]] = $tuple[3];
+        }
     }
 
     public function getMeta()
