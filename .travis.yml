@@ -16,6 +16,7 @@ env:
   - TARANTOOL_VERSION=1.9
   - TARANTOOL_VERSION=1.10
   - TARANTOOL_VERSION=2.0
+  - TARANTOOL_VERSION=2.1
 
 matrix:
   fast_finish: true
