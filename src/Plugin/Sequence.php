@@ -2,6 +2,7 @@
 
 namespace Tarantool\Mapper\Plugin;
 
+use Exception;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;
 use Tarantool\Mapper\Space;
@@ -36,10 +37,14 @@ class Sequence extends Plugin
         $spaceId = $space->getId();
         $entity = $this->mapper->findOne('sequence', $space->getId());
         if (!$entity) {
-            $primaryIndex = $space->getIndexes()[0]['name'];
-            $query = "box.space.".$space->getName().".index.$primaryIndex:max";
+            $primaryIndex = $space->getIndexes()[0];
+            if (count($primaryIndex['parts']) !== 1) {
+                throw new Exception("Composite primary key");
+            }
+            $indexName = $primaryIndex['name'];
+            $query = "box.space.".$space->getName().".index.$indexName:max";
             $data = $this->mapper->getClient()->call($query)->getData();
-            $max = $data ? $data[0][0] : 0;
+            $max = $data ? $data[0][$primaryIndex['parts'][0][0]] : 0;
 
             $entity = $this->mapper->create('sequence', [
                 'space' => $space->getId(),

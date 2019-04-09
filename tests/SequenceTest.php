@@ -41,6 +41,56 @@ class SequenceTest extends TestCase
         $pasha = $mapper->create('person', 'pasha');
         $this->assertSame($pasha->id, 4);
     }
+
+    public function testInitializationOnSecondKeyField()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $person = $mapper->getSchema()->createSpace('person');
+        $person->addProperty('idle', 'unsigned');
+        $person->addProperty('id', 'unsigned');
+        $person->addProperty('email', 'string');
+        $person->createIndex('id');
+
+        $mapper->create('person', [
+            'id' => 1,
+            'email' => 'nekufa@gmail.com'
+        ]);
+        $mapper->create('person', [
+            'id' => 2,
+            'email' => 'petya@gmail.com'
+        ]);
+        $mapper->create('person', [
+            'id' => 3,
+            'email' => 'sergey@gmail.com'
+        ]);
+
+        $mapper->getPlugin(new Sequence($mapper));
+        $this->assertCount(1, $mapper->getPlugins());
+
+        $pasha = $mapper->create('person', [
+            'email' => 'pasha'
+        ]);
+        $this->assertSame($pasha->id, 4);
+    }
+
+
+    public function testCompositeKeyException()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $person = $mapper->getSchema()->createSpace('person');
+        $person->addProperty('id', 'unsigned');
+        $person->addProperty('company', 'unsigned');
+        $person->addProperty('email', 'string');
+        $person->createIndex(['id', 'company']);
+        
+        $this->expectExceptionMessage('Composite primary key');
+        $mapper->getPlugin(new Sequence($mapper))->initializeSequence($person);
+    }
+
     public function testPluginInstance()
     {
         $mapper = $this->createMapper();
