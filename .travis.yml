@@ -23,6 +23,7 @@ matrix:
   allow_failures:
     - php: nightly
     - php: master
+    - env: TARANTOOL_VERSION=2.1
 
 services:
   - docker
