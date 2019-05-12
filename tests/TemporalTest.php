@@ -103,7 +103,6 @@ class TemporalTest extends TestCase
         $this->assertNull($temporal->getReference('person', 11, 'position', 20170705));
         $this->assertEquals(1, $temporal->getReference('person', 11, 'position', 20170810));
 
-
         $this->assertCount(1, $temporal->getReferenceLog('person', 11, 'position'));
 
         $temporal->reference([

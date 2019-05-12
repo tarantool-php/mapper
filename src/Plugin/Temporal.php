@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Plugin;
 
 use Carbon\Carbon;
@@ -8,6 +10,7 @@ use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;
 use Tarantool\Mapper\Plugin\Temporal\Aggregator;
+use Tarantool\Client\Schema\Criteria;
 use Tarantool\Mapper\Plugin\Temporal\Schema;
 
 class Temporal extends Plugin
@@ -34,8 +37,7 @@ class Temporal extends Plugin
         $date = $this->getTimestamp($date);
 
         $rows = $this->mapper->getClient()->getSpace('_temporal_reference_state')
-            ->select([$entity, $id, $target, $date], 0, 1, 0, 4) // [key, index, limit, offset, iterator = LE]
-            ->getData();
+            ->select(Criteria::key([$entity, $id, $target, $date])->andLimit(1)->andLeIterator());
 
         if (count($rows)) {
             $row = $rows[0];
@@ -115,8 +117,7 @@ class Temporal extends Plugin
         $date = $this->getTimestamp($date);
 
         $rows = $this->mapper->getClient()->getSpace('_temporal_reference_aggregate')
-            ->select([$target, $targetId, $source, $date], 0, 1, 0, 4) // [key, index, limit, offset, iterator = LE]
-            ->getData();
+            ->select(Criteria::key([$target, $targetId, $source, $date])->andLimit(1)->andLeIterator());
 
         if (count($rows)) {
             $row = $rows[0];
@@ -255,8 +256,7 @@ class Temporal extends Plugin
         $date = $this->getTimestamp($date);
 
         $rows = $this->mapper->getClient()->getSpace($space)
-            ->select([$entity, $id, $date], 0, 1, 0, 4) // [key, index, limit, offset, iterator = LE]
-            ->getData();
+            ->select(Criteria::key([$entity, $id, $date])->andLimit(1)->andLeIterator());
 
         if (count($rows) && $rows[0][0] == $entity && $rows[0][1] == $id) {
             $state = $this->mapper->findOne($space, [
@@ -272,7 +272,7 @@ class Temporal extends Plugin
         return [];
     }
 
-    public function getOverrides($entityName, $id)
+    public function getOverrides(string $entityName, int $id) : array
     {
         if (!$this->mapper->getSchema()->hasSpace('_temporal_override')) {
             return [];
@@ -471,7 +471,7 @@ class Temporal extends Plugin
     private function getTimestamp($string)
     {
         if (Carbon::hasTestNow() || !array_key_exists($string, $this->timestamps)) {
-            if (strlen($string) == 8 && is_numeric($string)) {
+            if (strlen(''.$string) == 8 && is_numeric($string)) {
                 $value = Carbon::createFromFormat('Ymd', $string)->setTime(0, 0, 0)->timestamp;
             } else {
                 $value = Carbon::parse($string)->timestamp;
@@ -499,10 +499,8 @@ class Temporal extends Plugin
         }
 
         foreach (['begin', 'end'] as $field) {
-            if (array_key_exists($field, $data) && strlen($data[$field])) {
-                if (strlen($data[$field]) == 8 || is_string($data[$field])) {
-                    $data[$field] = $this->getTimestamp($data[$field]);
-                }
+            if (array_key_exists($field, $data) && $data[$field]) {
+                $data[$field] = $this->getTimestamp($data[$field]);
             } else {
                 $data[$field] = 0;
             }

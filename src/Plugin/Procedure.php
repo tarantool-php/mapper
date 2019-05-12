@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Plugin;
 
 use Tarantool\Mapper\Plugin;
@@ -17,11 +19,11 @@ class Procedure extends Plugin
     {
         $name = $procedure->getName();
         $this->validatePresence($procedure);
-        $result = $this->mapper->getClient()->call($name, $params);
-        return $result->getData()[0];
+        $result = $this->mapper->getClient()->call($name, ...$params);
+        return $result[0];
     }
 
-    public function isRegistered($class)
+    public function isRegistered($class) : bool
     {
         return !!$this->mapper->findOne('_procedure', ['name' => $class]);
     }
@@ -41,7 +43,7 @@ class Procedure extends Plugin
     private function validatePresence(BaseProcedure $procedure)
     {
         $name = $procedure->getName();
-        $exists = $this->mapper->getClient()->evaluate("return _G.$name ~= nil")->getData()[0];
+        $exists = $this->mapper->getClient()->evaluate("return _G.$name ~= nil")[0];
 
         $instance = $this->mapper->findOrCreate('_procedure', [
             'name' => get_class($procedure)

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Plugin;
 
 use Closure;
@@ -57,7 +59,7 @@ class Annotation extends UserClasses
         return $this;
     }
 
-    public function validateSpace($space)
+    public function validateSpace(string $space) : bool
     {
         foreach ($this->entityClasses as $class) {
             if ($this->getSpaceName($class) == $space) {
@@ -74,19 +76,19 @@ class Annotation extends UserClasses
         return parent::validateSpace($space);
     }
 
-    public function getSpace($instance)
+    public function getSpace($instance) : string
     {
         $class = get_class($instance);
         $target = $this->isExtension($class) ? $this->getExtensions()[$class] : $class;
         return $this->getSpaceName($target);
     }
 
-    public function isExtension($class)
+    public function isExtension(string $class) : bool
     {
         return array_key_exists($class, $this->getExtensions());
     }
 
-    public function getExtensions()
+    public function getExtensions() : array
     {
         if (is_null($this->extensions)) {
             $this->extensions = [];
@@ -101,7 +103,7 @@ class Annotation extends UserClasses
         return $this->extensions;
     }
 
-    public function migrate($extensionInstances = true)
+    public function migrate($extensionInstances = true) : self
     {
         $factory = DocBlockFactory::createInstance();
         $contextFactory = new ContextFactory();
@@ -164,7 +166,7 @@ class Annotation extends UserClasses
                 if (array_key_exists('type', $byTypes)) {
                     $type = (string) $byTypes['type']->getDescription();
                 } else {
-                    $type = $this->getTarantoolType($phpType);
+                    $type = $this->getTarantoolType((string) $phpType);
                 }
 
                 $isNullable = true;
@@ -177,7 +179,7 @@ class Annotation extends UserClasses
                     $opts = [
                         'is_nullable' => $isNullable,
                     ];
-                    if ($this->isReference($phpType)) {
+                    if ($this->isReference((string) $phpType)) {
                         $opts['reference'] = $this->getSpaceName((string) $phpType);
                     }
                     if (array_key_exists('default', $byTypes)) {
@@ -284,7 +286,7 @@ class Annotation extends UserClasses
         return $this;
     }
 
-    public function getEntityClass(Space $space, array $data)
+    public function getEntityClass(Space $space, array $data) : ?string
     {
         $class = parent::getEntityClass($space, $data);
         if (in_array($class, $this->getExtensions())) {
@@ -296,13 +298,13 @@ class Annotation extends UserClasses
         return $class;
     }
 
-    public function setEntityPostfix($postfix)
+    public function setEntityPostfix(?string $postfix) : self
     {
         $this->entityPostfix = $postfix;
         return $this;
     }
 
-    public function setRepositoryPostfix($postfix)
+    public function setRepositoryPostfix(?string $postfix) : self
     {
         $this->repositoryPostifx = $postfix;
         return $this;
@@ -310,12 +312,12 @@ class Annotation extends UserClasses
 
     private $spaceNames = [];
 
-    public function getRepositorySpaceName($class)
+    public function getRepositorySpaceName($class) : string
     {
         return array_search($class, $this->repositoryMapping);
     }
 
-    public function getSpaceName($class)
+    public function getSpaceName(string $class) : string
     {
         if (!array_key_exists($class, $this->spaceNames)) {
             $reflection = new ReflectionClass($class);
@@ -341,34 +343,27 @@ class Annotation extends UserClasses
 
     private $tarantoolTypes = [];
 
-    private function isReference(string $type)
+    private function isReference(string $type) : bool
     {
         return $type[0] == '\\';
     }
 
-    private function getTarantoolType(string $type)
+    private function getTarantoolType(string $type) : string
     {
-        if (array_key_exists($type, $this->tarantoolTypes)) {
-            return $this->tarantoolTypes[$type];
+        static $map;
+        if (!$map) {
+            $map = [
+                'mixed' => '*',
+                'array' => '*',
+                'float' => 'number',
+                'int' => 'unsigned',
+            ];
         }
 
-        if ($this->isReference($type)) {
-            return $this->tarantoolTypes[$type] = 'unsigned';
+        if (array_key_exists($type, $map)) {
+            return $map[$type];
         }
 
-        switch ($type) {
-            case 'mixed':
-            case 'array':
-                return $this->tarantoolTypes[$type] = '*';
-
-            case 'float':
-                return $this->tarantoolTypes[$type] = 'number';
-
-            case 'int':
-                return $this->tarantoolTypes[$type] = 'unsigned';
-
-            default:
-                return $this->tarantoolTypes[$type] = 'string';
-        }
+        return $this->isReference($type) ? 'unsigned' : 'string';
     }
 }

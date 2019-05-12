@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Plugin;
 
 use Closure;
@@ -13,7 +15,7 @@ class Compute extends Plugin
     protected $dependency = [];
     protected $entities = [];
 
-    public function afterCreate(Entity $entity, Space $space)
+    public function afterCreate(Entity $entity, Space $space) : Entity
     {
         $name = $space->getName();
 
@@ -22,9 +24,11 @@ class Compute extends Plugin
                 $this->initializePresenter($target, $callback, $entity);
             }
         }
+
+        return $entity;
     }
 
-    public function afterRemove(Entity $entity, Space $space)
+    public function afterRemove(Entity $entity, Space $space) : Entity
     {
         $name = $space->getName();
 
@@ -33,9 +37,11 @@ class Compute extends Plugin
                 $this->getMapper()->remove($target, ['id' => $entity->id]);
             }
         }
+
+        return $entity;
     }
 
-    public function afterUpdate(Entity $entity, Space $space)
+    public function afterUpdate(Entity $entity, Space $space) : Entity
     {
         $name = $space->getName();
 
@@ -48,12 +54,14 @@ class Compute extends Plugin
                 $child->save();
             }
         }
+
+        return $entity;
     }
 
-    public function beforeCreate(Entity $entity, Space $space)
+    public function beforeCreate(Entity $entity, Space $space) : Entity
     {
         if (in_array($entity, $this->entities)) {
-            return true;
+            return $entity;
         }
         foreach ($this->dependency as $source => $dependencies) {
             foreach ($dependencies as [$target]) {
@@ -62,9 +70,11 @@ class Compute extends Plugin
                 }
             }
         }
+
+        return $entity;
     }
 
-    public function register($source, $target, $callback)
+    public function register(string $source, string $target, Closure $callback) : self
     {
         if ($callback instanceof Closure) {
             if (!array_key_exists($source, $this->dependency)) {
@@ -77,9 +87,11 @@ class Compute extends Plugin
         } else {
             $this->registerLuaTriggers($source, $target, $callback);
         }
+
+        return $this;
     }
 
-    protected function initializePresenter($target, $callback, Entity $source)
+    protected function initializePresenter($target, $callback, Entity $source) : self
     {
         $entity = $this->getMapper()->getRepository($target)->create($source->id);
         foreach ($callback($source) as $k => $v) {
@@ -87,9 +99,11 @@ class Compute extends Plugin
         }
         $this->entities[] = $entity;
         $entity->save();
+
+        return $this;
     }
 
-    protected function registerLuaTriggers($source, $destination, $body)
+    protected function registerLuaTriggers(string $source, string $destination, string $body)
     {
         throw new Exception("Lua triggers not implemented");
     }

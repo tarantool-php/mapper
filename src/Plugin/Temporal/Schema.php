@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Plugin\Temporal;
 
 use Tarantool\Mapper\Entity;
@@ -15,7 +17,7 @@ class Schema
         $this->mapper = $mapper;
     }
 
-    public function init($name)
+    public function init(string $name)
     {
         if (!$name) {
             throw new InvalidArgumentException("Nothing to initialize");

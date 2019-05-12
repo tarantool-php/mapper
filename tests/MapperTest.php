@@ -1,10 +1,12 @@
 <?php
 
-use Tarantool\Mapper\Client;
-use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Schema;
-use Tarantool\Mapper\Plugin\Sequence;
+use Tarantool\Client\Client;
 use Tarantool\Client\Request\InsertRequest;
+use Tarantool\Mapper\Mapper;
+use Tarantool\Mapper\Middleware\DebuggerMiddleware;
+use Tarantool\Mapper\Middleware\ReadOnlyMiddleware;
+use Tarantool\Mapper\Plugin\Sequence;
+use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
@@ -273,7 +275,8 @@ class MapperTest extends TestCase
 
         $this->assertNotCount(0, $mapper->find('_space'));
 
-        $client->disableRequest(InsertRequest::class);
+        $mapper->setClient($mapper->getClient()->withMiddleware(new ReadOnlyMiddleware()));
+        $this->expectException(Exception::class);
 
         $mapper->getSchema()->createSpace('tester')
             ->addProperties([
@@ -281,8 +284,6 @@ class MapperTest extends TestCase
                 'name' => 'string',
             ])
             ->addIndex(['id']);
-
-        $this->expectException(Exception::class);
 
         $tester = $mapper->create('tester', [
             'id' => 1,
@@ -296,18 +297,16 @@ class MapperTest extends TestCase
     public function testLogging()
     {
         $mapper = $this->createMapper();
-        $client = $mapper->getClient();
-        $client->setLogging(true);
-        $this->assertCount(0, $client->getLog());
+        $mapper->setClient($mapper->getClient()->withMiddleware($debugger = new DebuggerMiddleware));
+        $this->assertCount(0, $debugger->getLog());
 
-        $client->ping();
+        $mapper->getClient()->ping();
 
-        // connect
         // ping
-        $this->assertCount(2, $client->getLog());
+        $this->assertCount(1, $debugger->getLog());
 
-        $client->resetLog();
-        $this->assertCount(0, $client->getLog());
+        $debugger->flush();
+        $this->assertCount(0, $debugger->getLog());
     }
 
     public function testTypeCasting()
@@ -660,13 +659,13 @@ class MapperTest extends TestCase
 
         $_space = $mapper->findOne('_space', ['name' => '_space']);
 
-        $client->setLogging(true);
+        $mapper->setClient($mapper->getClient()->withMiddleware($debugger = new DebuggerMiddleware));
         $mapper->findOne('_space', ['name' => '_space']);
         $mapper->findOne('_space', ['id' => $_space->id]);
 
         $data = $mapper->find('_space', ['id' => $_space->id]);
         $this->assertCount(1, $data);
 
-        $this->assertCount(0, $client->getLog());
+        $this->assertCount(0, $debugger->getLog());
     }
 }

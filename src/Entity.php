@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper;
 
 use BadMethodCallException;
@@ -15,12 +17,12 @@ class Entity
         $this->_repository = $repository;
     }
 
-    public function getRepository()
+    public function getRepository() : Repository
     {
         return $this->_repository;
     }
 
-    public function save()
+    public function save() : Entity
     {
         return $this->getRepository()->save($this);
     }

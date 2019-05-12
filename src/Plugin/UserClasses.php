@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Plugin;
 
 use Exception;
@@ -13,21 +15,25 @@ class UserClasses extends Plugin
     protected $repositoryMapping = [];
     protected $entityMapping = [];
 
-    public function getRepositoryClass(Space $space)
+    public function getRepositoryClass(Space $space) : ?string
     {
         if (array_key_exists($space->getName(), $this->repositoryMapping)) {
             return $this->repositoryMapping[$space->getName()];
         }
+
+        return null;
     }
 
-    public function getEntityClass(Space $space, array $data)
+    public function getEntityClass(Space $space, array $data) : ?string
     {
         if (array_key_exists($space->getName(), $this->entityMapping)) {
             return $this->entityMapping[$space->getName()];
         }
+
+        return null;
     }
 
-    public function mapEntity($space, $class)
+    public function mapEntity($space, $class) : self
     {
         $this->validateSpace($space);
 
@@ -40,9 +46,10 @@ class UserClasses extends Plugin
         }
 
         $this->entityMapping[$space] = $class;
+        return $this;
     }
 
-    public function mapRepository($space, $class)
+    public function mapRepository(string $space, string $class) : self
     {
         $this->validateSpace($space);
 
@@ -55,22 +62,26 @@ class UserClasses extends Plugin
         }
 
         $this->repositoryMapping[$space] = $class;
+
+        return $this;
     }
 
-    public function getRepositoryMapping()
+    public function getRepositoryMapping() : array
     {
         return $this->repositoryMapping;
     }
 
-    public function getEntityMapping()
+    public function getEntityMapping() : array
     {
         return $this->entityMapping;
     }
 
-    public function validateSpace($space)
+    public function validateSpace(string $space) : bool
     {
         if (!$this->mapper->getSchema()->hasSpace($space)) {
             throw new Exception("No space $space");
         }
+
+        return true;
     }
 }

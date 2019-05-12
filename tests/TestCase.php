@@ -1,8 +1,7 @@
 <?php
 
-use Tarantool\Mapper\Client;
+use Tarantool\Client\Client;
 use Tarantool\Mapper\Mapper;
-use Tarantool\Client\Connection\StreamConnection;
 use Tarantool\Client\Packer\PurePacker;
 use Tarantool\Client\Schema\Space;
 use Tarantool\Client\Schema\Index;
@@ -16,13 +15,22 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
 
     protected function createClient()
     {
+        $host = getenv('TNT_CONN_HOST');
         $port = getenv('TNT_CONN_PORT') ?: 3301;
-        $connection = new StreamConnection('tcp://'.getenv('TNT_CONN_HOST').':'.$port);
-        return new Client($connection, new PurePacker());
+        return Client::fromDsn("tcp://$host:$port");
     }
 
     protected function clean(Mapper $mapper)
     {
+        foreach ($mapper->find('_schema') as $schema) {
+            if (strpos($schema->key, 'mapper-once') === 0) {
+                $mapper->remove($schema);
+            }
+        }
+
+        $mapper->getClient()->flushSpaces();
+        $mapper->getRepository('_space')->flushCache();
+
         $mapper->getClient()->evaluate('
             local todo = {}
             for i, space in box.space._space:pairs() do
@@ -36,12 +44,5 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
         ');
 
         $mapper->getSchema()->reset();
-        $mapper->getRepository('_space')->flushCache();
-
-        foreach ($mapper->find('_schema') as $schema) {
-            if (strpos($schema->key, 'mapper-once') === 0) {
-                $mapper->remove($schema);
-            }
-        }
     }
 }

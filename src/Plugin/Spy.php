@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Plugin;
 
 use Tarantool\Mapper\Entity;
@@ -12,43 +14,46 @@ class Spy extends Plugin
     private $updated = [];
     private $removed = [];
 
-    public function beforeCreate(Entity $instance, Space $space)
+    public function beforeCreate(Entity $instance, Space $space) : Entity
     {
-        $this->created[$this->getKey($instance, $space)] = $instance;
+        return $this->created[$this->getKey($instance, $space)] = $instance;
     }
 
-    public function beforeUpdate(Entity $instance, Space $space)
+    public function beforeUpdate(Entity $instance, Space $space) : Entity
     {
         $key = $this->getKey($instance, $space);
         if (!array_key_exists($key, $this->created)) {
             $this->updated[$key] = $instance;
         }
+
+        return $instance;
     }
 
-    public function beforeRemove(Entity $instance, Space $space)
+    public function beforeRemove(Entity $instance, Space $space) : Entity
     {
         $key = $this->getKey($instance, $space);
 
         if (array_key_exists($key, $this->created)) {
             unset($this->created[$key]);
-            return;
+            return $instance;
         }
 
         if (array_key_exists($key, $this->updated)) {
             unset($this->updated[$key]);
         }
 
-        $this->removed[$key] = $instance;
+        return $this->removed[$key] = $instance;
     }
 
-    public function reset()
+    public function reset() : self
     {
         $this->created = [];
         $this->updated = [];
         $this->removed = [];
+        return $this;
     }
 
-    private function getKey(Entity $instance, Space $space)
+    private function getKey(Entity $instance, Space $space) : string
     {
         $key = [$space->getName()];
 
@@ -60,7 +65,7 @@ class Spy extends Plugin
         return implode(':', $key);
     }
 
-    public function getChanges()
+    public function getChanges() : object
     {
         $result = (object) [];
 
@@ -79,7 +84,7 @@ class Spy extends Plugin
         return $result;
     }
 
-    public function hasChanges()
+    public function hasChanges() : bool
     {
         return count($this->created) + count($this->updated) + count($this->removed) > 0;
     }

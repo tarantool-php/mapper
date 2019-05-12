@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper;
 
+use Closure;
 use Exception;
+use Tarantool\Client\Schema\Criteria;
+use Tarantool\Client\Schema\Space as ClientSpace;
 
 class Schema
 {
@@ -23,7 +28,7 @@ class Schema
         }
     }
 
-    public function createSpace($space, $config = [])
+    public function createSpace(string $space, array $config = []) : Space
     {
         $engine = 'memtx';
         if (array_key_exists('properties', $config)) {
@@ -40,7 +45,7 @@ class Schema
                 engine = '$engine'
             })
             return box.space.$space.id
-        ")->getData()[0];
+        ")[0];
 
         $this->names[$space] = $id;
         $this->engines[$space] = $engine;
@@ -56,7 +61,7 @@ class Schema
         return $this->spaces[$id];
     }
 
-    public function getDefaultValue($type)
+    public function getDefaultValue(string $type)
     {
         switch ($type) {
             case 'STR':
@@ -81,7 +86,7 @@ class Schema
         throw new Exception("Invalid type $type");
     }
 
-    public function formatValue($type, $value)
+    public function formatValue(string $type, $value)
     {
         if (is_null($value)) {
             return null;
@@ -111,7 +116,7 @@ class Schema
         }
     }
 
-    public function getSpace($id)
+    public function getSpace($id) : Space
     {
         if (is_string($id)) {
             return $this->getSpace($this->getSpaceId($id));
@@ -130,7 +135,7 @@ class Schema
         return $this->spaces[$id];
     }
 
-    public function getSpaceId($name)
+    public function getSpaceId(string $name) : int
     {
         if (!$this->hasSpace($name)) {
             throw new Exception("No space $name");
@@ -138,7 +143,7 @@ class Schema
         return $this->names[$name];
     }
 
-    public function getSpaces()
+    public function getSpaces() : array
     {
         foreach ($this->names as $id) {
             $this->getSpace($id);
@@ -146,12 +151,12 @@ class Schema
         return $this->spaces;
     }
 
-    public function hasSpace($name)
+    public function hasSpace(string $name) : bool
     {
         return array_key_exists($name, $this->names);
     }
 
-    public function once($name, $callback)
+    public function once(string $name, Closure $callback)
     {
         $key = 'mapper-once' . $name;
 
@@ -162,19 +167,27 @@ class Schema
         }
     }
 
-    public function reset()
+    public function reset() : self
     {
         $this->names = [];
         $this->engines = [];
-
-        $data = $this->mapper->getClient()->getSpace('_vspace')->select()->getData();
+    
+        $data = $this->mapper->getClient()->getSpace('_vspace')->select(Criteria::allIterator());
         foreach ($data as $tuple) {
             $this->names[$tuple[2]] = $tuple[0];
             $this->engines[$tuple[2]] = $tuple[3];
         }
+
+        foreach ($this->getSpaces() as $space) {
+            if (!array_key_exists($space->getName(), $this->names)) {
+                unset($this->spaces[$space->getId()]);
+            }
+        }
+
+        return $this;
     }
 
-    public function getMeta()
+    public function getMeta() : array
     {
         $params = [];
         foreach ($this->getSpaces() as $space) {
@@ -188,16 +201,18 @@ class Schema
         ];
     }
 
-    public function setMeta($meta)
+    public function setMeta($meta) : self
     {
         $this->engines = $meta['engines'];
         $this->names = $meta['names'];
         $this->params = $meta['params'];
+
+        return $this;
     }
 
     private $underscores = [];
 
-    public function toUnderscore($input)
+    public function toUnderscore(string $input) : string
     {
         if (!array_key_exists($input, $this->underscores)) {
             preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $input, $matches);
@@ -212,7 +227,7 @@ class Schema
 
     private $camelcase = [];
 
-    public function toCamelCase($input)
+    public function toCamelCase(string $input) : string
     {
         if (!array_key_exists($input, $this->camelcase)) {
             $this->camelcase[$input] = lcfirst(implode('', array_map('ucfirst', explode('_', $input))));

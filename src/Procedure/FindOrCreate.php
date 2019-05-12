@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Procedure;
 
 use Exception;
 use Tarantool\Mapper\Plugin\Sequence;
 use Tarantool\Mapper\Procedure;
+use Tarantool\Mapper\Space;
 
 class FindOrCreate extends Procedure
 {
-    public function execute($space, $params)
+    public function execute(Space $space, array $params) : array
     {
         $index = $space->castIndex($params);
         if (is_null($index)) {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper;
 
 use Tarantool\Mapper\Plugin\Procedure as ProcedurePlugin;

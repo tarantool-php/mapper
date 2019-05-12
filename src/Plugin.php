@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper;
 
 abstract class Plugin
@@ -16,34 +18,53 @@ abstract class Plugin
         return $this->mapper;
     }
 
-    public function afterInstantiate(Entity $instance)
+    public function afterInstantiate(Entity $instance) : Entity
     {
+        return $instance;
     }
-    public function getRepositoryClass(Space $space)
+
+    public function getRepositoryClass(Space $space) : ?string
     {
+        return null;
     }
-    public function getEntityClass(Space $space, array $data)
+
+    public function getEntityClass(Space $space, array $data) : ?string
     {
+        return null;
     }
-    public function generateKey(Entity $instance, Space $space)
+
+    public function generateKey(Entity $instance, Space $space) : Entity
     {
+        return $instance;
     }
-    public function beforeCreate(Entity $instance, Space $space)
+
+    public function beforeCreate(Entity $instance, Space $space) : Entity
     {
+        return $instance;
     }
-    public function afterCreate(Entity $instance, Space $space)
+
+    public function afterCreate(Entity $instance, Space $space) : Entity
     {
+        return $instance;
     }
-    public function beforeUpdate(Entity $instance, Space $space)
+
+    public function beforeUpdate(Entity $instance, Space $space) : Entity
     {
+        return $instance;
     }
-    public function afterUpdate(Entity $instance, Space $space)
+
+    public function afterUpdate(Entity $instance, Space $space) : Entity
     {
+        return $instance;
     }
-    public function beforeRemove(Entity $instance, Space $space)
+
+    public function beforeRemove(Entity $instance, Space $space) : Entity
     {
+        return $instance;
     }
-    public function afterRemove(Entity $instance, Space $space)
+
+    public function afterRemove(Entity $instance, Space $space) : Entity
     {
+        return $instance;
     }
 }

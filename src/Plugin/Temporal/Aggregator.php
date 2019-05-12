@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Plugin\Temporal;
 
 use Tarantool\Mapper\Entity;
@@ -15,12 +17,13 @@ class Aggregator
         $this->temporal = $temporal;
     }
 
-    public function setReferenceAggregation($value)
+    public function setReferenceAggregation(bool $value) : self
     {
         $this->createReferenceAggregate = $value;
+        return $this;
     }
 
-    public function getLeafs($link)
+    public function getLeafs(Entity $link) : array
     {
         if ($link->timestamp) {
             return [$link];
@@ -35,7 +38,7 @@ class Aggregator
         return $leafs;
     }
 
-    public function updateReferenceState($entity, $id, $target)
+    public function updateReferenceState(string $entity, int $id, string $target)
     {
         $mapper = $this->temporal->getMapper();
 

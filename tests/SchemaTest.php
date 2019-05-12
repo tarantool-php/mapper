@@ -1,6 +1,7 @@
 <?php
 
 use Tarantool\Mapper\Mapper;
+use Tarantool\Mapper\Middleware\DebuggerMiddleware;
 use Tarantool\Mapper\Space;
 use Tarantool\Mapper\Plugin\Sequence;
 
@@ -244,7 +245,6 @@ class SchemaTest extends TestCase
             'type' => 'hash'
         ]);
 
-
         $indexes = $mapper->find('_index', ['id' => $person->getId()]);
         $this->assertCount(4, $indexes);
 
@@ -253,10 +253,10 @@ class SchemaTest extends TestCase
         $this->assertSame($birthday->type, 'tree');
         $this->assertSame($nameBirthday->type, 'hash');
 
+        $mapper->setClient($mapper->getClient()->withMiddleware($debugger = new DebuggerMiddleware));
+
         $person = $mapper->findOne('person', ['birthday' => '19840127']);
         $this->assertNull($person);
-
-        $mapper->getClient()->setLogging(true);
 
         $nekufa = $mapper->getRepository('person')->create([
             'id' => 1,
@@ -264,13 +264,17 @@ class SchemaTest extends TestCase
             'birthday' => '19840127',
         ]);
 
-        $mapper->save($nekufa);
+        $this->assertCount(1, $debugger->getLog());
+        $this->assertSame($mapper->findRepository($nekufa)->getSpace()->getMapper()->getClient(), $mapper->getClient());
 
+        $debugger->flush();
+        $mapper->save($nekufa);
+        $this->assertCount(1, $debugger->getLog());
+        
         $this->assertSame($nekufa->id, 1);
         $this->assertSame($nekufa->name, 'nekufa');
         $this->assertSame($nekufa->birthday, 19840127);
         $this->assertSame($nekufa->gender, 'male');
-
 
         $person = $mapper->findOne('person', ['birthday' => '19840127']);
         $this->assertSame($person, $nekufa);
@@ -287,8 +291,7 @@ class SchemaTest extends TestCase
         $person = $mapper->findOne('person', ['birthday' => '19860127']);
         $this->assertSame($person, $nekufa);
 
-        $mapper->getClient()->setLogging(false);
-        $this->assertCount(5, $mapper->getClient()->getLog());
+        $this->assertCount(5, $debugger->getLog());
 
         $vasiliy = $mapper->create('person', [
             'id' => 2,

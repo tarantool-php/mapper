@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper;
 
 class Bootstrap
 {
     private $mapper;
+
     private $migrations = [];
 
     public function __construct(Mapper $mapper)
@@ -12,12 +15,13 @@ class Bootstrap
         $this->mapper = $mapper;
     }
 
-    public function register($instance)
+    public function register($instance) : self
     {
         $this->migrations[] = $instance;
+        return $this;
     }
 
-    public function migrate()
+    public function migrate() : Mapper
     {
         $schema = $this->mapper->getSchema();
         foreach ($this->migrations as $migration) {
@@ -28,5 +32,7 @@ class Bootstrap
                 $migration->migrate($this->mapper);
             });
         }
+
+        return $this->mapper;
     }
 }

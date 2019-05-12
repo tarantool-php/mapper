@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper;
 
-use Tarantool\Client\Client as TarantoolClient;
 use Exception;
+use Tarantool\Client\Client;
 
 class Mapper
 {
@@ -12,7 +14,7 @@ class Mapper
     private $schema;
     private $bootstrap;
 
-    public function __construct(TarantoolClient $client)
+    public function __construct(Client $client)
     {
         $this->client = $client;
     }
@@ -38,32 +40,32 @@ class Mapper
         return $this->plugins[$class];
     }
 
-    public function create(string $space, $data)
+    public function create(string $space, $data) : Entity
     {
         return $this->getRepository($space)->create($data)->save();
     }
 
-    public function findOne(string $space, $params = [])
+    public function findOne(string $space, $params = []) : ?Entity
     {
         return $this->getRepository($space)->findOne($params);
     }
 
-    public function findOrCreate(string $space, $params = [])
+    public function findOrCreate(string $space, $params = []) : Entity
     {
         return $this->getRepository($space)->findOrCreate($params)->save();
     }
 
-    public function findOrFail(string $space, $params = [])
+    public function findOrFail(string $space, $params = []) : Entity
     {
         return $this->getRepository($space)->findOrFail($params);
     }
 
-    public function find(string $space, $params = [])
+    public function find(string $space, $params = []) : array
     {
         return $this->getRepository($space)->find($params);
     }
 
-    public function findRepository(Entity $instance)
+    public function findRepository(Entity $instance) : Repository
     {
         foreach ($this->getSchema()->getSpaces() as $space) {
             if ($space->getRepository()->knows($instance)) {
@@ -74,39 +76,39 @@ class Mapper
         throw new Exception("No Repository for given Entity");
     }
 
-    public function getBootstrap()
+    public function getBootstrap() : Bootstrap
     {
         return $this->bootstrap ?: $this->bootstrap = new Bootstrap($this);
     }
 
-    public function getClient()
+    public function getClient() : Client
     {
         return $this->client;
     }
 
-    public function getMeta()
+    public function getMeta() : array
     {
         return [
             'schema' => $this->getSchema()->getMeta(),
         ];
     }
 
-    public function hasPlugin($class)
+    public function hasPlugin(string $class) : bool
     {
         return array_key_exists($class, $this->plugins);
     }
 
-    public function getPlugins()
+    public function getPlugins() : array
     {
         return array_values($this->plugins);
     }
 
-    public function getRepository($space)
+    public function getRepository(string $space) : Repository
     {
         return $this->getSchema()->getSpace($space)->getRepository();
     }
 
-    public function getRepositories()
+    public function getRepositories() : array
     {
         $repositories = [];
         foreach ($this->getSchema()->getSpaces() as $space) {
@@ -117,31 +119,39 @@ class Mapper
         return $repositories;
     }
 
-    public function getSchema()
+    public function getSchema() : Schema
     {
         return $this->schema ?: $this->schema = new Schema($this);
     }
 
-    public function remove($space, $params = [])
+    public function remove($space, $params = []) : self
     {
         if ($space instanceof Entity) {
             $this->findRepository($space)->removeEntity($space);
         } else {
             $this->getRepository($space)->remove($params);
         }
+        return $this;
     }
 
-    public function save(Entity $instance)
+    public function save(Entity $instance) : Entity
     {
-        $this->findRepository($instance)->save($instance);
+        return $this->findRepository($instance)->save($instance);
     }
 
-    public function setMeta($meta)
+    public function setClient(Client $client) : self
+    {
+        $this->client = $client;
+        return $this;
+    }
+
+    public function setMeta(array $meta) : self
     {
         if ($this->schema) {
             $this->schema->setMeta($meta['schema']);
         } else {
             $this->schema = new Schema($this, $meta['schema']);
         }
+        return $this;
     }
 }
