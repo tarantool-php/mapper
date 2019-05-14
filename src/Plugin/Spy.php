@@ -65,7 +65,7 @@ class Spy extends Plugin
         return implode(':', $key);
     }
 
-    public function getChanges() : object
+    public function getChanges()
     {
         $result = (object) [];
 
