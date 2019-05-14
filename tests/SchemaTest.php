@@ -264,7 +264,6 @@ class SchemaTest extends TestCase
             'birthday' => '19840127',
         ]);
 
-        $this->assertCount(1, $debugger->getLog());
         $this->assertSame($mapper->findRepository($nekufa)->getSpace()->getMapper()->getClient(), $mapper->getClient());
 
         $debugger->flush();

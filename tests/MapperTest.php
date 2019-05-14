@@ -1,10 +1,10 @@
 <?php
 
 use Tarantool\Client\Client;
+use Tarantool\Client\Middleware\FirewallMiddleware;
 use Tarantool\Client\Request\InsertRequest;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Middleware\DebuggerMiddleware;
-use Tarantool\Mapper\Middleware\ReadOnlyMiddleware;
 use Tarantool\Mapper\Plugin\Sequence;
 use Tarantool\Mapper\Schema;
 
@@ -275,7 +275,7 @@ class MapperTest extends TestCase
 
         $this->assertNotCount(0, $mapper->find('_space'));
 
-        $mapper->setClient($mapper->getClient()->withMiddleware(new ReadOnlyMiddleware()));
+        $mapper->setClient($mapper->getClient()->withMiddleware(FirewallMiddleware::readOnly()));
         $this->expectException(Exception::class);
 
         $mapper->getSchema()->createSpace('tester')
