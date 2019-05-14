@@ -20,6 +20,9 @@ class Procedure extends Plugin
         $name = $procedure->getName();
         $this->validatePresence($procedure);
         $result = $this->mapper->getClient()->call($name, ...$params);
+        if (!count($result)) {
+            return null;
+        }
         return $result[0];
     }
 
