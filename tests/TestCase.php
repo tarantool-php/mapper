@@ -10,7 +10,9 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
 {
     protected function createMapper()
     {
-        return new Mapper($this->createClient());
+        $client = $this->createClient();
+        $client->evaluate("box.session.su('admin')");
+        return new Mapper($client);
     }
 
     protected function createClient()
