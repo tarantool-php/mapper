@@ -28,37 +28,17 @@ The recommended way to install the library is through [Composer](http://getcompo
 $ composer require tarantool/mapper
 ```
 
-## Instantiate mapper
+## Create mapper
 Usually, you manage dependencies in your service provider.
-To get started you should instantiate connection, packer, client and mapper itself.
-In this example we use PurePacker and StreamConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#usage)
+To get started you should instantiate client instance and pass it to mapper constructor.
+In this example we use PurePacker and StreamConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#creating-a-client)
 
 ```php
 use Tarantool\Client\Client;
-use Tarantool\Client\Connection\StreamConnection;
-use Tarantool\Client\Packer\PurePacker;
 use Tarantool\Mapper\Mapper;
 
-$connection = new StreamConnection();
-$client = new Client($connection, new PurePacker());
+$client = Client::fromDefaults();
 $mapper = new Mapper($client);
-```
-
-## Logging
-By default, client does not logs tarantool requests, you can use mapper\client that supports logging.
-```php
-use Tarantool\Client\Connection\StreamConnection;
-use Tarantool\Client\Packer\PurePacker;
-use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Client;
-
-$connection = new StreamConnection();
-$client = new Client($connection, new PurePacker());
-$mapper = new Mapper($client);
-
-$result = $client->ping();
-
-$log = $client->getLog();
 ```
 
 ## Existing types
