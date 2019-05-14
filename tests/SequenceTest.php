@@ -34,12 +34,18 @@ class SequenceTest extends TestCase
         $person->addProperty('email', 'string');
         $person->createIndex('id');
 
+        $this->assertCount(0, $mapper->find('_vsequence'));
+
         $mapper->create('person', [1, 'nekufa@gmail.com']);
         $mapper->create('person', [2, 'petya@gmail.com']);
         $mapper->create('person', [3, 'sergey@gmail.com']);
 
+        $this->assertCount(0, $mapper->find('_vsequence'));
+
         $pasha = $mapper->create('person', 'pasha');
         $this->assertSame($pasha->id, 4);
+
+        $this->assertCount(1, $mapper->find('_vsequence'));
     }
 
     public function testInitializationOnSecondKeyField()
@@ -110,7 +116,7 @@ class SequenceTest extends TestCase
         $rybakit = $mapper->create('person', ['email' => 'gen.work@gmail.com']);
         $this->assertSame($rybakit->id, 2);
 
-        $this->assertCount(1, $mapper->find('sequence'));
+        $this->assertCount(1, $mapper->find('_vsequence'));
     }
 
     public function testPluginClass()

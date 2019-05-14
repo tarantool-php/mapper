@@ -8,6 +8,7 @@ use Exception;
 use Tarantool\Client\Schema\Operations;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin;
+use Tarantool\Mapper\Procedure\CreateSequence;
 use Tarantool\Mapper\Space;
 
 class Sequence extends Plugin
@@ -25,57 +26,41 @@ class Sequence extends Plugin
         return $instance;
     }
 
-    public function initSchema() : self
+    private $sequences = [];
+
+    public function initializeSequence(Space $space)
     {
-        if (!$this->mapper->getSchema()->hasSpace('sequence')) {
-            $sequence = $this->mapper->getSchema()->createSpace('sequence');
-            $sequence->addProperty('space', 'unsigned');
-            $sequence->addProperty('counter', 'unsigned');
-            $sequence->createIndex('space');
+        if (!count($this->sequences)) {
+            foreach ($this->mapper->find('_vsequence') as $sq) {
+                $this->sequences[$sq->name] = true;
+            }
         }
 
-        return $this;
-    }
+        $name = $space->getName();
 
-    public function initializeSequence($space) : Entity
-    {
-        $this->initSchema();
-
-        $spaceId = $space->getId();
-        $instance = $this->mapper->findOne('sequence', $space->getId());
-        if (!$instance) {
+        if (!array_key_exists($name, $this->sequences)) {
             $primaryIndex = $space->getIndexes()[0];
             if (count($primaryIndex['parts']) !== 1) {
                 throw new Exception("Composite primary key");
             }
-            $indexName = $primaryIndex['name'];
-            $query = "box.space.".$space->getName().".index.$indexName:max";
-            $data = $this->mapper->getClient()->call($query);
-            $max = $data ? $data[0][$primaryIndex['parts'][0][0]] : 0;
+            $this->mapper
+                ->getPlugin(Procedure::class)
+                ->get(CreateSequence::class)
+                ->execute($name, $primaryIndex['name'], $primaryIndex['parts'][0][0]+1);
 
-            $instance = $this->mapper->create('sequence', [
-                'space' => $space->getId(),
-                'counter' => $max,
-            ]);
+            $this->mapper->getRepository('_vsequence')->flushCache();
+
+            $this->sequences[$name] = true;
         }
-
-        return $instance;
     }
 
     private function generateValue(Space $space) : int
     {
-        $instance = $this->initializeSequence($space);
-        $repository = $this->mapper->getRepository('sequence');
+        $this->initializeSequence($space);
 
-        $field = $repository
-            ->getSpace()
-            ->getPropertyIndex('counter');
+        $next = $this->mapper->getClient()
+            ->call('box.sequence.'.$space->getName().':next');
 
-        $this->mapper->getClient()
-            ->getSpace('sequence')
-            ->update([$instance->space], Operations::add($field, 1));
-        $repository->sync($instance->space);
-
-        return $instance->counter;
+        return $next[0];
     }
 }

@@ -41,6 +41,9 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
             for i, name in pairs(todo) do
                 box.space[name]:drop()
             end
+            for i, s in box.space._vsequence:pairs() do
+                box.sequence[s.name]:drop()
+            end
         ');
 
         $mapper->getSchema()->reset();

@@ -89,11 +89,10 @@ class FindOrCreate extends Procedure
         end
 
         if sequence == 1 then
-            if box.space.sequence == nil then
-                return 'no sequence space'
+            if box.sequence[space] == nil then
+                return 'no sequence '..space
             end
-            local row = box.space.sequence:update(box.space[space].id, {{'+', 2, 1}});
-            tuple[key] = row[2];
+            tuple[key] = box.sequence[space]:next()
         end
 
         tuple = box.space[space]:insert(tuple)
