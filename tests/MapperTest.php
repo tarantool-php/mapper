@@ -275,7 +275,7 @@ class MapperTest extends TestCase
 
         $this->assertNotCount(0, $mapper->find('_space'));
 
-        $mapper->setClient($mapper->getClient()->withMiddleware(FirewallMiddleware::readOnly()));
+        $mapper->setClient($mapper->getClient()->withMiddleware(FirewallMiddleware::allowReadOnly()));
         $this->expectException(Exception::class);
 
         $mapper->getSchema()->createSpace('tester')
