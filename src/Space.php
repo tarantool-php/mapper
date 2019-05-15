@@ -442,6 +442,38 @@ class Space
         return $values;
     }
 
+    protected $primaryKey;
+
+    public function getPrimaryKey() : ?string
+    {
+        if (!is_null($this->primaryKey)) {
+            return $this->primaryKey ?: null;
+        }
+        $field = $this->getPrimaryField();
+        if (!is_null($field)) {
+            return $this->primaryKey = $this->getFormat()[$field]['name'];
+        }
+
+        $this->primaryKey = false;
+        return null;
+    }
+
+    protected $primaryField;
+
+    public function getPrimaryField() : ?int
+    {
+        if (!is_null($this->primaryField)) {
+            return $this->primaryField ?: null;
+        }
+        $primary = $this->getPrimaryIndex();
+        if (count($primary['parts']) == 1) {
+            return $this->primaryField = $primary['parts'][0][0];
+        }
+
+        $this->primaryField = false;
+        return null;
+    }
+
     public function getPrimaryIndex() : array
     {
         return $this->getIndex(0);
@@ -458,6 +490,11 @@ class Space
 
     public function getInstanceKey(Entity $instance)
     {
+        if ($this->getPrimaryKey()) {
+            $key = $this->getPrimaryKey();
+            return $instance->{$key};
+        }
+
         $key = [];
 
         foreach ($this->getPrimaryIndex()['parts'] as $part) {

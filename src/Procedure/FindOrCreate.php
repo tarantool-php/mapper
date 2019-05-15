@@ -39,13 +39,12 @@ class FindOrCreate extends Procedure
             $tuple[$i] = $params[$name];
         }
 
-        $primary = $space->getPrimaryIndex();
+        $key = $space->getPrimaryKey();
         $sequence = 0;
         $pkIndex = null;
-        if (count($primary['parts']) == 1) {
-            $pkIndex = $primary['parts'][0][0];
-            $key = $space->getFormat()[$pkIndex]['name'];
-            $pkIndex++; // convert php to lua index
+        if ($key) {
+            // convert php to lua index
+            $pkIndex = $space->getPrimaryField()+1;
             if (!array_key_exists($key, $params) || !$params[$key]) {
                 $sequence = 1;
                 $space->getMapper()
@@ -62,7 +61,7 @@ class FindOrCreate extends Procedure
 
         $key = [];
         $format = $space->getFormat();
-        foreach ($primary['parts'] as $part) {
+        foreach ($space->getPrimaryIndex()['parts'] as $part) {
             $key[$format[$part[0]]['name']] = $result['tuple'][$part[0]];
         }
         return [

@@ -159,11 +159,13 @@ class Repository
 
         if (count($params) == 1 && array_key_exists(0, $params)) {
             $primary = $this->space->getPrimaryIndex();
-            if (count($primary['parts']) == 1) {
-                $formatted = $this->getMapper()->getSchema()->formatValue($primary['parts'][0][1], $params[0]);
+            if ($key = $this->space->getPrimaryKey()) {
+                $index = $this->space->getPrimaryIndex();
+                $type = $index['parts'][0][1];
+                $formatted = $this->getMapper()->getSchema()->formatValue($type, $params[0]);
                 if ($params[0] == $formatted) {
                     $params = [
-                        $this->space->getFormat()[$primary['parts'][0][0]]['name'] => $params[0]
+                        $key => $formatted
                     ];
                 }
             }
