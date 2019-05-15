@@ -409,11 +409,11 @@ $mapper->getRepository('person')->flushCache();
 Mapper overhead depends on amount of rows and operation type.
 Table contains overhead in **milliseconds** per entity. In some cases, overhead can't be calculated due float precision.
 
-| Operation | 100 | 1000 | 10 000 | 100 000 |
-| --- | --- | --- | --- | --- |
-| create entity one by one | 0.017 | 0.022 | 0.023 | 0.024 |
-| select entity one by one | - | 0.015 | 0.016 | 0.018 |
-| one select for all entites | - | - | 0.002 | 0.006 |
+| Operation | Timing |
+| --- | --- |
+| create single row | 0.0264 |
+| select single row | 0.0008 |
+| select multiple rows | 0.00037 |
 
-Perfomance test was made on (intel i5-6400), bash for windows 10 using php 7.0.18.
-For example, when single select will produce 10 000 entites, you will get 20ms overhead.
+Perfomance test was made on (intel i5-4670K), Ubuntu 18.04.2 LTS  using PHP 7.3.5
+For example, when single select will produce 10 000 entites, you will get about 4ms overhead.
