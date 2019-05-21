@@ -39,6 +39,7 @@ class MetaTest extends TestCase
 
         $logger3 = new Logger();
         $mapper3 = $this->createMapper(new LoggingMiddleware($logger3));
+        $logger3->flush();
         $mapper3->setMeta($meta);
 
         $mapper3->getSchema()->getSpace('tester')->getFormat();

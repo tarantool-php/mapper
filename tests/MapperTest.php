@@ -298,6 +298,7 @@ class MapperTest extends TestCase
     {
         $logger = new Logger();
         $mapper = $this->createMapper(new LoggingMiddleware($logger));
+        $logger->flush();
         $this->assertCount(0, $logger->getLog());
 
         $mapper->getClient()->ping();
