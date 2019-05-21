@@ -17,7 +17,8 @@
         "phpunit/phpunit": "^6.5.4",
         "rybakit/msgpack": "^0.5.4",
         "phpdocumentor/reflection-docblock": "^4.2.0",
-        "nesbot/carbon": "^1.22"
+        "nesbot/carbon": "^1.22",
+        "psr/log": "^1.1"
     },
     "autoload-dev": {
         "psr-4": {

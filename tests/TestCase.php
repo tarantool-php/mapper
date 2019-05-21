@@ -10,8 +10,10 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
 {
     protected function createMapper()
     {
-        $client = $this->createClient();
-        $client->evaluate("box.session.su('admin')");
+        $client = $this->createClient(...func_get_args());
+        if (!func_num_args()) {
+            $client->evaluate("box.session.su('admin')");
+        }
         return new Mapper($client);
     }
 
@@ -19,7 +21,11 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
     {
         $host = getenv('TNT_CONN_HOST');
         $port = getenv('TNT_CONN_PORT') ?: 3301;
-        return Client::fromDsn("tcp://$host:$port");
+        $client = Client::fromDsn("tcp://$host:$port");
+        foreach (func_get_args() as $middleware) {
+            $client = $client->withMiddleware($middleware);
+        }
+        return $client;
     }
 
     protected function clean(Mapper $mapper)

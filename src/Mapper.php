@@ -139,12 +139,6 @@ class Mapper
         return $this->findRepository($instance)->save($instance);
     }
 
-    public function setClient(Client $client) : self
-    {
-        $this->client = $client;
-        return $this;
-    }
-
     public function setMeta(array $meta) : self
     {
         if ($this->schema) {

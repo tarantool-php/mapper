@@ -4,17 +4,16 @@ use Tarantool\Mapper\Client;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Schema;
 use Tarantool\Mapper\Plugin\Sequence;
-use Tarantool\Mapper\Middleware\DebuggerMiddleware;
+use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Client\Request\InsertRequest;
 
 class MetaTest extends TestCase
 {
     public function testCaching()
     {
-        $mapper = $this->createMapper();
+        $logger = new Logger();
+        $mapper = $this->createMapper(new LoggingMiddleware($logger));
         $this->clean($mapper);
-
-        $mapper->setClient($mapper->getClient()->withMiddleware($debugger = new DebuggerMiddleware));
 
         $mapper->getSchema()
             ->createSpace('tester', [
@@ -30,20 +29,20 @@ class MetaTest extends TestCase
             ])
             ->addIndex(['a', 'b']);
 
-        $this->assertNotCount(0, $debugger->getLog());
+        $this->assertNotCount(0, $logger->getLog());
 
         $meta = $mapper->getMeta();
 
-        $mapper2 = $this->createMapper();
-        $mapper2->setClient($mapper2->getClient()->withMiddleware($debugger2 = new DebuggerMiddleware));
+        $logger2 = new Logger();
+        $mapper2 = $this->createMapper(new LoggingMiddleware($logger2));
         $this->assertEquals($meta, $mapper2->getMeta());
 
-        $mapper3 = $this->createMapper();
-        $mapper3->setClient($mapper3->getClient()->withMiddleware($debugger3 = new DebuggerMiddleware));
+        $logger3 = new Logger();
+        $mapper3 = $this->createMapper(new LoggingMiddleware($logger3));
         $mapper3->setMeta($meta);
 
         $mapper3->getSchema()->getSpace('tester')->getFormat();
         $mapper3->getSchema()->getSpace('tester2')->getFormat();
-        $this->assertCount(0, $debugger3->getLog());
+        $this->assertCount(0, $logger3->getLog());
     }
 }

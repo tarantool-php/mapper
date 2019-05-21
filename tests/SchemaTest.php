@@ -1,9 +1,9 @@
 <?php
 
+use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Middleware\DebuggerMiddleware;
-use Tarantool\Mapper\Space;
 use Tarantool\Mapper\Plugin\Sequence;
+use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
@@ -253,7 +253,8 @@ class SchemaTest extends TestCase
         $this->assertSame($birthday->type, 'tree');
         $this->assertSame($nameBirthday->type, 'hash');
 
-        $mapper->setClient($mapper->getClient()->withMiddleware($debugger = new DebuggerMiddleware));
+        $logger = new Logger();
+        $mapper = $this->createMapper(new LoggingMiddleware($logger));
 
         $person = $mapper->findOne('person', ['birthday' => '19840127']);
         $this->assertNull($person);
@@ -266,9 +267,9 @@ class SchemaTest extends TestCase
 
         $this->assertSame($mapper->findRepository($nekufa)->getSpace()->getMapper()->getClient(), $mapper->getClient());
 
-        $debugger->flush();
+        $logger->flush();
         $mapper->save($nekufa);
-        $this->assertCount(1, $debugger->getLog());
+        $this->assertCount(1, $logger->getLog());
         
         $this->assertSame($nekufa->id, 1);
         $this->assertSame($nekufa->name, 'nekufa');
@@ -290,7 +291,7 @@ class SchemaTest extends TestCase
         $person = $mapper->findOne('person', ['birthday' => '19860127']);
         $this->assertSame($person, $nekufa);
 
-        $this->assertCount(5, $debugger->getLog());
+        $this->assertCount(5, $logger->getLog());
 
         $vasiliy = $mapper->create('person', [
             'id' => 2,
