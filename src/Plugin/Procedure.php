@@ -18,6 +18,7 @@ class Procedure extends Plugin
     public function invoke(BaseProcedure $procedure, $params)
     {
         $name = $procedure->getName();
+        $this->initSchema();
         $this->validatePresence($procedure);
         $result = $this->mapper->getClient()->call($name, ...$params);
         if (!count($result)) {
