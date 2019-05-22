@@ -40,12 +40,12 @@ class Schema
             }
         }
 
-        $id = $this->mapper->getClient()->evaluate("
+        [$id] = $this->mapper->getClient()->evaluate("
             box.schema.space.create('$space', {
                 engine = '$engine'
             })
             return box.space.$space.id
-        ")[0];
+        ");
 
         $this->names[$space] = $id;
         $this->engines[$space] = $engine;

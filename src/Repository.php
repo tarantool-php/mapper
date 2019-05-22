@@ -499,7 +499,7 @@ class Repository
     public function sync(int $id, string $fields = null) : ?Entity
     {
         if (array_key_exists($id, $this->persisted)) {
-            $tuple = $this->getMapper()->getClient()->getSpaceById($this->space->getId())->select(Criteria::key([$id]))[0];
+            [$tuple] = $this->getMapper()->getClient()->getSpaceById($this->space->getId())->select(Criteria::key([$id]));
 
             foreach ($this->space->getFormat() as $index => $info) {
                 if (!$fields || in_array($info['name'], $fields)) {

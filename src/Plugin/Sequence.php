@@ -38,7 +38,7 @@ class Sequence extends Plugin
         $name = $space->getName();
 
         if (!array_key_exists($name, $this->sequences)) {
-            $primaryIndex = $space->getIndexes()[0];
+            [$primaryIndex] = $space->getIndexes();
             if (count($primaryIndex['parts']) !== 1) {
                 throw new Exception("Composite primary key");
             }

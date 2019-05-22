@@ -47,7 +47,7 @@ class Procedure extends Plugin
     private function validatePresence(BaseProcedure $procedure)
     {
         $name = $procedure->getName();
-        $exists = $this->mapper->getClient()->evaluate("return _G.$name ~= nil")[0];
+        [$exists] = $this->mapper->getClient()->evaluate("return _G.$name ~= nil");
 
         $instance = $this->mapper->findOrCreate('_procedure', [
             'name' => get_class($procedure)

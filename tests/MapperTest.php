@@ -88,7 +88,7 @@ class MapperTest extends TestCase
 
         $tester1 = $mapper->create('tester', ['a' => 1, 'b' => 2]);
 
-        $tester1x = $mapper->find('tester', ['a' => 1])[0];
+        [$tester1x] = $mapper->find('tester', ['a' => 1]);
         $this->assertSame($tester1, $tester1x);
         $mapper->remove($tester1x);
 

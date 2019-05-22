@@ -157,7 +157,7 @@ class Temporal extends Plugin
             throw new Exception("Invalid reference configuration");
         }
 
-        $targetName = array_keys($reference['data'])[0];
+        [$targetName] = array_keys($reference['data']);
         $reference['target'] = $this->entityNameToId($targetName);
         $reference['targetId'] = $reference['data'][$targetName];
 
