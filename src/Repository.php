@@ -403,7 +403,7 @@ class Repository
 
             $operations = null;
             foreach ($update as $index => $value) {
-                $operations = $operations ? $operations->set($index, $value) : Operations::set($index, $value);
+                $operations = $operations ? $operations->andSet($index, $value) : Operations::set($index, $value);
             }
 
             $pk = [];
