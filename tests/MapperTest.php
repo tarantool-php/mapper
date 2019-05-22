@@ -150,6 +150,30 @@ class MapperTest extends TestCase
         $this->assertSame($anotherInstance->flow, $instance->flow);
     }
 
+    public function testMultiUpdates()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('tester', [
+                'id' => 'unsigned',
+                'a'  => 'string',
+                'b'  => 'string',
+            ])
+            ->addIndex('id');
+
+        $tester = $mapper->findOrCreate('tester', [ 'id' => 1 ]);
+        $tester->a = 'a';
+        $tester->b = 'b';
+        $tester->save();
+
+        $mapper = $this->createMapper();
+        $tester = $mapper->findOrCreate('tester', [ 'id' => 1 ]);
+        $this->assertSame($tester->a, 'a');
+        $this->assertSame($tester->b, 'b');
+    }
+
     public function testFindOrCreateShortcut()
     {
         $mapper = $this->createMapper();
