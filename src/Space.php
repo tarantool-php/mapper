@@ -86,7 +86,7 @@ class Space
 
     public function isPropertyNullable(string $name) : bool
     {
-        return $this->getPropertyFlag($name, 'is_nullable');
+        return !!$this->getPropertyFlag($name, 'is_nullable');
     }
 
     public function setFormat(array $format) : self
