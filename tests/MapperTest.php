@@ -676,6 +676,25 @@ class MapperTest extends TestCase
         $this->assertSame($user, $guest);
     }
 
+    public function testTupleMap()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $session = $mapper->getSchema()->createSpace('session');
+        $session->addProperty('uuid', 'string');
+        $session->addProperty('activity_at', 'unsigned');
+        $session->addProperty('login', 'unsigned');
+        $session->addProperty('ip', 'unsigned');
+        $session->createIndex('uuid');
+
+        $map = $mapper->getRepository('session')->getSpace()->getTupleMap();
+        $this->assertSame(1, $map->uuid);
+        $this->assertSame(2, $map->activity_at);
+        $this->assertSame(3, $map->login);
+        $this->assertSame(4, $map->ip);
+    }
+
     public function testQueryCaching()
     {
         $mapper = $this->createMapper();

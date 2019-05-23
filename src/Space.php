@@ -212,7 +212,7 @@ class Space
         return $this->id;
     }
 
-    public function getTupleMap() : array
+    public function getTupleMap() : object
     {
         $reverse = [];
         foreach ($this->getFormat() as $i => $field) {
