@@ -511,6 +511,7 @@ class Repository
 
             return $this->persisted[$id];
         }
+        return null;
     }
 
     public function flushCache() : self
