@@ -44,7 +44,7 @@ class Schema
             box.schema.space.create('$space', {
                 engine = '$engine'
             })
-            return box.space.$space.id
+            return box.space['$space'].id
         ");
 
         $this->names[$space] = $id;

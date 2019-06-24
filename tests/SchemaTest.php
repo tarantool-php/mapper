@@ -66,6 +66,35 @@ class SchemaTest extends TestCase
         $this->assertSame($this->createMapper()->findOne('tester', ['id' => $d->id])->firstName, $d->firstName);
     }
 
+    public function testDashes()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getPlugin(Sequence::class);
+
+        $tester = $mapper->getSchema()->createSpace('solution-owner', [
+                'id' => 'unsigned',
+                'firstName' => 'string',
+            ])
+            ->addIndex('id')
+            ->addIndex('firstName');
+
+        $tester->removeIndex('firstName');
+        $tester->addIndex('firstName');
+        $this->assertNotNull($tester->getFormat());
+
+        $d = $mapper->findOrCreate('solution-owner', ['firstName' => 'Dmitry']);
+
+        $this->assertTrue($tester->hasProperty('firstName'));
+        $this->assertFalse($tester->hasProperty('first_name'));
+
+        $this->assertNotNull($d);
+        $this->assertNotNull($d->firstName);
+
+        $this->assertSame($this->createMapper()->findOne('solution-owner', ['id' => $d->id])->firstName, $d->firstName);
+    }
+
     public function testCreateSpaceWithProperties()
     {
         $mapper = $this->createMapper();
