@@ -62,7 +62,8 @@ class FindOrCreate extends Procedure
         $key = [];
         $format = $space->getFormat();
         foreach ($space->getPrimaryIndex()['parts'] as $part) {
-            $key[$format[$part[0]]['name']] = $result['tuple'][$part[0]];
+            $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+            $key[$format[$field]['name']] = $result['tuple'][$field];
         }
         return [
             'key' => $key,

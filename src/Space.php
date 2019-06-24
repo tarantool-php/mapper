@@ -391,7 +391,8 @@ class Space
                 // same length
                 $equals = true;
                 foreach ($index['parts'] as $part) {
-                    $equals = $equals && array_key_exists($part[0], $keys);
+                    $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+                    $equals = $equals && array_key_exists($field, $keys);
                 }
             }
 
@@ -404,10 +405,11 @@ class Space
         foreach ($this->getIndexes() as $index) {
             $partial = [];
             foreach ($index['parts'] as $n => $part) {
-                if (!array_key_exists($part[0], $keys)) {
+                $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+                if (!array_key_exists($field, $keys)) {
                     break;
                 }
-                $partial[] = $keys[$part[0]];
+                $partial[] = $keys[$field];
             }
 
             if (count($partial) == count($keys)) {
@@ -429,13 +431,15 @@ class Space
 
         $values = [];
         foreach ($index['parts'] as $part) {
-            $name = $format[$part[0]]['name'];
+            $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+            $name = $format[$field]['name'];
             if (!array_key_exists($name, $params)) {
                 break;
             }
-            $value = $this->mapper->getSchema()->formatValue($part[1], $params[$name]);
+            $type = array_key_exists(1, $part) ? $part[1] : $part['type'];
+            $value = $this->mapper->getSchema()->formatValue($type, $params[$name]);
             if (is_null($value) && !$this->isPropertyNullable($name)) {
-                $value = $this->mapper->getSchema()->getDefaultValue($format[$part[0]]['type']);
+                $value = $this->mapper->getSchema()->getDefaultValue($format[$field]['type']);
             }
             $values[] = $value;
         }
@@ -483,7 +487,8 @@ class Space
     {
         $key = [];
         foreach ($this->getPrimaryIndex()['parts'] as $part) {
-            $key[] = $tuple[$part[0]];
+            $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+            $key[] = $tuple[$field];
         }
         return count($key) == 1 ? $key[0] : implode(':', $key);
     }
@@ -498,7 +503,8 @@ class Space
         $key = [];
 
         foreach ($this->getPrimaryIndex()['parts'] as $part) {
-            $name = $this->getFormat()[$part[0]]['name'];
+            $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+            $name = $this->getFormat()[$field]['name'];
             if (!property_exists($instance, $name)) {
                 throw new Exception("Field $name is undefined", 1);
             }

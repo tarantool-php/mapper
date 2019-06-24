@@ -329,7 +329,8 @@ class Repository
 
             $pk = [];
             foreach ($this->space->getPrimaryIndex()['parts'] as $part) {
-                $pk[] = $this->original[$key][$part[0]];
+                $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+                $pk[] = $this->original[$key][$field];
             }
 
             foreach ($this->getMapper()->getPlugins() as $plugin) {
@@ -408,7 +409,8 @@ class Repository
 
             $pk = [];
             foreach ($this->space->getPrimaryIndex()['parts'] as $part) {
-                $pk[] = $this->original[$key][$part[0]];
+                $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+                $pk[] = $this->original[$key][$field];
             }
 
             $client->getSpaceById($this->space->getId())->update($pk, $operations);

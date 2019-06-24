@@ -59,7 +59,8 @@ class Spy extends Plugin
 
         $format = $space->getFormat();
         foreach ($space->getPrimaryIndex()['parts'] as $part) {
-            $key[] = $instance->{$format[$part[0]]['name']};
+            $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
+            $key[] = $instance->{$format[$field]['name']};
         }
 
         return implode(':', $key);
