@@ -45,7 +45,7 @@ $mapper = new Mapper($client);
 You can start with your current configuration.
 Please, note - all instances are mapped to key-value objects.
 ```php
-$globalSpace = $mapper->find('_space', ['name' => '_space']);
+$globalSpace = $mapper->findOrFail('_space', ['name' => '_space']);
 echo $globalSpace->id; // 280
 
 $indexes = $mapper->find('_index', ['id' => $globalSpace->id]);
