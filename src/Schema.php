@@ -159,12 +159,23 @@ class Schema
     public function once(string $name, Closure $callback)
     {
         $key = 'mapper-once' . $name;
-
-        $rows = $this->mapper->find('_schema', ['key' => $key]);
-        if (!count($rows)) {
+        $row = $this->mapper->findOne('_schema', ['key' => $key]);
+        if (!$row) {
             $this->mapper->create('_schema', ['key' => $key]);
             return $callback($this->mapper);
         }
+    }
+
+    public function forgetOnce(string $name)
+    {
+        $key = 'mapper-once' . $name;
+        $row = $this->mapper->findOne('_schema', ['key' => $key]);
+        if ($row) {
+            $this->mapper->remove($row);
+            return true;
+        }
+
+        return false;
     }
 
     public function reset() : self

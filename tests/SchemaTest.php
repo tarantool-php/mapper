@@ -217,13 +217,29 @@ class SchemaTest extends TestCase
             $mapper->remove($flag);
         }
 
+        // no once is registered yet
+        $this->assertFalse($schema->forgetOnce('insert'));
+        $this->assertCount(0, $mapper->find('test'));
+
         $iterations = 2;
         while ($iterations--) {
             $schema->once('insert', function (Mapper $mapper) {
-                $mapper->create('test', ['name' => 'example row']);
+                $mapper->create('test', ['name' => 'example row ' . microtime(1)]);
             });
         }
+        // once was registered and can be removed
+        $this->assertTrue($schema->forgetOnce('insert'));
         $this->assertCount(1, $mapper->find('test'));
+        // no once is registered now
+        $this->assertFalse($schema->forgetOnce('insert'));
+        
+        $iterations = 2;
+        while ($iterations--) {
+            $schema->once('insert', function (Mapper $mapper) {
+                $mapper->create('test', ['name' => 'example row ' . microtime(1)]);
+            });
+        }
+        $this->assertCount(2, $mapper->find('test'));
     }
 
     public function testSystemMeta()
