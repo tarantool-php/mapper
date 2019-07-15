@@ -116,9 +116,9 @@ class Repository
                 ->get(FindOrCreate::class)
                 ->execute($space, $this->normalize($params));
 
-            if ($result['created']) {
-                $this->flushCache();
-            }
+            // cache should be flushed 
+            // it was set using find one method
+            $this->flushCache();
 
             $instance = $this->findOrFail($result['key']);
             if ($result['created']) {
