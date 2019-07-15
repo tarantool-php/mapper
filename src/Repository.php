@@ -102,6 +102,11 @@ class Repository
 
     public function findOrCreate($params = []) : Entity
     {
+        $instance = $this->findOne($params);
+        if ($instance !== null) {
+            return $instance;
+        }
+
         $space = $this->getSpace();
 
         if ($space->getName() != '_procedure') {
