@@ -43,11 +43,7 @@ class Repository
         if (array_key_exists(0, $data)) {
             $byType = [];
             foreach ($this->space->getFormat() as $row) {
-                if (!array_key_exists($row['type'], $byType)) {
-                    $byType[$row['type']] = [$row['name']];
-                } else {
-                    $byType[$row['type']][] = $row['name'];
-                }
+                $byType[$row['type']][] = $row['name'];
             }
             $mapping = [
                 'is_numeric' => 'unsigned',
