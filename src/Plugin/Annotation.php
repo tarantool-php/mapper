@@ -277,9 +277,16 @@ class Annotation extends UserClasses
         if ($extensionInstances) {
             foreach ($this->extensions as $class => $target) {
                 $space = $this->getSpaceName($target);
-                $this->mapper->findOrCreate($space, [
+                $instance = $this->mapper->findOrCreate($space, [
                     'class' => $class,
                 ]);
+                $reflection = new ReflectionClass($class);
+                foreach ($reflection->getDefaultProperties() as $key => $value) {
+                    if ($value && !$instance->$key) {
+                        $instance->$key = $value;
+                    }
+                }
+                $instance->save();
             }
         }
 

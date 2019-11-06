@@ -41,6 +41,7 @@ class AnnotationTest extends TestCase
         $simple = $mapper->findOrFail('type', [
             'class' => Simple::class,
         ]);
+        $this->assertSame($simple->name, 'simplest!');
         $this->assertInstanceOf(Simple::class, $simple);
 
         $types = $mapper->find('type');
