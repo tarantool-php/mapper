@@ -408,6 +408,40 @@ class Temporal extends Plugin
         $this->aggregator->updateOverrideAggregation($entity, $id);
     }
 
+    public function setReferenceEnd($entity, $id, $target, $targetId, $begin, $actor, $timestamp, $end)
+    {
+        $reference = $this->mapper->findOrFail('_temporal_reference', [
+            'entity' => $this->entityNameToId($entity),
+            'id' => $id,
+            'target' => $this->entityNameToId($target),
+            'targetId' => $targetId,
+            'begin' => $begin,
+            'actor' => $actor,
+            'timestamp' => $timestamp,
+        ]);
+        if ($reference->end != $end) {
+            $reference->end = $end;
+            $reference->save();
+            $this->aggregator->updateReferenceState($entity, $id, $target);
+        }
+    }
+
+    public function setOverrideEnd($entity, $id, $begin, $actor, $timestamp, $end)
+    {
+        $override = $this->mapper->findOrFail('_temporal_override', [
+            'entity' => $this->entityNameToId($entity),
+            'id' => $id,
+            'begin' => $begin,
+            'actor' => $actor,
+            'timestamp' => $timestamp,
+        ]);
+        if ($override->end != $end) {
+            $override->end = $end;
+            $override->save();
+            $this->aggregator->updateOverrideAggregation($entity, $id);
+        }
+    }
+
 
     public function link(array $link)
     {
