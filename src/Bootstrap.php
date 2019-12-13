@@ -17,6 +17,11 @@ class Bootstrap
 
     public function register($instance) : self
     {
+        foreach ($this->migrations as $candidate) {
+            if ($candidate == $instance) {
+                return $this;
+            }
+        }
         $this->migrations[] = $instance;
         return $this;
     }
