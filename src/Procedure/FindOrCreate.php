@@ -11,9 +11,9 @@ use Tarantool\Mapper\Space;
 
 class FindOrCreate extends Procedure
 {
-    public function execute(Space $space, array $params) : array
+    public function execute(Space $space, array $params, array $query = null) : array
     {
-        $index = $space->castIndex($params);
+        $index = $space->castIndex($query ?: $params);
         if (is_null($index)) {
             throw new Exception("No valid index for ".json_encode($params));
         }

@@ -7,6 +7,8 @@ use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Client\Request\InsertRequest;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Plugin\Sequence;
+use Tarantool\Mapper\Plugin\Procedure;
+use Tarantool\Mapper\Procedure\FindOrCreate;
 use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
@@ -124,6 +126,31 @@ class MapperTest extends TestCase
             'id' => 1,
             'label' => 2
         ]);
+    }
+
+    public function testFindOrCreateUsingParams()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $space = $mapper->getSchema()
+            ->createSpace('tester', [
+                'id' => 'integer',
+                'hash' => 'string',
+                'body' => 'string',
+            ])
+            ->addIndex('id')
+            ->addIndex('hash');
+
+        $procedure = $mapper->getPlugin(Procedure::class)->get(FindOrCreate::class);
+        $result = $procedure->execute($space, ['hash' => '123', 'body' => 'tester'], ['hash' => '123']);
+        $this->assertTrue($result['created']);
+
+        // casting row by optional query param
+        $result = $procedure->execute($space, ['hash' => '123', 'body' => 'tester'], ['hash' => '123']);
+        $this->assertFalse($result['created']);
+
+        $this->assertCount(1, $mapper->find('tester'));
     }
 
     public function testFindOrCreateWithoutSequence()
