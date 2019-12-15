@@ -100,7 +100,7 @@ class Repository
         return $this->find($params, true);
     }
 
-    public function findOrCreate($params = []) : Entity
+    public function findOrCreate($params = [], $data = []) : Entity
     {
         $instance = $this->findOne($params);
         if ($instance !== null) {
@@ -114,7 +114,7 @@ class Repository
             $result = $this->getMapper()
                 ->getPlugin(Procedure::class)
                 ->get(FindOrCreate::class)
-                ->execute($space, $this->normalize($params));
+                ->execute($space, $this->normalize($data ?: $params), $this->normalize($params));
 
             // cache should be flushed 
             // it was set using find one method

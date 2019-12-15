@@ -91,9 +91,9 @@ class Pool
         return $this->getRepository($space)->findOne($params);
     }
 
-    public function findOrCreate(string $space, $params = [])
+    public function findOrCreate(string $space, $params = [], $data = [])
     {
-        return $this->getRepository($space)->findOrCreate($params)->save();
+        return $this->getRepository($space)->findOrCreate($params, $data)->save();
     }
 
     public function findOrFail(string $space, $params = [])

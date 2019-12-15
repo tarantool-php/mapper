@@ -50,9 +50,9 @@ class Mapper
         return $this->getRepository($space)->findOne($params);
     }
 
-    public function findOrCreate(string $space, $params = []) : Entity
+    public function findOrCreate(string $space, $params = [], $data = []) : Entity
     {
-        return $this->getRepository($space)->findOrCreate($params)->save();
+        return $this->getRepository($space)->findOrCreate($params, $data)->save();
     }
 
     public function findOrFail(string $space, $params = []) : Entity

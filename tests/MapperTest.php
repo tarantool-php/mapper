@@ -128,7 +128,7 @@ class MapperTest extends TestCase
         ]);
     }
 
-    public function testFindOrCreateUsingParams()
+    public function testFindOrCreateUsingQuery()
     {
         $mapper = $this->createMapper();
         $this->clean($mapper);
@@ -151,6 +151,31 @@ class MapperTest extends TestCase
         $this->assertFalse($result['created']);
 
         $this->assertCount(1, $mapper->find('tester'));
+    }
+
+    public function testFindByParamsOrCreateUsingData()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $space = $mapper->getSchema()
+            ->createSpace('tester', [
+                'id' => 'integer',
+                'hash' => 'string',
+                'body' => 'string',
+            ])
+            ->addIndex('id')
+            ->addIndex('hash');
+
+        $row = $mapper->findOrCreate('tester', [
+            'hash' => 123,
+        ], [
+            'hash' => 123,
+            'body' => 'tester',
+        ]);
+
+        $this->assertSame($row->hash, '123');
+        $this->assertSame($row->body, 'tester');
     }
 
     public function testFindOrCreateWithoutSequence()
