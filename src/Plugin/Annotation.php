@@ -118,26 +118,36 @@ class Annotation extends UserClasses
 
             $spaceName = $this->getSpaceName($entity);
 
-            $engine = 'memtx';
+            $params = [
+                'engine' => 'memtx',
+                'properties' => [],
+            ];
+
             if (array_key_exists($spaceName, $this->repositoryMapping)) {
                 $repositoryClass = $this->repositoryMapping[$spaceName];
                 $repositoryReflection = new ReflectionClass($repositoryClass);
                 $repositoryProperties = $repositoryReflection->getDefaultProperties();
                 if (array_key_exists('engine', $repositoryProperties)) {
-                    $engine = $repositoryProperties['engine'];
+                    $params['engine'] = $repositoryProperties['engine'];
+                }
+                if (array_key_exists('local', $repositoryProperties)) {
+                    $params['is_local'] = true;
+                }
+                if (array_key_exists('temporary', $repositoryProperties)) {
+                    if ($params['engine'] == 'vinyl') {
+                        throw new Exception("Vinyl does not support temporary spaces");
+                    }
+                    $params['temporary'] = true;
                 }
             }
 
             if ($schema->hasSpace($spaceName)) {
                 $space = $schema->getSpace($spaceName);
-                if ($space->getEngine() != $engine) {
+                if ($space->getEngine() != $params['engine']) {
                     throw new Exception("Space engine can't be updated");
                 }
             } else {
-                $space = $schema->createSpace($spaceName, [
-                    'engine' => $engine,
-                    'properties' => [],
-                ]);
+                $space = $schema->createSpace($spaceName, $params);
             }
 
             $class = new ReflectionClass($entity);

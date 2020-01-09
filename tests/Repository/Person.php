@@ -8,6 +8,8 @@ class Person extends MapperRepository
 {
     public $engine = 'memtx';
 
+    public $temporary = true;
+
     public $indexes = [
         ['id'],
         ['fullName'],

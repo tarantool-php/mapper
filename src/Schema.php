@@ -30,27 +30,30 @@ class Schema
 
     public function createSpace(string $space, array $config = []) : Space
     {
-        $engine = 'memtx';
-        if (array_key_exists('properties', $config)) {
-            if (array_key_exists('engine', $config)) {
-                $engine = $config['engine'];
-                if (!in_array($engine, ['memtx', 'vinyl'])) {
-                    throw new Exception("Invalid engine $engine");
-                }
+        $options = [
+            'engine' => 'memtx',
+        ];
+
+        foreach (['engine', 'is_local', 'temporary'] as $key) {
+            if (array_key_exists($key, $config)) {
+                $options[$key] = $config[$key];
             }
         }
 
+        if (!in_array($options['engine'], ['memtx', 'vinyl'])) {
+            throw new Exception("Invalid engine ". $options['engine']);
+        }
+
         [$id] = $this->mapper->getClient()->evaluate("
-            box.schema.space.create('$space', {
-                engine = '$engine'
-            })
-            return box.space['$space'].id
-        ");
+            local space, options = ...
+            box.schema.space.create(space, options)
+            return box.space[space].id
+        ", $space, $options);
 
         $this->names[$space] = $id;
-        $this->engines[$space] = $engine;
+        $this->engines[$space] = $options['engine'];
 
-        $this->spaces[$id] = new Space($this->mapper, $id, $space, $engine);
+        $this->spaces[$id] = new Space($this->mapper, $id, $space, $options['engine']);
 
         $properties = array_key_exists('properties', $config) ? $config['properties'] : $config;
 

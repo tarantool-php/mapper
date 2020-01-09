@@ -247,4 +247,28 @@ class AnnotationTest extends TestCase
         $this->assertSame($newPost->author, $nekufa->id);
         $this->assertSame($newPost->getAuthor()->id, $nekufa->id);
     }
+
+    public function testSpaceFlags()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getPlugin(Sequence::class);
+
+        $mapper->getPlugin(Annotation::class)
+            ->register('Entity\\Person')
+            ->register('Repository\\Person')
+            ->migrate();
+
+        $person = $mapper->findOrFail('_space', ['name' => 'person']);
+        $this->assertSame($person->flags, ['temporary' => true]);
+
+        $mapper->getPlugin(Annotation::class)
+            ->register('Entity\\Post')
+            ->register('Repository\\Post')
+            ->migrate();
+
+        $post = $mapper->findOrFail('_space', ['name' => 'post']);
+        $this->assertSame($post->flags, ['group_id' => 1]);
+    }
 }
