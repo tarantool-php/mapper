@@ -520,7 +520,7 @@ class Space
         foreach ($this->mapper->getPlugins() as $plugin) {
             $repositoryClass = $plugin->getRepositoryClass($this);
             if ($repositoryClass) {
-                if ($class != Repository::class) {
+                if ($class !== Repository::class && !is_subclass_of($class, Repository::class)) {
                     throw new Exception('Repository class override');
                 }
                 $class = $repositoryClass;

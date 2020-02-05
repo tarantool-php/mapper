@@ -1,14 +1,34 @@
 <?php
 
-use Tarantool\Mapper\Plugin\Annotation;
-use Tarantool\Mapper\Plugin\Sequence;
-use Tarantool\Mapper\Entity;
-use Tarantool\Mapper\Repository;
 use Entity\Type\Complex;
 use Entity\Type\Simple;
+use Tarantool\Mapper\Entity;
+use Tarantool\Mapper\Plugin\Annotation;
+use Tarantool\Mapper\Plugin\Sequence;
+use Tarantool\Mapper\Plugin\UserClasses;
+use Tarantool\Mapper\Repository;
 
 class AnnotationTest extends TestCase
 {
+    public function testMixedClassMap()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+        $mapper->getPlugin(Sequence::class);
+
+
+        $mapper->getPlugin(Annotation::class)
+            ->register('Entity\\Post')
+            ->register('Repository\\Post')
+            ->migrate();
+
+        $mapper->getPlugin(UserClasses::class)
+            ->mapRepository('post', 'Repository\\Post');
+
+        $hello = $mapper->create('post', ['title' => 'hello-world', 'slug' => 'first']);
+        $this->assertInstanceOf('Entity\\Post', $hello);
+    }
+
     public function testInheritance()
     {
         $mapper = $this->createMapper();
@@ -16,9 +36,9 @@ class AnnotationTest extends TestCase
         $mapper->getPlugin(Sequence::class);
 
         $annotation = $mapper->getPlugin(Annotation::class);
-        $annotation->register('Entity\\LegacyType');        
-        $annotation->register('Entity\\Type');        
-        $annotation->register('Entity\\Type\\Simple');        
+        $annotation->register('Entity\\LegacyType');
+        $annotation->register('Entity\\Type');
+        $annotation->register('Entity\\Type\\Simple');
         $annotation->register('Entity\\Type\\Complex');
         $annotation->migrate();
 
