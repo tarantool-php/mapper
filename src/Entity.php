@@ -64,6 +64,11 @@ class Entity
         throw new BadMethodCallException("Call to undefined method ". get_class($this).'::'.$name);
     }
 
+    public function sync() : Entity
+    {
+        return $this->getRepository()->sync($this->id);
+    }
+
     public function __debugInfo()
     {
         $info = get_object_vars($this);

@@ -4,6 +4,7 @@ use Psr\Log\AbstractLogger;
 use Tarantool\Client\Client;
 use Tarantool\Client\Middleware\FirewallMiddleware;
 use Tarantool\Client\Middleware\LoggingMiddleware;
+use Tarantool\Client\Schema\Operations;
 use Tarantool\Client\Request\InsertRequest;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Plugin\Sequence;
@@ -13,6 +14,29 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testSync()
+    {
+        $mapper = $this->createMapper();
+        $mapper->getPlugin(new Sequence($mapper));
+        $this->clean($mapper);
+
+        $mapper->getSchema()
+            ->createSpace('post')
+            ->addProperty('id', 'unsigned')
+            ->addProperty('title', 'string')
+            ->addProperty('slug', 'string')
+            ->addIndex('id')
+            ->addIndex('slug');
+
+        $post = $mapper->create('post', ['title' => 'hello']);
+
+        $this->assertSame("", $post->slug);
+        $mapper->getClient()->getSpace('post')->update([$post->id], Operations::set(2, 'hello'));
+        $this->assertSame("", $post->slug);
+        $post->sync();
+        $this->assertSame("hello", $post->slug);
+    }
+
     public function testVinylEngine()
     {
         $mapper = $this->createMapper();
