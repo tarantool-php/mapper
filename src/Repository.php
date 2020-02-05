@@ -33,7 +33,7 @@ class Repository
         foreach ($this->getMapper()->getPlugins() as $plugin) {
             $entityClass = $plugin->getEntityClass($this->space, $data);
             if ($entityClass) {
-                if ($class != Entity::class) {
+                if ($class !== Entity::class && !is_subclass_of($class, Entity::class)) {
                     throw new Exception('Entity class override');
                 }
                 $class = $entityClass;
@@ -256,7 +256,7 @@ class Repository
         foreach ($this->getMapper()->getPlugins() as $plugin) {
             $entityClass = $plugin->getEntityClass($this->space, $data);
             if ($entityClass) {
-                if ($class != Entity::class) {
+                if ($class !== Entity::class && !is_subclass_of($class, Entity::class)) {
                     throw new Exception('Entity class override');
                 }
                 $class = $entityClass;
