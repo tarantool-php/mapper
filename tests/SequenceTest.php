@@ -17,7 +17,7 @@ class SequenceTest extends TestCase
     {
         $mapper = $this->createMapper();
         $mapper->getPlugin(new Sequence($mapper));
-        $this->expectExceptionMessage(Sequence::class. ' is registered');
+        $this->expectExceptionMessage(Sequence::class.' is registered');
         $mapper->getPlugin(new Sequence($mapper));
     }
 

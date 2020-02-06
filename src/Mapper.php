@@ -22,7 +22,7 @@ class Mapper
     public function getPlugin($mixed)
     {
         if (!is_subclass_of($mixed, Plugin::class)) {
-            throw new Exception("Plugin should extend " . Plugin::class . " class");
+            throw new Exception("Plugin should extend ".Plugin::class." class");
         }
 
         $plugin = is_object($mixed) ? $mixed : new $mixed($this);

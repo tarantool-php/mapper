@@ -238,7 +238,7 @@ class Annotation extends UserClasses
                         $space->addIndex($index);
                     } catch (Exception $e) {
                         $presentation = json_encode($properties['indexes'][$i]);
-                        throw new Exception("Failed to add index $presentation. ". $e->getMessage(), 0, $e);
+                        throw new Exception("Failed to add index $presentation. ".$e->getMessage(), 0, $e);
                     }
                 }
             }
@@ -249,7 +249,7 @@ class Annotation extends UserClasses
             }
             if (!count($space->getIndexes())) {
                 if (!$space->hasProperty('id')) {
-                    throw new Exception("No primary index on ". $space->getName());
+                    throw new Exception("No primary index on ".$space->getName());
                 }
                 $space->addIndex(['id']);
             }

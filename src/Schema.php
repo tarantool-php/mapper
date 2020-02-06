@@ -41,7 +41,7 @@ class Schema
         }
 
         if (!in_array($options['engine'], ['memtx', 'vinyl'])) {
-            throw new Exception("Invalid engine ". $options['engine']);
+            throw new Exception("Invalid engine ".$options['engine']);
         }
 
         [$id] = $this->mapper->getClient()->evaluate("
@@ -161,7 +161,7 @@ class Schema
 
     public function once(string $name, Closure $callback)
     {
-        $key = 'mapper-once' . $name;
+        $key = 'mapper-once'.$name;
         $row = $this->mapper->findOne('_schema', ['key' => $key]);
         if (!$row) {
             $this->mapper->create('_schema', ['key' => $key]);
@@ -171,7 +171,7 @@ class Schema
 
     public function forgetOnce(string $name)
     {
-        $key = 'mapper-once' . $name;
+        $key = 'mapper-once'.$name;
         $row = $this->mapper->findOne('_schema', ['key' => $key]);
         if ($row) {
             $this->mapper->remove($row);

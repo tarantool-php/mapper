@@ -224,7 +224,7 @@ class SchemaTest extends TestCase
         $iterations = 2;
         while ($iterations--) {
             $schema->once('insert', function (Mapper $mapper) {
-                $mapper->create('test', ['name' => 'example row ' . microtime(1)]);
+                $mapper->create('test', ['name' => 'example row '.microtime(1)]);
             });
         }
         // once was registered and can be removed
@@ -236,7 +236,7 @@ class SchemaTest extends TestCase
         $iterations = 2;
         while ($iterations--) {
             $schema->once('insert', function (Mapper $mapper) {
-                $mapper->create('test', ['name' => 'example row ' . microtime(1)]);
+                $mapper->create('test', ['name' => 'example row '.microtime(1)]);
             });
         }
         $this->assertCount(2, $mapper->find('test'));

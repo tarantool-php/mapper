@@ -42,7 +42,7 @@ class UserClasses extends Plugin
         }
 
         if (!is_subclass_of($class, Entity::class)) {
-            throw new Exception("Entity should extend " . Entity::class . " class");
+            throw new Exception("Entity should extend ".Entity::class." class");
         }
 
         $this->entityMapping[$space] = $class;
@@ -58,7 +58,7 @@ class UserClasses extends Plugin
         }
 
         if (!is_subclass_of($class, Repository::class)) {
-            throw new Exception("Repository should extend " . Repository::class . " class");
+            throw new Exception("Repository should extend ".Repository::class." class");
         }
 
         $this->repositoryMapping[$space] = $class;
