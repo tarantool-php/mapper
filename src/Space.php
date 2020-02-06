@@ -122,7 +122,7 @@ class Space
     public function removeIndex(string $name) : self
     {
         $this->mapper->getClient()->call("box.space.$this->name.index.$name:drop");
-        $this->indexes = [];
+        $this->indexes = null;
         $this->mapper->getRepository('_vindex')->flushCache();
 
         return $this;
@@ -176,7 +176,7 @@ class Space
         $this->mapper->getClient()->call("box.space.$this->name:create_index", $name, $options);
         $this->mapper->getSchema()->getSpace('_vindex')->getRepository()->flushCache();
 
-        $this->indexes = [];
+        $this->indexes = null;
 
         return $this;
     }
@@ -223,7 +223,7 @@ class Space
 
     public function getFormat() : array
     {
-        if (!$this->format) {
+        if ($this->format === null) {
             if ($this->isSpecial()) {
                 $this->format = $this->mapper->getClient()
                     ->getSpaceById(ClientSpace::VSPACE_ID)
@@ -337,7 +337,7 @@ class Space
 
     public function getIndexes() : array
     {
-        if (!$this->indexes) {
+        if ($this->indexes === null) {
             $this->indexes = [];
             if ($this->isSpecial()) {
                 $indexTuples = $this->mapper->getClient()

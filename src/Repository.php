@@ -509,7 +509,7 @@ class Repository
             [$tuple] = $this->getMapper()->getClient()->getSpaceById($this->space->getId())->select(Criteria::key([$id]));
 
             foreach ($this->space->getFormat() as $index => $info) {
-                if (!$fields || in_array($info['name'], $fields)) {
+                if ($fields === null || in_array($info['name'], $fields)) {
                     $value = array_key_exists($index, $tuple) ? $tuple[$index] : null;
                     $this->persisted[$id]->{$info['name']} = $value;
                     $this->original[$id][$index] = $value;
