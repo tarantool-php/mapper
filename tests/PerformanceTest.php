@@ -1,8 +1,9 @@
 <?php
 
 use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Middleware\DebuggerMiddleware;
+use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Mapper\Plugin\Sequence;
+use Psr\Log\AbstractLogger;
 
 class PerformanceTest extends TestCase
 {
@@ -10,11 +11,20 @@ class PerformanceTest extends TestCase
 
     public function test()
     {
-        if (getenv('SKIP_PERFORMANCE_TEST')) {
-            $this->markTestSkipped("Disable performance metrics with xdebug");
+        if (getenv('SKIP_PERFORMANCE_TEST') !== "") {
+            $this->markTestSkipped("SKIP_PERFORMANCE_TEST = " . getenv('SKIP_PERFORMANCE_TEST'));
         }
 
         echo PHP_EOL;
+
+        $this->logger = new class extends AbstractLogger
+        {
+            public $logs = [];
+            public function log($level, $message, array $context = [])
+            {
+                $this->logs[] = compact('level', 'message', 'context');
+            }
+        };
 
         foreach ([1, 10, 100, 1000, 10000] as $goal) {
 
@@ -28,7 +38,7 @@ class PerformanceTest extends TestCase
                 ])
                 ->addIndex('id');
 
-            $mapper->setClient($mapper->getClient()->withMiddleware($this->debugger = new DebuggerMiddleware));
+                $mapper = new Mapper($mapper->getClient()->withMiddleware(new LoggingMiddleware($this->logger)));
 
             $this->score('create one', $goal, function () use ($mapper, $goal) {
                 foreach (range(1, $goal) as $id) {
@@ -55,30 +65,30 @@ class PerformanceTest extends TestCase
         $totalTime = microtime(1) - $startTime;
 
         $mapperTime = 0;
-        foreach ($this->debugger->getLog() as $item) {
-            $mapperTime += $item['timing'];
+        foreach ($this->logger->logs as $item) {
+            if (array_key_exists('duration_ms', $item['context'])) {
+                $mapperTime += $item['context']['duration_ms'];
+            }
         }
-        $this->debugger->flush();
+        $this->logger->logs = [];
+
+        $row = [
+            $label,
+            $goal,
+            number_format($totalTime, 3),
+            str_pad(number_format($goal / ($totalTime), 0, '.', ''), 7, ' ', STR_PAD_LEFT),
+        ];
 
         $cleanTime = $totalTime - $mapperTime;
 
-        if ($cleanTime <= 0) {
-            return [$label, [$totalTime, $mapperTime]];
+        if ($cleanTime > 0) {
+            $row[] = number_format(1000 * $cleanTime, 3);
+            $row[] = number_format(1000 * $cleanTime / $goal, 3);
+            $row[] = number_format($cleanTime, 3);
+            $row[] = number_format($mapperTime, 3);
         }
 
-        $mappingPerSecond = $goal / $cleanTime;
-
-        // output overhead in milliseconds
-        echo implode("\t", [
-            $label,
-            $goal,
-            1000 * $cleanTime / $goal,
-            $cleanTime,
-            $mapperTime,
-            $totalTime,
-        ]);
-
-        echo PHP_EOL;
+        echo implode("\t", $row), PHP_EOL;
     }
 
     protected function getTimeSummary()
