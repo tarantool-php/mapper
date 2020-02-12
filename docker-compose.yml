@@ -1,0 +1,13 @@
+version: '2.3'
+
+services:
+  php:
+    image: php:7.4.2-fpm-buster
+    working_dir: /app
+    volumes:
+      - ./:/app
+
+  tarantool:
+    image: tarantool/tarantool:2.2.1
+    ports:
+      - 3302:3301
