@@ -29,6 +29,31 @@ class AnnotationTest extends TestCase
         $this->assertInstanceOf('Entity\\Post', $hello);
     }
 
+    public function testBoolean()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+        $mapper->getPlugin(Sequence::class);
+
+        $annotation = $mapper->getPlugin(Annotation::class);
+        $annotation->register('Entity\\Paycode');
+        $annotation->migrate();
+        $active = $mapper->getSchema()->getSpace('paycode')->getProperty('active');
+        $this->assertSame($active['type'], 'boolean');
+
+        $paycode = $mapper->create('paycode', [
+            'active' => 1,
+        ]);
+        $this->assertNotNull($paycode->id);
+        $this->assertTrue($paycode->active);
+        
+        $paycode = $mapper->create('paycode', [
+            'active' => 0,
+        ]);
+        $this->assertNotNull($paycode->id);
+        $this->assertFalse($paycode->active);
+    }
+
     public function testInheritance()
     {
         $mapper = $this->createMapper();

@@ -21,4 +21,9 @@ class Paycode extends MapperEntity
      * @default 0.5
      */
     public $factor;
+
+    /**
+     * @var bool
+     */
+    public $active;
 }

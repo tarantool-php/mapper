@@ -374,6 +374,7 @@ class Annotation extends UserClasses
                 'array' => '*',
                 'float' => 'number',
                 'int' => 'unsigned',
+                'bool' => 'boolean'
             ];
         }
 

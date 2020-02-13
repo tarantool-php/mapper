@@ -66,12 +66,14 @@ class Schema
 
     public function getDefaultValue(string $type)
     {
-        switch ($type) {
-            case 'STR':
-            case 'STRING':
+        switch (strtolower($type)) {
             case 'str':
             case 'string':
                 return (string) null;
+
+            case 'bool':
+            case 'boolean':
+                return (bool) null;
 
             case 'double':
             case 'float':
@@ -79,9 +81,7 @@ class Schema
                 return (float) null;
 
             case 'integer':
-            case 'INTEGER':
             case 'unsigned':
-            case 'UNSIGNED':
             case 'num':
             case 'NUM':
                 return (int) null;
@@ -94,9 +94,7 @@ class Schema
         if (is_null($value)) {
             return null;
         }
-        switch ($type) {
-            case 'STR':
-            case 'STRING':
+        switch (strtolower($type)) {
             case 'str':
             case 'string':
                 return (string) $value;
@@ -106,10 +104,12 @@ class Schema
             case 'number':
                 return (float) $value;
 
+            case 'bool':
+            case 'boolean':
+                return (bool) $value;
+
             case 'integer':
-            case 'INTEGER':
             case 'unsigned':
-            case 'UNSIGNED':
             case 'num':
             case 'NUM':
                 return (int) $value;
