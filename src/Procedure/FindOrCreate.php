@@ -82,20 +82,35 @@ class FindOrCreate extends Procedure
             return 'no space index ' .. index
         end
 
+        local is_in_txn = box.is_in_txn()
+
+        if is_in_txn == false then
+            box.begin()
+        end
         local instances = box.space[space].index[index]:select(params)
 
         if #instances > 0 then
+            if is_in_txn == false then
+                box.rollback()
+            end
             return {tuple = instances[1], created = 0}
         end
 
         if sequence == 1 then
             if box.sequence[space] == nil then
+                if is_in_txn == false then
+                    box.rollback()
+                end
                 return 'no sequence '..space
             end
             tuple[key] = box.sequence[space]:next()
         end
 
         tuple = box.space[space]:insert(tuple)
+
+        if is_in_txn == false then
+            box.commit()
+        end
         return {tuple = tuple, created = 1}
 LUA;
     }
