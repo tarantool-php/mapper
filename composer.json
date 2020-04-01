@@ -6,7 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^7.1",
-        "tarantool/client": "^0.6"
+        "tarantool/client": "^0.7"
     },
     "suggest": {
         "ext-msgpack": "For using PeclPacker.",
