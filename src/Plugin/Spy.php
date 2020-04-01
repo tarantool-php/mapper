@@ -14,12 +14,12 @@ class Spy extends Plugin
     private $updated = [];
     private $removed = [];
 
-    public function beforeCreate(Entity $instance, Space $space) : Entity
+    public function afterCreate(Entity $instance, Space $space) : Entity
     {
         return $this->created[$this->getKey($instance, $space)] = $instance;
     }
 
-    public function beforeUpdate(Entity $instance, Space $space) : Entity
+    public function afterUpdate(Entity $instance, Space $space) : Entity
     {
         $key = $this->getKey($instance, $space);
         if (!array_key_exists($key, $this->created)) {
