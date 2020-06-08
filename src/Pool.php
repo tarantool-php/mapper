@@ -44,6 +44,13 @@ class Pool
         return $this->getMapper($name);
     }
 
+    public function drop($name)
+    {
+        if (array_key_exists($name, $this->mappers)) {
+            unset($this->mappers[$name]);
+        }
+    }
+
     public function getMapper($name)
     {
         if (array_key_exists($name, $this->mappers)) {

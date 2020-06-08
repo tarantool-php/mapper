@@ -19,6 +19,11 @@ class PoolTest extends TestCase
         $pool->register('test2', $mapper2);
         $this->assertSame($pool->get('test2'), $mapper2);
         $this->assertNotSame($pool->get('test2'), $mapper);
+
+        $this->assertCount(2, $pool->getMappers());
+
+        $pool->drop('test');
+        $this->assertCount(1, $pool->getMappers());
     }
 
     public function testDynamic()
