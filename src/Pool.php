@@ -49,6 +49,11 @@ class Pool
         if (array_key_exists($name, $this->mappers)) {
             unset($this->mappers[$name]);
         }
+        foreach ($this->repositories as $space => $repository) {
+            if (strpos($space, $name . '.') !== false) {
+                unset($this->repositories[$space]);
+            }
+        }
     }
 
     public function getMapper($name)
