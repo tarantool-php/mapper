@@ -257,7 +257,8 @@ class Annotation extends UserClasses
 
         foreach ($computes as $spaceName) {
             $method = new ReflectionMethod($this->entityMapping[$spaceName], 'compute');
-            $type = (string) $method->getParameters()[0]->getType();
+            $typeInstance = $method->getParameters()[0]->getType();
+            $type = method_exists($typeInstance, 'getName') ? $typeInstance->getName() : (string) $name;
             $sourceSpace = array_search($type, $this->entityMapping);
             if (!$sourceSpace) {
                 throw new Exception("Invalid compute source $type");
