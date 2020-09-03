@@ -18,52 +18,52 @@ abstract class Plugin
         return $this->mapper;
     }
 
-    public function afterInstantiate(Entity $instance) : Entity
+    public function afterInstantiate(Entity $instance): Entity
     {
         return $instance;
     }
 
-    public function getRepositoryClass(Space $space) : ?string
+    public function getRepositoryClass(Space $space): ?string
     {
         return null;
     }
 
-    public function getEntityClass(Space $space, array $data) : ?string
+    public function getEntityClass(Space $space, array $data): ?string
     {
         return null;
     }
 
-    public function generateKey(Entity $instance, Space $space) : Entity
+    public function generateKey(Entity $instance, Space $space): Entity
     {
         return $instance;
     }
 
-    public function beforeCreate(Entity $instance, Space $space) : Entity
+    public function beforeCreate(Entity $instance, Space $space): Entity
     {
         return $instance;
     }
 
-    public function afterCreate(Entity $instance, Space $space) : Entity
+    public function afterCreate(Entity $instance, Space $space): Entity
     {
         return $instance;
     }
 
-    public function beforeUpdate(Entity $instance, Space $space) : Entity
+    public function beforeUpdate(Entity $instance, Space $space): Entity
     {
         return $instance;
     }
 
-    public function afterUpdate(Entity $instance, Space $space) : Entity
+    public function afterUpdate(Entity $instance, Space $space): Entity
     {
         return $instance;
     }
 
-    public function beforeRemove(Entity $instance, Space $space) : Entity
+    public function beforeRemove(Entity $instance, Space $space): Entity
     {
         return $instance;
     }
 
-    public function afterRemove(Entity $instance, Space $space) : Entity
+    public function afterRemove(Entity $instance, Space $space): Entity
     {
         return $instance;
     }

@@ -23,10 +23,10 @@ class Repository
     public function __construct(Space $space)
     {
         $this->space = $space;
-        $this->keys = new SplObjectStorage;
+        $this->keys = new SplObjectStorage();
     }
 
-    public function create($data) : Entity
+    public function create($data): Entity
     {
         $data = (array) $data;
         $class = Entity::class;
@@ -87,7 +87,7 @@ class Repository
 
         foreach ($this->keys as $_) {
             if ($this->keys[$_] == $key) {
-                throw new Exception($this->space->getName().' '.json_encode($key).' exists');
+                throw new Exception($this->space->getName() . ' ' . json_encode($key) . ' exists');
             }
         }
 
@@ -95,12 +95,12 @@ class Repository
         return $instance;
     }
 
-    public function findOne($params = []) : ?Entity
+    public function findOne($params = []): ?Entity
     {
         return $this->find($params, true);
     }
 
-    public function findOrCreate($params = [], $data = []) : Entity
+    public function findOrCreate($params = [], $data = []): Entity
     {
         $instance = $this->findOne($params);
         if ($instance !== null) {
@@ -110,13 +110,12 @@ class Repository
         $space = $this->getSpace();
 
         if ($space->getName() != '_procedure') {
-
             $result = $this->getMapper()
                 ->getPlugin(Procedure::class)
                 ->get(FindOrCreate::class)
                 ->execute($space, $this->normalize($data ?: $params), $this->normalize($params));
 
-            // cache should be flushed 
+            // cache should be flushed
             // it was set using find one method
             $this->flushCache();
 
@@ -147,16 +146,16 @@ class Repository
         return $entity;
     }
 
-    public function findOrFail($params = []) : Entity
+    public function findOrFail($params = []): Entity
     {
         $entity = $this->findOne($params);
         if (!$entity) {
-            throw new Exception("No ".$this->getSpace()->getName().' found using '.json_encode($params));
+            throw new Exception("No " . $this->getSpace()->getName() . ' found using ' . json_encode($params));
         }
         return $entity;
     }
 
-    public function normalize($params) : array
+    public function normalize($params): array
     {
         if (!is_array($params)) {
             $params = [$params];
@@ -198,8 +197,8 @@ class Repository
 
         $space = $this->space;
         $index = $space->castIndex($params);
-        if (is_null($index)) {
-            throw new Exception("No index for params ".json_encode($params));
+        if ($index === null) {
+            throw new Exception("No index for params " . json_encode($params));
         }
 
         $criteria = Criteria::index($index)
@@ -230,7 +229,7 @@ class Repository
         return $this->results[$cacheKey] = $result;
     }
 
-    public function forget(int $id) : self
+    public function forget(int $id): self
     {
         if (array_key_exists($id, $this->persisted)) {
             unset($this->persisted[$id]);
@@ -239,7 +238,7 @@ class Repository
         return $this;
     }
 
-    public function getInstance(array $tuple) : Entity
+    public function getInstance(array $tuple): Entity
     {
         $key = $this->space->getTupleKey($tuple);
 
@@ -280,22 +279,22 @@ class Repository
         return $this->persisted[$key] = $instance;
     }
 
-    public function getMapper() : Mapper
+    public function getMapper(): Mapper
     {
         return $this->space->getMapper();
     }
 
-    public function getSpace() : Space
+    public function getSpace(): Space
     {
         return $this->space;
     }
 
-    public function knows(Entity $instance) : bool
+    public function knows(Entity $instance): bool
     {
         return $this->keys->offsetExists($instance);
     }
 
-    public function truncate() : self
+    public function truncate(): self
     {
         $this->results = [];
         $name = $this->space->getName();
@@ -304,7 +303,7 @@ class Repository
         return $this;
     }
 
-    public function remove($params = []) : self
+    public function remove($params = []): self
     {
         if ($params instanceof Entity) {
             return $this->removeEntity($params);
@@ -321,7 +320,7 @@ class Repository
         return $this;
     }
 
-    public function removeEntity(Entity $instance) : self
+    public function removeEntity(Entity $instance): self
     {
         $key = $this->space->getInstanceKey($instance);
 
@@ -366,7 +365,7 @@ class Repository
         return $this;
     }
 
-    public function save(Entity $instance) : Entity
+    public function save(Entity $instance): Entity
     {
         $key = $this->space->getInstanceKey($instance);
         $client = $this->getMapper()->getClient();
@@ -457,7 +456,7 @@ class Repository
         return $instance;
     }
 
-    private function addDefaultValues(Entity $instance) : Entity
+    private function addDefaultValues(Entity $instance): Entity
     {
         $format = $this->space->getFormat();
 
@@ -472,12 +471,12 @@ class Repository
         return $instance;
     }
 
-    public function getOriginal(Entity $instance) : array
+    public function getOriginal(Entity $instance): array
     {
         return $this->original[$this->space->getInstanceKey($instance)];
     }
 
-    private function getTuple(Entity $instance) : array
+    private function getTuple(Entity $instance): array
     {
         $schema = $this->getMapper()->getSchema();
         $tuple = [];
@@ -489,7 +488,7 @@ class Repository
             }
 
             $instance->$name = $schema->formatValue($info['type'], $instance->$name);
-            if (is_null($instance->$name)) {
+            if ($instance->$name === null) {
                 if ($this->space->hasDefaultValue($name)) {
                     $instance->$name = $this->space->getDefaultValue($name);
                 } elseif (!$this->space->isPropertyNullable($name)) {
@@ -503,10 +502,12 @@ class Repository
         return $tuple;
     }
 
-    public function sync(int $id, string $fields = null) : ?Entity
+    public function sync(int $id, string $fields = null): ?Entity
     {
         if (array_key_exists($id, $this->persisted)) {
-            [$tuple] = $this->getMapper()->getClient()->getSpaceById($this->space->getId())->select(Criteria::key([$id]));
+            [$tuple] = $this->getMapper()->getClient()
+                ->getSpaceById($this->space->getId())
+                ->select(Criteria::key([$id]));
 
             foreach ($this->space->getFormat() as $index => $info) {
                 if ($fields === null || in_array($info['name'], $fields)) {
@@ -521,7 +522,7 @@ class Repository
         return null;
     }
 
-    public function flushCache() : self
+    public function flushCache(): self
     {
         $this->results = [];
         return $this;

@@ -28,7 +28,7 @@ class Schema
         }
     }
 
-    public function createSpace(string $space, array $config = []) : Space
+    public function createSpace(string $space, array $config = []): Space
     {
         $options = [
             'engine' => 'memtx',
@@ -41,7 +41,7 @@ class Schema
         }
 
         if (!in_array($options['engine'], ['memtx', 'vinyl'])) {
-            throw new Exception("Invalid engine ".$options['engine']);
+            throw new Exception("Invalid engine " . $options['engine']);
         }
 
         [$id] = $this->mapper->getClient()->evaluate("
@@ -91,7 +91,7 @@ class Schema
 
     public function formatValue(string $type, $value)
     {
-        if (is_null($value)) {
+        if ($value === null) {
             return null;
         }
         switch (strtolower($type)) {
@@ -119,7 +119,7 @@ class Schema
         }
     }
 
-    public function getSpace($id) : Space
+    public function getSpace($id): Space
     {
         if (is_string($id)) {
             return $this->getSpace($this->getSpaceId($id));
@@ -138,7 +138,7 @@ class Schema
         return $this->spaces[$id];
     }
 
-    public function getSpaceId(string $name) : int
+    public function getSpaceId(string $name): int
     {
         if (!$this->hasSpace($name)) {
             throw new Exception("No space $name");
@@ -146,7 +146,7 @@ class Schema
         return $this->names[$name];
     }
 
-    public function getSpaces() : array
+    public function getSpaces(): array
     {
         foreach ($this->names as $id) {
             $this->getSpace($id);
@@ -154,14 +154,14 @@ class Schema
         return $this->spaces;
     }
 
-    public function hasSpace(string $name) : bool
+    public function hasSpace(string $name): bool
     {
         return array_key_exists($name, $this->names);
     }
 
     public function once(string $name, Closure $callback)
     {
-        $key = 'mapper-once'.$name;
+        $key = 'mapper-once' . $name;
         $row = $this->mapper->findOne('_schema', ['key' => $key]);
         if (!$row) {
             $this->mapper->create('_schema', ['key' => $key]);
@@ -171,7 +171,7 @@ class Schema
 
     public function forgetOnce(string $name)
     {
-        $key = 'mapper-once'.$name;
+        $key = 'mapper-once' . $name;
         $row = $this->mapper->findOne('_schema', ['key' => $key]);
         if ($row) {
             $this->mapper->remove($row);
@@ -181,7 +181,7 @@ class Schema
         return false;
     }
 
-    public function reset() : self
+    public function reset(): self
     {
         $this->names = [];
         $this->engines = [];
@@ -201,7 +201,7 @@ class Schema
         return $this;
     }
 
-    public function getMeta() : array
+    public function getMeta(): array
     {
         $params = [];
         foreach ($this->getSpaces() as $space) {
@@ -215,7 +215,7 @@ class Schema
         ];
     }
 
-    public function setMeta($meta) : self
+    public function setMeta($meta): self
     {
         $this->engines = $meta['engines'];
         $this->names = $meta['names'];
@@ -226,7 +226,7 @@ class Schema
 
     private $underscores = [];
 
-    public function toUnderscore(string $input) : string
+    public function toUnderscore(string $input): string
     {
         if (!array_key_exists($input, $this->underscores)) {
             preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $input, $matches);
@@ -241,7 +241,7 @@ class Schema
 
     private $camelcase = [];
 
-    public function toCamelCase(string $input) : string
+    public function toCamelCase(string $input): string
     {
         if (!array_key_exists($input, $this->camelcase)) {
             $this->camelcase[$input] = lcfirst(implode('', array_map('ucfirst', explode('_', $input))));

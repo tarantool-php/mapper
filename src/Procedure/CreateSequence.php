@@ -16,7 +16,7 @@ class CreateSequence extends Procedure
         $this($space, $primaryIndex, $primaryField);
     }
 
-    public function getBody() : string
+    public function getBody(): string
     {
         return <<<LUA
         if box.sequence[space] == nil then
@@ -30,12 +30,12 @@ class CreateSequence extends Procedure
 LUA;
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return 'mapper_create_sequence';
     }
 
-    public function getParams() : array
+    public function getParams(): array
     {
         return ['space', 'primary_index', 'primary_field'];
     }

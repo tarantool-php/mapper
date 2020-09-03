@@ -272,7 +272,7 @@ class Temporal extends Plugin
         return [];
     }
 
-    public function getOverrides(string $entityName, int $id) : array
+    public function getOverrides(string $entityName, int $id): array
     {
         if (!$this->mapper->getSchema()->hasSpace('_temporal_override')) {
             return [];
@@ -467,7 +467,7 @@ class Temporal extends Plugin
                 'entityId' => $id,
                 'parent'   => $node ? $node->id : 0,
             ];
-            if (count($config) == $i+1) {
+            if (count($config) == $i + 1) {
                 $params['begin'] = $link['begin'];
                 $params['timestamp'] = 0;
             }
@@ -505,7 +505,7 @@ class Temporal extends Plugin
     private function getTimestamp($string)
     {
         if (Carbon::hasTestNow() || !array_key_exists($string, $this->timestamps)) {
-            if (strlen(''.$string) == 8 && is_numeric($string)) {
+            if (strlen('' . $string) == 8 && is_numeric($string)) {
                 $value = Carbon::createFromFormat('Ymd', $string)->setTime(0, 0, 0)->timestamp;
             } else {
                 $value = Carbon::parse($string)->timestamp;
@@ -549,7 +549,7 @@ class Temporal extends Plugin
             $this->mapper->getPlugin(Sequence::class);
         }
 
-        $this->mapper->getSchema()->once(__CLASS__.'@entity', function (Mapper $mapper) {
+        $this->mapper->getSchema()->once(__CLASS__ . '@entity', function (Mapper $mapper) {
             $this->mapper->getSchema()
                 ->createSpace('_temporal_entity', [
                     'id'   => 'unsigned',

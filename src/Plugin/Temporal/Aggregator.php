@@ -17,13 +17,13 @@ class Aggregator
         $this->temporal = $temporal;
     }
 
-    public function setReferenceAggregation(bool $value) : self
+    public function setReferenceAggregation(bool $value): self
     {
         $this->createReferenceAggregate = $value;
         return $this;
     }
 
-    public function getLeafs(Entity $link) : array
+    public function getLeafs(Entity $link): array
     {
         if ($link->timestamp) {
             return [$link];
@@ -94,9 +94,11 @@ class Aggregator
             ];
             foreach ($mapper->find('_temporal_reference_aggregate', $aggregateParams) as $aggregate) {
                 foreach ($aggregates as $candidate) {
-                    if ($candidate->begin == $aggregate->begin && $candidate->end == $aggregate->end && $candidate->data == $aggregate->data) {
-                        $candidate->exists = true;
-                        continue 2;
+                    if ($candidate->begin == $aggregate->begin && $candidate->end == $aggregate->end) {
+                        if ($candidate->data == $aggregate->data) {
+                            $candidate->exists = true;
+                            continue 2;
+                        }
                     }
                 }
                 $mapper->remove($aggregate);
@@ -235,11 +237,11 @@ class Aggregator
             while (!$clean) {
                 $clean = true;
                 foreach ($states as $i => $state) {
-                    if (array_key_exists($i+1, $states)) {
-                        $next = $states[$i+1];
+                    if (array_key_exists($i + 1, $states)) {
+                        $next = $states[$i + 1];
                         if (json_encode($state->data) == json_encode($next->data)) {
                             $states[$i]->end = $next->end;
-                            unset($states[$i+1]);
+                            unset($states[$i + 1]);
                             $states = array_values($states);
                             $clean = false;
                             break;
@@ -273,9 +275,11 @@ class Aggregator
         });
         foreach ($mapper->find('_temporal_override_aggregate', $params) as $aggregate) {
             foreach ($states as $state) {
-                if ($state->begin == $aggregate->begin && $state->end == $aggregate->end && $state->data == $aggregate->data) {
-                    $state->exists = true;
-                    continue 2;
+                if ($state->begin == $aggregate->begin && $state->end == $aggregate->end) {
+                    if ($state->data == $aggregate->data) {
+                        $state->exists = true;
+                        continue 2;
+                    }
                 }
             }
             $mapper->remove($aggregate);
@@ -347,15 +351,15 @@ class Aggregator
         while (!$clean) {
             $clean = true;
             foreach ($states as $i => $state) {
-                if (array_key_exists($i+1, $states)) {
-                    $next = $states[$i+1];
+                if (array_key_exists($i + 1, $states)) {
+                    $next = $states[$i + 1];
                     if ($state->end && $state->end < $next->begin) {
                         // unmergable
                         continue;
                     }
                     if (json_encode($state->data) == json_encode($next->data)) {
                         $state->end = $next->end;
-                        unset($states[$i+1]);
+                        unset($states[$i + 1]);
                         $states = array_values($states);
                         $clean = false;
                         break;

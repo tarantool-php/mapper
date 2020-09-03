@@ -15,17 +15,17 @@ abstract class Procedure
         $this->plugin = $plugin;
     }
 
-    abstract public function getBody() : string;
-    abstract public function getParams() : array;
+    abstract public function getBody(): string;
+    abstract public function getParams(): array;
 
-    public function getName() : string
+    public function getName(): string
     {
         $class = get_class($this);
         $name = str_replace("Procedure\\", '', $class);
         return strtolower(implode('_', explode('\\', $name)));
     }
 
-    public function getMapping() : array
+    public function getMapping(): array
     {
         return [];
     }

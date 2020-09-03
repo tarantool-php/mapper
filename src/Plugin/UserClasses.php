@@ -15,7 +15,7 @@ class UserClasses extends Plugin
     protected $repositoryMapping = [];
     protected $entityMapping = [];
 
-    public function getRepositoryClass(Space $space) : ?string
+    public function getRepositoryClass(Space $space): ?string
     {
         if (array_key_exists($space->getName(), $this->repositoryMapping)) {
             return $this->repositoryMapping[$space->getName()];
@@ -24,7 +24,7 @@ class UserClasses extends Plugin
         return null;
     }
 
-    public function getEntityClass(Space $space, array $data) : ?string
+    public function getEntityClass(Space $space, array $data): ?string
     {
         if (array_key_exists($space->getName(), $this->entityMapping)) {
             return $this->entityMapping[$space->getName()];
@@ -33,7 +33,7 @@ class UserClasses extends Plugin
         return null;
     }
 
-    public function mapEntity($space, $class) : self
+    public function mapEntity($space, $class): self
     {
         $this->validateSpace($space);
 
@@ -42,14 +42,14 @@ class UserClasses extends Plugin
         }
 
         if (!is_subclass_of($class, Entity::class)) {
-            throw new Exception("Entity should extend ".Entity::class." class");
+            throw new Exception("Entity should extend " . Entity::class . " class");
         }
 
         $this->entityMapping[$space] = $class;
         return $this;
     }
 
-    public function mapRepository(string $space, string $class) : self
+    public function mapRepository(string $space, string $class): self
     {
         $this->validateSpace($space);
 
@@ -58,7 +58,7 @@ class UserClasses extends Plugin
         }
 
         if (!is_subclass_of($class, Repository::class)) {
-            throw new Exception("Repository should extend ".Repository::class." class");
+            throw new Exception("Repository should extend " . Repository::class . " class");
         }
 
         $this->repositoryMapping[$space] = $class;
@@ -66,17 +66,17 @@ class UserClasses extends Plugin
         return $this;
     }
 
-    public function getRepositoryMapping() : array
+    public function getRepositoryMapping(): array
     {
         return $this->repositoryMapping;
     }
 
-    public function getEntityMapping() : array
+    public function getEntityMapping(): array
     {
         return $this->entityMapping;
     }
 
-    public function validateSpace(string $space) : bool
+    public function validateSpace(string $space): bool
     {
         if (!$this->mapper->getSchema()->hasSpace($space)) {
             throw new Exception("No space $space");

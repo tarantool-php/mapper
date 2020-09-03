@@ -23,7 +23,7 @@ class Schema
             throw new InvalidArgumentException("Nothing to initialize");
         }
 
-        $method = 'init'.ucfirst($name);
+        $method = 'init' . ucfirst($name);
         if (!method_exists($this, $method)) {
             throw new InvalidArgumentException("No initializer for $name");
         }
@@ -33,7 +33,7 @@ class Schema
 
     private function initLink()
     {
-        $this->mapper->getSchema()->once(__CLASS__.'@link', function (Mapper $mapper) {
+        $this->mapper->getSchema()->once(__CLASS__ . '@link', function (Mapper $mapper) {
             $mapper->getSchema()
                 ->createSpace('_temporal_link', [
                     'id'        => 'unsigned',
@@ -64,14 +64,14 @@ class Schema
                 ->addIndex(['entity', 'id', 'begin']);
         });
 
-        $this->mapper->getSchema()->once(__CLASS__.'@link-idle', function (Mapper $mapper) {
+        $this->mapper->getSchema()->once(__CLASS__ . '@link-idle', function (Mapper $mapper) {
             $mapper->getSchema()->getSpace('_temporal_link')->addProperty('idle', 'unsigned');
         });
     }
 
     private function initOverride()
     {
-        $this->mapper->getSchema()->once(__CLASS__.'@states', function (Mapper $mapper) {
+        $this->mapper->getSchema()->once(__CLASS__ . '@states', function (Mapper $mapper) {
             $mapper->getSchema()
                 ->createSpace('_temporal_override', [
                     'entity'     => 'unsigned',
@@ -95,14 +95,14 @@ class Schema
                 ->addIndex(['entity', 'id', 'begin']);
         });
 
-        $this->mapper->getSchema()->once(__CLASS__.'@override-idle', function (Mapper $mapper) {
+        $this->mapper->getSchema()->once(__CLASS__ . '@override-idle', function (Mapper $mapper) {
             $mapper->getSchema()->getSpace('_temporal_override')->addProperty('idle', 'unsigned');
         });
     }
 
     private function initReference()
     {
-        $this->mapper->getSchema()->once(__CLASS__.'@reference', function (Mapper $mapper) {
+        $this->mapper->getSchema()->once(__CLASS__ . '@reference', function (Mapper $mapper) {
             $mapper->getSchema()
                 ->createSpace('_temporal_reference', [
                     'idle'       => 'unsigned',

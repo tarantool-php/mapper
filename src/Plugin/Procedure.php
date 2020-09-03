@@ -27,7 +27,7 @@ class Procedure extends Plugin
         return $result[0];
     }
 
-    public function isRegistered($class) : bool
+    public function isRegistered($class): bool
     {
         return !!$this->mapper->findOne('_procedure', ['name' => $class]);
     }
@@ -35,7 +35,7 @@ class Procedure extends Plugin
     public function register($class)
     {
         if (!is_subclass_of($class, BaseProcedure::class)) {
-            throw new Exception("Procedure should extend ".BaseProcedure::class.' class');
+            throw new Exception("Procedure should extend " . BaseProcedure::class . ' class');
         }
         $this->initSchema();
 

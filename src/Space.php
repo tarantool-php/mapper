@@ -38,12 +38,12 @@ class Space
         }
     }
 
-    public function getEngine() : string
+    public function getEngine(): string
     {
         return $this->engine;
     }
 
-    public function addProperties(array $config) : self
+    public function addProperties(array $config): self
     {
         foreach ($config as $name => $type) {
             $this->addProperty($name, $type);
@@ -51,7 +51,7 @@ class Space
         return $this;
     }
 
-    public function addProperty(string $name, string $type, array $opts = []) : self
+    public function addProperty(string $name, string $type, array $opts = []): self
     {
         $format = $this->getFormat();
 
@@ -74,7 +74,7 @@ class Space
         return $this->setFormat($format);
     }
 
-    public function hasDefaultValue(string $name) : bool
+    public function hasDefaultValue(string $name): bool
     {
         return array_key_exists('defaultValue', $this->getProperty($name));
     }
@@ -84,19 +84,19 @@ class Space
         return $this->getPropertyFlag($name, 'defaultValue');
     }
 
-    public function isPropertyNullable(string $name) : bool
+    public function isPropertyNullable(string $name): bool
     {
         return !!$this->getPropertyFlag($name, 'is_nullable');
     }
 
-    public function setFormat(array $format) : self
+    public function setFormat(array $format): self
     {
         $this->format = $format;
         $this->mapper->getClient()->call("box.space.$this->name:format", $format);
         return $this->parseFormat();
     }
 
-    public function setPropertyNullable(string $name, bool $nullable = true) : self
+    public function setPropertyNullable(string $name, bool $nullable = true): self
     {
         $format = $this->getFormat();
         foreach ($format as $i => $field) {
@@ -108,7 +108,7 @@ class Space
         return $this->setFormat($format);
     }
 
-    public function removeProperty(string $name) : self
+    public function removeProperty(string $name): self
     {
         $format = $this->getFormat();
         $last = array_pop($format);
@@ -119,7 +119,7 @@ class Space
         return $this->setFormat($format);
     }
 
-    public function removeIndex(string $name) : self
+    public function removeIndex(string $name): self
     {
         $this->mapper->getClient()->call("box.space.$this->name.index.$name:drop");
         $this->indexes = null;
@@ -128,12 +128,12 @@ class Space
         return $this;
     }
 
-    public function addIndex($config) : self
+    public function addIndex($config): self
     {
         return $this->createIndex($config);
     }
 
-    public function createIndex($config) : self
+    public function createIndex($config): self
     {
         if (!is_array($config)) {
             $config = ['fields' => $config];
@@ -166,7 +166,7 @@ class Space
             if (!$this->getPropertyType($property)) {
                 throw new Exception("Unknown property $property", 1);
             }
-            $options['parts'][] = $this->getPropertyIndex($property)+1;
+            $options['parts'][] = $this->getPropertyIndex($property) + 1;
             $options['parts'][] = $this->getPropertyType($property);
             $this->setPropertyNullable($property, false);
         }
@@ -181,7 +181,7 @@ class Space
         return $this;
     }
 
-    public function getIndex(int $id) : array
+    public function getIndex(int $id): array
     {
         foreach ($this->getIndexes() as $index) {
             if ($index['iid'] == $id) {
@@ -192,22 +192,22 @@ class Space
         throw new Exception("Invalid index #$id");
     }
 
-    public function getIndexType(int $id) : string
+    public function getIndexType(int $id): string
     {
         return $this->getIndex($id)['type'];
     }
 
-    public function isSpecial() : bool
+    public function isSpecial(): bool
     {
         return in_array($this->id, [ ClientSpace::VSPACE_ID, ClientSpace::VINDEX_ID ]);
     }
 
-    public function isSystem() : bool
+    public function isSystem(): bool
     {
         return $this->id < 512;
     }
 
-    public function getId() : int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -221,7 +221,7 @@ class Space
         return (object) $reverse;
     }
 
-    public function getFormat() : array
+    public function getFormat(): array
     {
         if ($this->format === null) {
             if ($this->isSpecial()) {
@@ -240,17 +240,17 @@ class Space
         return $this->format;
     }
 
-    public function getMapper() : Mapper
+    public function getMapper(): Mapper
     {
         return $this->mapper;
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    private function parseFormat() : self
+    private function parseFormat(): self
     {
         $this->formatTypesHash = [];
         $this->formatNamesHash = [];
@@ -266,13 +266,13 @@ class Space
         return $this;
     }
 
-    public function hasProperty(string $name) : bool
+    public function hasProperty(string $name): bool
     {
         $this->getFormat();
         return array_key_exists($name, $this->formatNamesHash);
     }
 
-    public function getMeta() : array
+    public function getMeta(): array
     {
         $this->getFormat();
         $this->getIndexes();
@@ -286,7 +286,7 @@ class Space
         ];
     }
 
-    public function getProperty(string $name, bool $required = true) : ?array
+    public function getProperty(string $name, bool $required = true): ?array
     {
         foreach ($this->getFormat() as $field) {
             if ($field['name'] == $name) {
@@ -317,7 +317,7 @@ class Space
         return $this->formatTypesHash[$name];
     }
 
-    public function getPropertyIndex(string $name) : int
+    public function getPropertyIndex(string $name): int
     {
         if (!$this->hasProperty($name)) {
             throw new Exception("No property $name");
@@ -325,17 +325,17 @@ class Space
         return $this->formatNamesHash[$name];
     }
 
-    public function getReference(string $name) : ?string
+    public function getReference(string $name): ?string
     {
         return $this->isReference($name) ? $this->formatReferences[$name] : null;
     }
 
-    public function isReference(string $name) : bool
+    public function isReference(string $name): bool
     {
         return array_key_exists($name, $this->formatReferences);
     }
 
-    public function getIndexes() : array
+    public function getIndexes(): array
     {
         if ($this->indexes === null) {
             $this->indexes = [];
@@ -373,7 +373,7 @@ class Space
         return $this->indexes;
     }
 
-    public function castIndex(array $params, bool $suppressException = false) : ?int
+    public function castIndex(array $params, bool $suppressException = false): ?int
     {
         if (!count($this->getIndexes())) {
             return null;
@@ -418,13 +418,13 @@ class Space
         }
 
         if (!$suppressException) {
-            throw new Exception("No index on ".$this->name.' for ['.implode(', ', array_keys($params)).']');
+            throw new Exception("No index on " . $this->name . ' for [' . implode(', ', array_keys($params)) . ']');
         }
 
         return null;
     }
 
-    public function getIndexValues(int $indexId, array $params) : array
+    public function getIndexValues(int $indexId, array $params): array
     {
         $index = $this->getIndex($indexId);
         $format = $this->getFormat();
@@ -438,7 +438,7 @@ class Space
             }
             $type = array_key_exists(1, $part) ? $part[1] : $part['type'];
             $value = $this->mapper->getSchema()->formatValue($type, $params[$name]);
-            if (is_null($value) && !$this->isPropertyNullable($name)) {
+            if ($value === null && !$this->isPropertyNullable($name)) {
                 $value = $this->mapper->getSchema()->getDefaultValue($format[$field]['type']);
             }
             $values[] = $value;
@@ -448,13 +448,13 @@ class Space
 
     protected $primaryKey;
 
-    public function getPrimaryKey() : ?string
+    public function getPrimaryKey(): ?string
     {
-        if (!is_null($this->primaryKey)) {
+        if ($this->primaryKey !== null) {
             return $this->primaryKey ?: null;
         }
         $field = $this->getPrimaryField();
-        if (!is_null($field)) {
+        if ($field !== null) {
             return $this->primaryKey = $this->getFormat()[$field]['name'];
         }
 
@@ -464,9 +464,9 @@ class Space
 
     protected $primaryField;
 
-    public function getPrimaryField() : ?int
+    public function getPrimaryField(): ?int
     {
-        if (!is_null($this->primaryField)) {
+        if ($this->primaryField !== null) {
             return $this->primaryField ?: null;
         }
         $primary = $this->getPrimaryIndex();
@@ -478,7 +478,7 @@ class Space
         return null;
     }
 
-    public function getPrimaryIndex() : array
+    public function getPrimaryIndex(): array
     {
         return $this->getIndex(0);
     }
@@ -514,7 +514,7 @@ class Space
         return count($key) == 1 ? $key[0] : implode(':', $key);
     }
 
-    public function getRepository() : Repository
+    public function getRepository(): Repository
     {
         $class = Repository::class;
         foreach ($this->mapper->getPlugins() as $plugin) {
@@ -529,7 +529,7 @@ class Space
         return $this->repository ?: $this->repository = new $class($this);
     }
 
-    public function repositoryExists() : bool
+    public function repositoryExists(): bool
     {
         return !!$this->repository;
     }

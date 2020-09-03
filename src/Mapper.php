@@ -22,7 +22,7 @@ class Mapper
     public function getPlugin($mixed)
     {
         if (!is_subclass_of($mixed, Plugin::class)) {
-            throw new Exception("Plugin should extend ".Plugin::class." class");
+            throw new Exception("Plugin should extend " . Plugin::class . " class");
         }
 
         $plugin = is_object($mixed) ? $mixed : new $mixed($this);
@@ -30,7 +30,7 @@ class Mapper
 
         if ($plugin == $mixed && array_key_exists($class, $this->plugins)) {
             // overwrite plugin instance
-            throw new Exception($class.' is registered');
+            throw new Exception($class . ' is registered');
         }
 
         if (!array_key_exists($class, $this->plugins)) {
@@ -40,32 +40,32 @@ class Mapper
         return $this->plugins[$class];
     }
 
-    public function create(string $space, $data) : Entity
+    public function create(string $space, $data): Entity
     {
         return $this->getRepository($space)->create($data)->save();
     }
 
-    public function findOne(string $space, $params = []) : ?Entity
+    public function findOne(string $space, $params = []): ?Entity
     {
         return $this->getRepository($space)->findOne($params);
     }
 
-    public function findOrCreate(string $space, $params = [], $data = []) : Entity
+    public function findOrCreate(string $space, $params = [], $data = []): Entity
     {
         return $this->getRepository($space)->findOrCreate($params, $data)->save();
     }
 
-    public function findOrFail(string $space, $params = []) : Entity
+    public function findOrFail(string $space, $params = []): Entity
     {
         return $this->getRepository($space)->findOrFail($params);
     }
 
-    public function find(string $space, $params = []) : array
+    public function find(string $space, $params = []): array
     {
         return $this->getRepository($space)->find($params);
     }
 
-    public function findRepository(Entity $instance) : Repository
+    public function findRepository(Entity $instance): Repository
     {
         foreach ($this->getSchema()->getSpaces() as $space) {
             if ($space->getRepository()->knows($instance)) {
@@ -76,39 +76,39 @@ class Mapper
         throw new Exception("No Repository for given Entity");
     }
 
-    public function getBootstrap() : Bootstrap
+    public function getBootstrap(): Bootstrap
     {
         return $this->bootstrap ?: $this->bootstrap = new Bootstrap($this);
     }
 
-    public function getClient() : Client
+    public function getClient(): Client
     {
         return $this->client;
     }
 
-    public function getMeta() : array
+    public function getMeta(): array
     {
         return [
             'schema' => $this->getSchema()->getMeta(),
         ];
     }
 
-    public function hasPlugin(string $class) : bool
+    public function hasPlugin(string $class): bool
     {
         return array_key_exists($class, $this->plugins);
     }
 
-    public function getPlugins() : array
+    public function getPlugins(): array
     {
         return array_values($this->plugins);
     }
 
-    public function getRepository(string $space) : Repository
+    public function getRepository(string $space): Repository
     {
         return $this->getSchema()->getSpace($space)->getRepository();
     }
 
-    public function getRepositories() : array
+    public function getRepositories(): array
     {
         $repositories = [];
         foreach ($this->getSchema()->getSpaces() as $space) {
@@ -119,12 +119,12 @@ class Mapper
         return $repositories;
     }
 
-    public function getSchema() : Schema
+    public function getSchema(): Schema
     {
         return $this->schema ?: $this->schema = new Schema($this);
     }
 
-    public function remove($space, $params = []) : self
+    public function remove($space, $params = []): self
     {
         if ($space instanceof Entity) {
             $this->findRepository($space)->removeEntity($space);
@@ -134,12 +134,12 @@ class Mapper
         return $this;
     }
 
-    public function save(Entity $instance) : Entity
+    public function save(Entity $instance): Entity
     {
         return $this->findRepository($instance)->save($instance);
     }
 
-    public function setMeta(array $meta) : self
+    public function setMeta(array $meta): self
     {
         if ($this->schema) {
             $this->schema->setMeta($meta['schema']);

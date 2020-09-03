@@ -15,7 +15,7 @@ class Compute extends Plugin
     protected $dependency = [];
     protected $entities = [];
 
-    public function afterCreate(Entity $entity, Space $space) : Entity
+    public function afterCreate(Entity $entity, Space $space): Entity
     {
         $name = $space->getName();
 
@@ -28,7 +28,7 @@ class Compute extends Plugin
         return $entity;
     }
 
-    public function afterRemove(Entity $entity, Space $space) : Entity
+    public function afterRemove(Entity $entity, Space $space): Entity
     {
         $name = $space->getName();
 
@@ -41,7 +41,7 @@ class Compute extends Plugin
         return $entity;
     }
 
-    public function afterUpdate(Entity $entity, Space $space) : Entity
+    public function afterUpdate(Entity $entity, Space $space): Entity
     {
         $name = $space->getName();
 
@@ -58,7 +58,7 @@ class Compute extends Plugin
         return $entity;
     }
 
-    public function beforeCreate(Entity $entity, Space $space) : Entity
+    public function beforeCreate(Entity $entity, Space $space): Entity
     {
         if (in_array($entity, $this->entities)) {
             return $entity;
@@ -74,7 +74,7 @@ class Compute extends Plugin
         return $entity;
     }
 
-    public function register(string $source, string $target, Closure $callback) : self
+    public function register(string $source, string $target, Closure $callback): self
     {
         if ($callback instanceof Closure) {
             if (!array_key_exists($source, $this->dependency)) {
@@ -91,7 +91,7 @@ class Compute extends Plugin
         return $this;
     }
 
-    protected function initializePresenter($target, $callback, Entity $source) : self
+    protected function initializePresenter($target, $callback, Entity $source): self
     {
         $entity = $this->getMapper()->getRepository($target)->create($source->id);
         foreach ($callback($source) as $k => $v) {

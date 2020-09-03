@@ -14,12 +14,12 @@ class Spy extends Plugin
     private $updated = [];
     private $removed = [];
 
-    public function afterCreate(Entity $instance, Space $space) : Entity
+    public function afterCreate(Entity $instance, Space $space): Entity
     {
         return $this->created[$this->getKey($instance, $space)] = $instance;
     }
 
-    public function afterUpdate(Entity $instance, Space $space) : Entity
+    public function afterUpdate(Entity $instance, Space $space): Entity
     {
         $key = $this->getKey($instance, $space);
         if (!array_key_exists($key, $this->created)) {
@@ -29,7 +29,7 @@ class Spy extends Plugin
         return $instance;
     }
 
-    public function beforeRemove(Entity $instance, Space $space) : Entity
+    public function beforeRemove(Entity $instance, Space $space): Entity
     {
         $key = $this->getKey($instance, $space);
 
@@ -45,7 +45,7 @@ class Spy extends Plugin
         return $this->removed[$key] = $instance;
     }
 
-    public function reset() : self
+    public function reset(): self
     {
         $this->created = [];
         $this->updated = [];
@@ -53,7 +53,7 @@ class Spy extends Plugin
         return $this;
     }
 
-    private function getKey(Entity $instance, Space $space) : string
+    private function getKey(Entity $instance, Space $space): string
     {
         $key = [$space->getName()];
 
@@ -85,7 +85,7 @@ class Spy extends Plugin
         return $result;
     }
 
-    public function hasChanges() : bool
+    public function hasChanges(): bool
     {
         return count($this->created) + count($this->updated) + count($this->removed) > 0;
     }

@@ -11,11 +11,11 @@ use Tarantool\Mapper\Space;
 
 class FindOrCreate extends Procedure
 {
-    public function execute(Space $space, array $params, array $query = null) : array
+    public function execute(Space $space, array $params, array $query = null): array
     {
         $index = $space->castIndex($query ?: $params);
-        if (is_null($index)) {
-            throw new Exception("No valid index for ".json_encode($params));
+        if ($index === null) {
+            throw new Exception("No valid index for " . json_encode($params));
         }
 
         $values = $space->getIndexValues($index, $params);
@@ -30,7 +30,7 @@ class FindOrCreate extends Procedure
             }
 
             $params[$name] = $schema->formatValue($info['type'], $params[$name]);
-            if (is_null($params[$name])) {
+            if ($params[$name] === null) {
                 if (!$space->isPropertyNullable($name)) {
                     $params[$name] = $schema->getDefaultValue($info['type']);
                 }
@@ -44,7 +44,7 @@ class FindOrCreate extends Procedure
         $pkIndex = null;
         if ($key) {
             // convert php to lua index
-            $pkIndex = $space->getPrimaryField()+1;
+            $pkIndex = $space->getPrimaryField() + 1;
             if (!array_key_exists($key, $params) || !$params[$key]) {
                 $sequence = 1;
                 $space->getMapper()
@@ -71,7 +71,7 @@ class FindOrCreate extends Procedure
         ];
     }
 
-    public function getBody() : string
+    public function getBody(): string
     {
         return <<<LUA
         if box.space[space] == nil then
@@ -115,12 +115,12 @@ class FindOrCreate extends Procedure
 LUA;
     }
 
-    public function getParams() : array
+    public function getParams(): array
     {
         return ['space', 'index', 'params', 'tuple', 'sequence', 'key'];
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return 'mapper_find_or_create';
     }

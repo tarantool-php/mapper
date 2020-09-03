@@ -59,7 +59,7 @@ class Annotation extends UserClasses
         return $this;
     }
 
-    public function validateSpace(string $space) : bool
+    public function validateSpace(string $space): bool
     {
         foreach ($this->entityClasses as $class) {
             if ($this->getSpaceName($class) == $space) {
@@ -76,21 +76,21 @@ class Annotation extends UserClasses
         return parent::validateSpace($space);
     }
 
-    public function getSpace($instance) : string
+    public function getSpace($instance): string
     {
         $class = get_class($instance);
         $target = $this->isExtension($class) ? $this->getExtensions()[$class] : $class;
         return $this->getSpaceName($target);
     }
 
-    public function isExtension(string $class) : bool
+    public function isExtension(string $class): bool
     {
         return array_key_exists($class, $this->getExtensions());
     }
 
-    public function getExtensions() : array
+    public function getExtensions(): array
     {
-        if (is_null($this->extensions)) {
+        if ($this->extensions === null) {
             $this->extensions = [];
             foreach ($this->entityClasses as $entity) {
                 $reflection = new ReflectionClass($entity);
@@ -103,7 +103,7 @@ class Annotation extends UserClasses
         return $this->extensions;
     }
 
-    public function migrate($extensionInstances = true) : self
+    public function migrate($extensionInstances = true): self
     {
         $factory = DocBlockFactory::createInstance();
         $contextFactory = new ContextFactory();
@@ -158,7 +158,7 @@ class Annotation extends UserClasses
                 $tags = $description->getTags('var');
 
                 if (!count($tags)) {
-                    throw new Exception("No var tag for ".$entity.'::'.$property->getName());
+                    throw new Exception("No var tag for " . $entity . '::' . $property->getName());
                 }
 
                 $byTypes = [];
@@ -167,7 +167,7 @@ class Annotation extends UserClasses
                 }
 
                 if (!array_key_exists('var', $byTypes)) {
-                    throw new Exception("No var tag for ".$entity.'::'.$property->getName());
+                    throw new Exception("No var tag for " . $entity . '::' . $property->getName());
                 }
 
                 $propertyName = $property->getName();
@@ -238,7 +238,7 @@ class Annotation extends UserClasses
                         $space->addIndex($index);
                     } catch (Exception $e) {
                         $presentation = json_encode($properties['indexes'][$i]);
-                        throw new Exception("Failed to add index $presentation. ".$e->getMessage(), 0, $e);
+                        throw new Exception("Failed to add index $presentation. " . $e->getMessage(), 0, $e);
                     }
                 }
             }
@@ -249,7 +249,7 @@ class Annotation extends UserClasses
             }
             if (!count($space->getIndexes())) {
                 if (!$space->hasProperty('id')) {
-                    throw new Exception("No primary index on ".$space->getName());
+                    throw new Exception("No primary index on " . $space->getName());
                 }
                 $space->addIndex(['id']);
             }
@@ -304,7 +304,7 @@ class Annotation extends UserClasses
         return $this;
     }
 
-    public function getEntityClass(Space $space, array $data) : ?string
+    public function getEntityClass(Space $space, array $data): ?string
     {
         $class = parent::getEntityClass($space, $data);
         if (in_array($class, $this->getExtensions())) {
@@ -316,13 +316,13 @@ class Annotation extends UserClasses
         return $class;
     }
 
-    public function setEntityPostfix(?string $postfix) : self
+    public function setEntityPostfix(?string $postfix): self
     {
         $this->entityPostfix = $postfix;
         return $this;
     }
 
-    public function setRepositoryPostfix(?string $postfix) : self
+    public function setRepositoryPostfix(?string $postfix): self
     {
         $this->repositoryPostifx = $postfix;
         return $this;
@@ -330,12 +330,12 @@ class Annotation extends UserClasses
 
     private $spaceNames = [];
 
-    public function getRepositorySpaceName($class) : string
+    public function getRepositorySpaceName($class): string
     {
         return array_search($class, $this->repositoryMapping);
     }
 
-    public function getSpaceName(string $class) : string
+    public function getSpaceName(string $class): string
     {
         if (!array_key_exists($class, $this->spaceNames)) {
             $reflection = new ReflectionClass($class);
@@ -361,12 +361,12 @@ class Annotation extends UserClasses
 
     private $tarantoolTypes = [];
 
-    private function isReference(string $type) : bool
+    private function isReference(string $type): bool
     {
         return $type[0] == '\\';
     }
 
-    private function getTarantoolType(string $type) : string
+    private function getTarantoolType(string $type): string
     {
         static $map;
         if (!$map) {

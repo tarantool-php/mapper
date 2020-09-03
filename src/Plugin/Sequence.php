@@ -13,11 +13,11 @@ use Tarantool\Mapper\Space;
 
 class Sequence extends Plugin
 {
-    public function generateKey(Entity $instance, Space $space) : Entity
+    public function generateKey(Entity $instance, Space $space): Entity
     {
         $key = $space->getPrimaryKey();
         if ($key) {
-            if (!property_exists($instance, $key) || is_null($instance->$key)) {
+            if (!property_exists($instance, $key) || $instance->$key === null) {
                 $instance->$key = $this->generateValue($space);
             }
         }
@@ -45,7 +45,7 @@ class Sequence extends Plugin
             $this->mapper
                 ->getPlugin(Procedure::class)
                 ->get(CreateSequence::class)
-                ->execute($name, $primaryIndex['name'], $primaryIndex['parts'][0][0]+1);
+                ->execute($name, $primaryIndex['name'], $primaryIndex['parts'][0][0] + 1);
 
             $this->mapper->getRepository('_vsequence')->flushCache();
 
@@ -53,12 +53,12 @@ class Sequence extends Plugin
         }
     }
 
-    private function generateValue(Space $space) : int
+    private function generateValue(Space $space): int
     {
         $this->initializeSequence($space);
 
         $next = $this->mapper->getClient()
-            ->call('box.sequence.'.$space->getName().':next');
+            ->call('box.sequence.' . $space->getName() . ':next');
 
         return $next[0];
     }

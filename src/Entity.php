@@ -17,12 +17,12 @@ class Entity
         $this->_repository = $repository;
     }
 
-    public function getRepository() : Repository
+    public function getRepository(): Repository
     {
         return $this->_repository;
     }
 
-    public function save() : Entity
+    public function save(): Entity
     {
         return $this->getRepository()->save($this);
     }
@@ -39,7 +39,7 @@ class Entity
                         'id' => $this->$property,
                     ]);
                 }
-            } else if (strpos($property, 'Collection') !== false) {
+            } elseif (strpos($property, 'Collection') !== false) {
                 $property = substr($property, 0, -10);
                 $targetSpace = $mapper->getSchema()->toUnderscore($property);
                 if ($mapper->getSchema()->hasSpace($targetSpace)) {
@@ -61,10 +61,10 @@ class Entity
                 }
             }
         }
-        throw new BadMethodCallException("Call to undefined method ".get_class($this).'::'.$name);
+        throw new BadMethodCallException("Call to undefined method " . get_class($this) . '::' . $name);
     }
 
-    public function sync() : Entity
+    public function sync(): Entity
     {
         return $this->getRepository()->sync($this->id);
     }
