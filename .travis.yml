@@ -27,7 +27,7 @@ services:
   - docker
 
 before_script:
-  - docker run -d --restart=always -p 3301:3301 --name tarantool progaudi/tarantool:$TARANTOOL_VERSION
+  - docker run -d --restart=always -p 3301:3301 --name tarantool tarantool/tarantool:$TARANTOOL_VERSION
   - composer self-update --preview
   - composer install --no-interaction --prefer-source --optimize-autoloader
 
