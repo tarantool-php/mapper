@@ -28,7 +28,7 @@ services:
 
 before_script:
   - docker run -d --restart=always -p 3301:3301 --name tarantool progaudi/tarantool:$TARANTOOL_VERSION
-  - composer self-update && composer global require hirak/prestissimo
+  - composer self-update --preview && composer global require hirak/prestissimo
   - composer install --no-interaction --prefer-source --optimize-autoloader
 
 script: vendor/bin/phpunit
