@@ -9,7 +9,7 @@ class SqlTest extends TestCase
 {
     public function testAutoincrement()
     {
-        if (getenv('TARANTOOL_VERSION') == '1.10') {
+        if (getenv('TARANTOOL_VERSION') == '1') {
             return $this->markTestSkipped('No SQL yet');
         }
         $mapper = $this->createMapper();
