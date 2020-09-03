@@ -39,7 +39,7 @@ abstract class Procedure
 
         $result = [];
         foreach ($this->getMapping() as $i => $name) {
-            $result[$name] = $raw[$i];
+            $result[$name] = array_key_exists($i, $row) ? $raw[$i] : null;
         }
         return $result;
     }
