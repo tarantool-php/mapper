@@ -233,6 +233,7 @@ class Repository
     {
         if (array_key_exists($id, $this->persisted)) {
             unset($this->persisted[$id]);
+            $this->flushCache();
         }
 
         return $this;
