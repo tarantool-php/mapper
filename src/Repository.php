@@ -232,6 +232,8 @@ class Repository
     public function forget(int $id): self
     {
         if (array_key_exists($id, $this->persisted)) {
+            $instance = $this->persisted[$id];
+            unset($this->keys[$instance]);
             unset($this->persisted[$id]);
             $this->flushCache();
         }
