@@ -235,6 +235,7 @@ class Repository
             $instance = $this->persisted[$id];
             unset($this->keys[$instance]);
             unset($this->persisted[$id]);
+            unset($this->original[$id]);
             $this->flushCache();
         }
 
