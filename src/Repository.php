@@ -363,6 +363,7 @@ class Repository
         }
 
         unset($this->original[$key]);
+        unset($this->persisted[$key]);
         unset($this->keys[$instance]);
 
         $this->results = [];
