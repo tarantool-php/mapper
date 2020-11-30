@@ -64,6 +64,17 @@ class Schema
         return $this->spaces[$id];
     }
 
+    public function dropSpace(string $space)
+    {
+        if (!$this->hasSpace($space)) {
+            throw new Exception("No space $space");
+        }
+
+        $this->mapper->getClient()->evaluate(sprintf("box.space.%s:drop()", $space));
+
+        unset($this->spaces[$this->names[$space]], $this->engines[$space], $this->names[$space]);
+    }
+
     public function getDefaultValue(string $type)
     {
         switch (strtolower($type)) {
