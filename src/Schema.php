@@ -34,7 +34,7 @@ class Schema
             'engine' => 'memtx',
         ];
 
-        foreach (['engine', 'is_local', 'temporary'] as $key) {
+        foreach (['engine', 'is_local', 'temporary', 'is_sync', 'if_not_exists'] as $key) {
             if (array_key_exists($key, $config)) {
                 $options[$key] = $config[$key];
             }
