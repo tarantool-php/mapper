@@ -110,6 +110,23 @@ class SchemaTest extends TestCase
         $this->assertCount(2, $tester->getFormat());
     }
 
+    public function testDropSpace()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $tester = $mapper->getSchema()->createSpace('tester', [
+            'id' => 'unsigned',
+            'name' => 'string',
+        ])->addIndex('id');
+
+        $this->assertTrue($mapper->getSchema()->hasSpace($tester->getName()));
+
+        $mapper->getSchema()->dropSpace($tester->getName());
+
+        $this->assertFalse($mapper->getSchema()->hasSpace($tester->getName()));
+    }
+
     public function testDuplicateProperty()
     {
         $mapper = $this->createMapper();
