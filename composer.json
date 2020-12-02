@@ -5,8 +5,8 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^7.1",
-        "tarantool/client": "^0.8.0"
+        "php": ">=7.3",
+        "tarantool/client": ">=0.8.0"
     },
     "suggest": {
         "ext-msgpack": "For using PeclPacker.",
