@@ -163,12 +163,30 @@ class Space
         }
 
         foreach ($config['fields'] as $property) {
+            $isNullable = false;
+            if (is_array($property)) {
+                if (!array_key_exists('property', $property)) {
+                    throw new Exception("Invalid property configuration");
+                }
+                if (array_key_exists('is_nullable', $property)) {
+                    $isNullable = $property['is_nullable'];
+                }
+                $property = $property['property'];
+            }
+            if ($this->isPropertyNullable($property) != $isNullable) {
+                $this->setPropertyNullable($property, $isNullable);
+            }
             if (!$this->getPropertyType($property)) {
                 throw new Exception("Unknown property $property", 1);
             }
-            $options['parts'][] = $this->getPropertyIndex($property) + 1;
-            $options['parts'][] = $this->getPropertyType($property);
-            $this->setPropertyNullable($property, false);
+            $part = [
+                'field' => $this->getPropertyIndex($property) + 1,
+                'type' => $this->getPropertyType($property),
+            ];
+            if ($this->isPropertyNullable($property)) {
+                $part['is_nullable'] = true;
+            }
+            $options['parts'][] = $part;
         }
 
         $name = array_key_exists('name', $config) ? $config['name'] : implode('_', $config['fields']);

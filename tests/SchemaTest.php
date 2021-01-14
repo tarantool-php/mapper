@@ -7,6 +7,48 @@ use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testNullableIndexes()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $space = $mapper->getSchema()->createSpace('example', [
+            'if_not_exists' => true,
+            'engine' => 'memtx',
+            'properties' => [
+                'id' => 'unsigned',
+                'field1' => 'string',
+                'field2' => 'string',
+                'field3' => 'unsigned',
+                'field4' => 'unsigned',
+                'field5' => 'unsigned',
+                'field6' => 'unsigned',
+            ],
+        ])
+        ->setPropertyNullable('field5')
+        ->addIndex([
+            'fields' => 'id',
+            'if_not_exists' => true,
+            'sequence' => true,
+            'name' => 'index_1'
+        ])
+        ->addIndex([
+            'fields' => [
+                'field2',
+                [
+                    'property' => 'field5',
+                    'is_nullable' => true,
+                ],
+            ],
+            'unique' => false,
+            'if_not_exists' => true,
+            'name' => 'index_2',
+        ]);
+
+        $this->assertFalse($space->isPropertyNullable('field2'));
+        $this->assertTrue($space->isPropertyNullable('field5'));
+    }
+
     public function testDynamicIndexCreation()
     {
         $mapper = $this->createMapper();
