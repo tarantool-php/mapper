@@ -119,7 +119,7 @@ class Repository
             // it was set using find one method
             $this->flushCache();
 
-            $instance = $this->findOrFail($result['key']);
+            $instance = $this->getInstance($result['tuple']);
             if ($result['created']) {
                 if (method_exists($instance, 'beforeCreate')) {
                     $instance->beforeCreate();

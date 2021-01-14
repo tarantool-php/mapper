@@ -66,8 +66,9 @@ class FindOrCreate extends Procedure
             $key[$format[$field]['name']] = $result['tuple'][$field];
         }
         return [
-            'key' => $key,
             'created' => !!$result['created'],
+            'key' => $key,
+            'tuple' => $result['tuple'],
         ];
     }
 
