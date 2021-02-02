@@ -39,4 +39,10 @@ class Address extends Entity
      * @type integer
      */
     public $flat;
+
+    /**
+     * @var array
+     * @type map
+     */
+    public $map;
 }

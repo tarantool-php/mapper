@@ -46,7 +46,7 @@ class AnnotationTest extends TestCase
         ]);
         $this->assertNotNull($paycode->id);
         $this->assertTrue($paycode->active);
-        
+
         $paycode = $mapper->create('paycode', [
             'active' => 0,
         ]);
@@ -82,7 +82,7 @@ class AnnotationTest extends TestCase
         ]);
 
         $this->assertInstanceOf(Complex::class, $complex);
-        
+
         $simple = $mapper->findOrFail('type', [
             'class' => Simple::class,
         ]);
@@ -219,6 +219,9 @@ class AnnotationTest extends TestCase
         $this->assertSame('integer', $space->format[5]['type']);
         // property is not required
         $this->assertSame(true, $space->format[5]['is_nullable']);
+
+        // tarantool type hint for map
+        $this->assertSame('map', $space->format[6]['type']);
 
         $address = $mapper->create('address', []);
         $this->assertSame($address->street, "");
