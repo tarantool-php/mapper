@@ -476,9 +476,13 @@ class Repository
         return $instance;
     }
 
-    public function getOriginal(Entity $instance): array
+    public function getOriginal(Entity $instance): ?array
     {
-        return $this->original[$this->space->getInstanceKey($instance)];
+        $key = $this->space->getInstanceKey($instance);
+
+        if (array_key_exists($key, $this->original)) {
+            return $this->original[$key];
+        }
     }
 
     private function getTuple(Entity $instance): array
