@@ -8,13 +8,12 @@ git:
 php:
   - 7.3
   - 7.4
-  - nightly
-  - master
+  - 8.0
 
 env:
-  - TARANTOOL_VERSION=1
-  - TARANTOOL_VERSION=2.3
-  - TARANTOOL_VERSION=2.5
+  - TARANTOOL_VERSION=1.10
+  - TARANTOOL_VERSION=2.7
+  - TARANTOOL_VERSION=2.8
 
 matrix:
   fast_finish: true
