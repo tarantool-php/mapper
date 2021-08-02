@@ -6,6 +6,7 @@ namespace Tarantool\Mapper;
 
 use Closure;
 use Exception;
+use Symfony\Component\Uid\Uuid;
 use Tarantool\Client\Schema\Criteria;
 use Tarantool\Client\Schema\Space as ClientSpace;
 
@@ -125,6 +126,12 @@ class Schema
             case 'NUM':
                 return (int) $value;
 
+            case 'uuid':
+                if (is_string($value)) {
+                    $value = Uuid::fromString($value);
+                }
+                return $value;
+
             default:
                 return $value;
         }
@@ -196,7 +203,7 @@ class Schema
     {
         $this->names = [];
         $this->engines = [];
-    
+
         $data = $this->mapper->getClient()->getSpace('_vspace')->select(Criteria::allIterator());
         foreach ($data as $tuple) {
             $this->names[$tuple[2]] = $tuple[0];
