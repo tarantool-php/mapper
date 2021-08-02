@@ -14,6 +14,24 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testTupleGetterAfterCleanup()
+    {
+        $mapper = $this->createMapper();
+        $repository = $mapper->getRepository('_space');
+
+        $space = $repository->findOne();
+        $this->assertNotNull($space);
+
+        $tuple = $repository->getOriginal($space);
+        $this->assertNotNull($tuple);
+
+        $repository->forget($space->id);
+
+        $tupleNew = $repository->getOriginal($space);
+        $this->assertNotNull($tupleNew);
+        $this->assertSame($tuple, $tupleNew);
+    }
+
     public function testSync()
     {
         $mapper = $this->createMapper();

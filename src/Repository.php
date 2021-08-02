@@ -483,6 +483,8 @@ class Repository
         if (array_key_exists($key, $this->original)) {
             return $this->original[$key];
         }
+
+        return $this->getTuple($instance);
     }
 
     private function getTuple(Entity $instance): array
