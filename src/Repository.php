@@ -189,8 +189,9 @@ class Repository
         $params = $this->normalize($params);
 
         if (array_key_exists('id', $params)) {
-            if (array_key_exists($params['id'], $this->persisted)) {
-                $instance = $this->persisted[$params['id']];
+            $key = (string) $params['id'];
+            if (array_key_exists($key, $this->persisted)) {
+                $instance = $this->persisted[$key];
                 return $one ? $instance : [$instance];
             }
         }
@@ -229,8 +230,14 @@ class Repository
         return $this->results[$cacheKey] = $result;
     }
 
-    public function forget(int $id): self
+    public function forget($id): self
     {
+        if ($id instanceof Entity) {
+            $id = $this->space->getInstanceKey($id);
+        }
+
+        $id = (string) $id;
+
         if (array_key_exists($id, $this->persisted)) {
             $instance = $this->persisted[$id];
             unset($this->keys[$instance]);
@@ -244,7 +251,7 @@ class Repository
 
     public function getInstance(array $tuple): Entity
     {
-        $key = $this->space->getTupleKey($tuple);
+        $key = (string) $this->space->getTupleKey($tuple);
 
         if (array_key_exists($key, $this->persisted)) {
             return $this->persisted[$key];
@@ -326,7 +333,7 @@ class Repository
 
     public function removeEntity(Entity $instance): self
     {
-        $key = $this->space->getInstanceKey($instance);
+        $key = (string) $this->space->getInstanceKey($instance);
 
         if (!array_key_exists($key, $this->original)) {
             return $this;
@@ -372,7 +379,7 @@ class Repository
 
     public function save(Entity $instance): Entity
     {
-        $key = $this->space->getInstanceKey($instance);
+        $key = (string) $this->space->getInstanceKey($instance);
         $client = $this->getMapper()->getClient();
 
         if (array_key_exists($key, $this->persisted)) {
@@ -478,7 +485,7 @@ class Repository
 
     public function getOriginal(Entity $instance): ?array
     {
-        $key = $this->space->getInstanceKey($instance);
+        $key = (string) $this->space->getInstanceKey($instance);
 
         if (array_key_exists($key, $this->original)) {
             return $this->original[$key];

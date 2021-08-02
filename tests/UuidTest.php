@@ -15,7 +15,31 @@ use Tarantool\Mapper\Schema;
 
 class UuidTest extends TestCase
 {
-    public function test()
+    public function testPrimaryKey()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()->createSpace('test_space', [
+            'is_sync'       => true,
+            'engine'        => 'memtx',
+            'properties'    => [
+                'id' => 'uuid',
+            ],
+        ])
+        ->addIndex([ 'fields' => 'id' ]);
+
+        $uuid = Uuid::v4();
+
+        $instance = $mapper->create('test_space', [
+            'id' => $uuid,
+        ]);
+
+        $mapper->getRepository('test_space')->forget($instance);
+        $this->assertNotNull($mapper->findOne('test_space', $uuid));
+    }
+
+    public function testBasics()
     {
         $mapper = $this->createMapper();
         $this->clean($mapper);
