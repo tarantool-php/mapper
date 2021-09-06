@@ -21,7 +21,6 @@ class UuidTest extends TestCase
         $this->clean($mapper);
 
         $mapper->getSchema()->createSpace('test_space', [
-            'is_sync'       => true,
             'engine'        => 'memtx',
             'properties'    => [
                 'id' => 'uuid',
@@ -45,7 +44,6 @@ class UuidTest extends TestCase
         $this->clean($mapper);
 
         $mapper->getSchema()->createSpace('test_space', [
-            'is_sync'       => true,
             'engine'        => 'memtx',
             'properties'    => [
                 'id'          => 'unsigned',

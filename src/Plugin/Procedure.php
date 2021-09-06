@@ -47,7 +47,7 @@ class Procedure extends Plugin
     private function validatePresence(BaseProcedure $procedure)
     {
         $name = $procedure->getName();
-        [$exists] = $this->mapper->getClient()->evaluate("return _G.$name ~= nil");
+        [$exists] = $this->mapper->getClient()->call("box.schema.func.exists", $name);
 
         $instance = $this->mapper->findOrCreate('_procedure', [
             'name' => get_class($procedure)
@@ -59,7 +59,7 @@ class Procedure extends Plugin
 
             $script = "
             $name = function($params) $body end
-            box.schema.func.create('$name', {if_not_exists=true})
+            box.schema.func.create('$name', { if_not_exists=true })
             ";
             $this->mapper->getClient()->evaluate($script);
             $instance->hash = md5($body);
