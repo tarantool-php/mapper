@@ -98,13 +98,17 @@ class FindOrCreate extends Procedure
         end
 
         if sequence == 1 then
-            if box.sequence[space] == nil then
+            local sequence_name = space
+            if box.sequence[sequence_name] == nil and box.sequence[sequence_name .. '_seq'] ~= nil then
+                sequence_name = sequence_name .. '_seq'
+            end
+            if box.sequence[sequence_name] == nil then
                 if is_in_txn == false then
                     box.rollback()
                 end
-                return 'no sequence '..space
+                return 'no sequence '..sequence_name
             end
-            tuple[key] = box.sequence[space]:next()
+            tuple[key] = box.sequence[sequence_name]:next()
         end
 
         tuple = box.space[space]:insert(tuple)

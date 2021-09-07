@@ -47,6 +47,16 @@ class SequenceTest extends TestCase
 
         $this->assertSame($result1->id, 1);
         $this->assertSame($result2->id, 2);
+
+        $mapper->getRepository('some_space')->getSpace()->createIndex('value');
+
+        $result3 = $mapper->findOrCreate('some_space', [ 'value' => 33 ]);
+
+        // no new sequence should be created
+        $mapper->getRepository('_vsequence')->flushCache();
+        $this->assertCount(1, $mapper->find('_vsequence'));
+
+        $this->assertSame($result3->id, 3);
     }
 
     public function testInstanceOverwriteOnPluginAdd()
