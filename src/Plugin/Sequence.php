@@ -37,28 +37,44 @@ class Sequence extends Plugin
 
         $name = $space->getName();
 
-        if (!array_key_exists($name, $this->sequences)) {
-            [$primaryIndex] = $space->getIndexes();
-            if (count($primaryIndex['parts']) !== 1) {
-                throw new Exception("Composite primary key");
-            }
-            $this->mapper
-                ->getPlugin(Procedure::class)
-                ->get(CreateSequence::class)
-                ->execute($name, $primaryIndex['name'], $primaryIndex['parts'][0][0] + 1);
-
-            $this->mapper->getRepository('_vsequence')->flushCache();
-
-            $this->sequences[$name] = true;
+        if (array_key_exists($name, $this->sequences)) {
+            // sequence exists
+            return;
         }
+
+        if (array_key_exists($name . '_seq', $this->sequences)) {
+            // use tarantool standard sequence name
+            return;
+        }
+
+        [$primaryIndex] = $space->getIndexes();
+        if (count($primaryIndex['parts']) !== 1) {
+            throw new Exception("Composite primary key");
+        }
+
+        $this->mapper
+            ->getPlugin(Procedure::class)
+            ->get(CreateSequence::class)
+            ->execute($name, $primaryIndex['name'], $primaryIndex['parts'][0][0] + 1);
+
+        $this->mapper->getRepository('_vsequence')->flushCache();
+
+        $this->sequences[$name] = true;
     }
 
     private function generateValue(Space $space): int
     {
         $this->initializeSequence($space);
 
-        $next = $this->mapper->getClient()
-            ->call('box.sequence.' . $space->getName() . ':next');
+        $name = $space->getName();
+        if (!array_key_exists($name, $this->sequences)) {
+            if (array_key_exists($name . '_seq', $this->sequences)) {
+                // use tarantool standard sequence name
+                $name .= '_seq';
+            }
+        }
+
+        $next = $this->mapper->getClient()->call('box.sequence.' . $name . ':next');
 
         return $next[0];
     }

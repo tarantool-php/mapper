@@ -5,6 +5,50 @@ use Tarantool\Mapper\Plugin\Sequence;
 
 class SequenceTest extends TestCase
 {
+    public function testSequenceIndexing()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        // no sequences in schema
+        $this->assertCount(0, $mapper->find('_vsequence'));
+
+        $mapper->getSchema()->createSpace('some_space', [
+            'if_not_exists' => true,
+            'engine'        => 'memtx',
+            'properties' => [
+                'id'       => 'unsigned',
+                'value'    => 'string',
+            ],
+        ])
+        ->addIndex([
+            'fields'        => 'id',
+            'if_not_exists' => true,
+            'sequence'      => true,
+        ]);
+
+        // sequence was created
+        $mapper->getRepository('_vsequence')->flushCache();
+        $this->assertCount(1, $mapper->find('_vsequence'));
+        $seq = $mapper->findOne('_vsequence');
+        $this->assertSame($seq->name, 'some_space_seq');
+
+        // no new sequence should be created
+        $mapper->getPlugin(Sequence::class);
+        $mapper->getRepository('_vsequence')->flushCache();
+        $this->assertCount(1, $mapper->find('_vsequence'));
+
+        $result1 = $mapper->create('some_space', ['value'  => 27]);
+        $result2 = $mapper->create('some_space', ['value'  => 42]);
+
+        // no new sequence should be created
+        $mapper->getRepository('_vsequence')->flushCache();
+        $this->assertCount(1, $mapper->find('_vsequence'));
+
+        $this->assertSame($result1->id, 1);
+        $this->assertSame($result2->id, 2);
+    }
+
     public function testInstanceOverwriteOnPluginAdd()
     {
         $mapper = $this->createMapper();
