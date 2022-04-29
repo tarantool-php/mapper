@@ -18,6 +18,21 @@ class PerformanceTest extends TestCase
         }
 
         echo PHP_EOL;
+        $headers = [
+            'Operation',
+            'Counter',
+            'Client time',
+            'Mapper time',
+            'Total time',
+            'Client RPS',
+            'Mapper RPS',
+            'Total RPS',
+        ];
+
+        $line = array_map(fn($r) => '---', $headers);
+
+        echo '| ', implode(' | ', $headers), ' |', PHP_EOL;
+        echo '| ', implode(' | ', $line), ' |', PHP_EOL;
 
         $this->logger = new class extends AbstractLogger
         {
@@ -29,7 +44,6 @@ class PerformanceTest extends TestCase
         };
 
         foreach ([1, 10, 100, 1000, 10000] as $goal) {
-
             $mapper = $this->createMapper();
             $this->clean($mapper);
 
@@ -47,13 +61,13 @@ class PerformanceTest extends TestCase
                     $mapper->create('tester', ['id' => $id, 'text' => "text for $id"]);
                 }
             });
-    
+
             $this->score('single read', $goal, function () use ($mapper, $goal) {
                 foreach (range(1, $goal) as $id) {
                     $mapper->findOne('tester', ['id' => $id]);
                 }
             });
-    
+
             $this->score('mass read', $goal, function () use ($mapper) {
                 $mapper->find('tester');
             });
@@ -66,34 +80,28 @@ class PerformanceTest extends TestCase
         $runner();
         $totalTime = microtime(1) - $startTime;
 
-        $mapperTime = 0;
+        $clientTime = 0;
         foreach ($this->logger->logs as $item) {
             if (array_key_exists('duration_ms', $item['context'])) {
-                $mapperTime += $item['context']['duration_ms'];
+                $clientTime += $item['context']['duration_ms'] / 1000;
             }
         }
+
         $this->logger->logs = [];
+
+        $mapperTime = $totalTime - $clientTime;
 
         $row = [
             $label,
             $goal,
+            number_format($clientTime, 3),
+            number_format($mapperTime, 3),
             number_format($totalTime, 3),
-            str_pad(number_format($goal / ($totalTime), 0, '.', ''), 7, ' ', STR_PAD_LEFT),
+            $clientTime ? number_format($goal / $clientTime, 3) : '∞',
+            $mapperTime ? number_format($goal / $mapperTime, 3) : '∞',
+            number_format($goal / $totalTime, 3),
         ];
 
-        $cleanTime = $totalTime - $mapperTime;
-
-        if ($cleanTime > 0) {
-            $row[] = number_format(1000 * $cleanTime, 3);
-            $row[] = number_format(1000 * $cleanTime / $goal, 3);
-            $row[] = number_format($cleanTime, 3);
-            $row[] = number_format($mapperTime, 3);
-        }
-
-        echo implode("\t", $row), PHP_EOL;
-    }
-
-    protected function getTimeSummary()
-    {
+        echo '| ', implode(" | ", $row), ' |', PHP_EOL;
     }
 }

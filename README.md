@@ -398,11 +398,23 @@ $nekufa->getPostCollection() == [$post]; // true
 Mapper overhead depends on amount of rows and operation type.
 Table contains overhead in **milliseconds** per entity. In some cases, overhead can't be calculated due float precision.
 
-| Operation | Count | Time | RPS |
-| --- | --- | --- | --- |
-| create one | 10000 | 1.258 | 7948 |
-| single read | 10000 | 1.028 | 9730 |
-| mass read | 10000 | 0.022 | 464532 |
+| Operation | Counter | Client time | Mapper time | Total time | Client RPS | Mapper RPS | Total RPS |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| create one | 1 | 0.000 | 0.001 | 0.001 | ∞ | 1,248.305 | 1,248.305 |
+| single read | 1 | 0.000 | 0.001 | 0.001 | ∞ | 1,700.853 | 1,700.853 |
+| mass read | 1 | 0.000 | 0.000 | 0.000 | ∞ | 9,986.438 | 9,986.438 |
+| create one | 10 | 0.000 | 0.002 | 0.002 | ∞ | 5,094.503 | 5,094.503 |
+| single read | 10 | 0.000 | 0.002 | 0.002 | ∞ | 6,356.932 | 6,356.932 |
+| mass read | 10 | 0.000 | 0.000 | 0.000 | ∞ | 82,565.039 | 82,565.039 |
+| create one | 100 | 0.000 | 0.015 | 0.015 | ∞ | 6,862.408 | 6,862.408 |
+| single read | 100 | 0.000 | 0.011 | 0.011 | ∞ | 8,781.308 | 8,781.308 |
+| mass read | 100 | 0.000 | 0.000 | 0.000 | ∞ | 373,158.719 | 373,158.719 |
+| create one | 1000 | 0.002 | 0.127 | 0.129 | 500,000.000 | 7,879.048 | 7,756.815 |
+| single read | 1000 | 0.001 | 0.106 | 0.107 | 1,000,000.000 | 9,445.361 | 9,356.981 |
+| mass read | 1000 | 0.001 | 0.001 | 0.002 | 1,000,000.000 | 1,096,350.573 | 522,980.549 |
+| create one | 10000 | 0.078 | 1.366 | 1.444 | 128,205.128 | 7,321.169 | 6,925.678 |
+| single read | 10000 | 0.010 | 1.056 | 1.066 | 1,000,000.000 | 9,468.137 | 9,379.332 |
+| mass read | 10000 | 0.007 | 0.012 | 0.019 | 1,428,571.429 | 800,640.283 | 513,083.538 |
 
 Perfomance test was made on (intel i5-4670K), Ubuntu 22.04 LTS  using PHP 8.1.5
-For example, when single select will produce 10 000 entites, you will get about 22ms overhead.
+For example, when single select will produce 10 000 entites, you will get about 12s overhead.
