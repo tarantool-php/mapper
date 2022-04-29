@@ -12,5 +12,5 @@ jobs:
       - uses: php-actions/composer@v6
         with:
           php_version: ${{ matrix.php }}
-      - run: docker run -d -p 3301:3301 tarantool:${{ matrix.tarantool }}
+      - run: docker run -d -p 3301:3301 tarantool/tarantool:${{ matrix.tarantool }}
       - run: vendor/bin/phpunit tests
