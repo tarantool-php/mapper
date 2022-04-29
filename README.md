@@ -19,7 +19,6 @@
 - [Sequence plugin](#sequence-plugin)
 - [User-defined classes plugin](#user-defined-classes-plugin)
 - [Annotation plugin](#annotation-plugin)
-- [Internals](#internals)
 - [Performance](#performance)
 
 ## Requirements
@@ -395,28 +394,15 @@ $nekufa->getPostCollection() == [$post]; // true
 
 ```
 
-## Internals
-Mapper uses IdentityMap and query caching
-```php
-$dmitry = $mapper->getRepository('person')->findOne(['name' => 'Dmitry']); // person with id 1
-echo $dmitry == $mapper->findOne('person', 1); // true
-
-// query result are cached until you create new entites
-$mapper->getRepository('person')->findOne(['name' => 'Dmitry']);
-
-// you can flush cache manually
-$mapper->getRepository('person')->flushCache();
-```
-
 ## Performance
 Mapper overhead depends on amount of rows and operation type.
 Table contains overhead in **milliseconds** per entity. In some cases, overhead can't be calculated due float precision.
 
-| Operation | Timing |
-| --- | --- |
-| create single row | 0.0264 |
-| select single row | 0.0008 |
-| select multiple rows | 0.00037 |
+| Operation | Count | Time | RPS |
+| --- | --- | --- | --- |
+| create one | 10000 | 1.258 | 7948 |
+| single read | 10000 | 1.028 | 9730 |
+| mass read | 10000 | 0.022 | 464532 |
 
-Perfomance test was made on (intel i5-4670K), Ubuntu 18.04.2 LTS  using PHP 7.3.5
-For example, when single select will produce 10 000 entites, you will get about 4ms overhead.
+Perfomance test was made on (intel i5-4670K), Ubuntu 22.04 LTS  using PHP 8.1.5
+For example, when single select will produce 10 000 entites, you will get about 22ms overhead.
