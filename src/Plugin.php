@@ -13,9 +13,9 @@ abstract class Plugin
         $this->mapper = $mapper;
     }
 
-    public function getMapper()
+    public function afterCreate(Entity $instance, Space $space): Entity
     {
-        return $this->mapper;
+        return $instance;
     }
 
     public function afterInstantiate(Entity $instance): Entity
@@ -23,32 +23,7 @@ abstract class Plugin
         return $instance;
     }
 
-    public function getRepositoryClass(Space $space): ?string
-    {
-        return null;
-    }
-
-    public function getEntityClass(Space $space, array $data): ?string
-    {
-        return null;
-    }
-
-    public function generateKey(Entity $instance, Space $space): Entity
-    {
-        return $instance;
-    }
-
-    public function beforeCreate(Entity $instance, Space $space): Entity
-    {
-        return $instance;
-    }
-
-    public function afterCreate(Entity $instance, Space $space): Entity
-    {
-        return $instance;
-    }
-
-    public function beforeUpdate(Entity $instance, Space $space): Entity
+    public function afterRemove(Entity $instance, Space $space): Entity
     {
         return $instance;
     }
@@ -58,13 +33,38 @@ abstract class Plugin
         return $instance;
     }
 
+    public function beforeCreate(Entity $instance, Space $space): Entity
+    {
+        return $instance;
+    }
+
     public function beforeRemove(Entity $instance, Space $space): Entity
     {
         return $instance;
     }
 
-    public function afterRemove(Entity $instance, Space $space): Entity
+    public function beforeUpdate(Entity $instance, Space $space): Entity
     {
         return $instance;
+    }
+
+    public function generateKey(Entity $instance, Space $space): Entity
+    {
+        return $instance;
+    }
+
+    public function getEntityClass(Space $space, array $data): ?string
+    {
+        return null;
+    }
+
+    public function getMapper()
+    {
+        return $this->mapper;
+    }
+
+    public function getRepositoryClass(Space $space): ?string
+    {
+        return null;
     }
 }

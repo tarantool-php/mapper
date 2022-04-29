@@ -1,12 +1,15 @@
 <?php
 
-use Tarantool\Client\Client;
-use Tarantool\Mapper\Mapper;
-use Tarantool\Client\Packer\PurePacker;
-use Tarantool\Client\Schema\Space;
-use Tarantool\Client\Schema\Index;
+namespace Tarantool\Mapper\Tests;
 
-abstract class TestCase extends PHPUnit\Framework\TestCase
+use Exception;
+use Tarantool\Client\Client;
+use Tarantool\Client\Packer\PurePacker;
+use Tarantool\Client\Schema\Index;
+use Tarantool\Client\Schema\Space;
+use Tarantool\Mapper\Mapper;
+
+abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
     protected function createMapper()
     {
@@ -34,12 +37,11 @@ abstract class TestCase extends PHPUnit\Framework\TestCase
     {
         foreach ($mapper->find('_schema') as $schema) {
             if (strpos($schema->key, 'mapper-once') === 0) {
-                $mapper->remove($schema);
+                $mapper->getClient()->call('box.space._schema:delete', [$schema->key]);
             }
         }
 
         $mapper->getClient()->flushSpaces();
-        $mapper->getRepository('_space')->flushCache();
 
         $mapper->getClient()->evaluate('
             local todo = {}

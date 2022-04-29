@@ -1,7 +1,9 @@
 <?php
 
-use Tarantool\Mapper\Plugin\Temporal;
+namespace Tarantool\Mapper\Tests;
+
 use Carbon\Carbon;
+use Tarantool\Mapper\Plugin\Temporal;
 
 class TemporalTest extends TestCase
 {

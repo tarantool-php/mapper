@@ -1,8 +1,11 @@
 <?php
 
-use Tarantool\Mapper\Plugin\Procedure;
+namespace Tarantool\Mapper\Tests;
+
+use Exception;
 use Procedure\Greet;
 use Procedure\Info;
+use Tarantool\Mapper\Plugin\Procedure;
 
 class ProcedureTest extends TestCase
 {

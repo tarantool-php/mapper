@@ -51,7 +51,8 @@ class Schema
                 ->addIndex([
                     'fields' => 'parent',
                     'unique' => false,
-                ]);
+                ])
+                ->setPropertyNullable('end', false);
 
             $mapper->getSchema()
                 ->createSpace('_temporal_link_aggregate', [

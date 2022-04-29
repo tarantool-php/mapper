@@ -6,18 +6,14 @@ namespace Tarantool\Mapper;
 
 use Closure;
 use Exception;
-use Symfony\Component\Uid\Uuid;
 use Tarantool\Client\Schema\Criteria;
 use Tarantool\Client\Schema\Space as ClientSpace;
 
 class Schema
 {
-    private $mapper;
-
-    private $names = [];
-    private $spaces = [];
-    private $params = [];
-    private $engines = [];
+    public readonly Mapper $mapper;
+    private array $meta = [];
+    private array $spaces = [];
 
     public function __construct(Mapper $mapper, $meta = null)
     {
@@ -51,10 +47,12 @@ class Schema
             return box.space[space].id
         ", $space, $options);
 
-        $this->names[$space] = $id;
-        $this->engines[$space] = $options['engine'];
-
-        $this->spaces[$id] = new Space($this->mapper, $id, $space, $options['engine']);
+        $this->spaces[$id] = new Space($this->mapper, [
+            'id' => $id,
+            'name' => $space,
+            'engine' => $options['engine'],
+            'format' => [],
+        ]);
 
         $properties = array_key_exists('properties', $config) ? $config['properties'] : $config;
 
@@ -62,119 +60,84 @@ class Schema
             $this->spaces[$id]->addProperties($properties);
         }
 
+        $this->meta[$id] = $this->spaces[$id]->getMeta();
+
         return $this->spaces[$id];
     }
 
-    public function dropSpace(string $space)
+    public function dropSpace(string $space): self
     {
         if (!$this->hasSpace($space)) {
             throw new Exception("No space $space");
         }
 
-        $this->mapper->getClient()->evaluate(sprintf("box.space.%s:drop()", $space));
-
-        unset($this->spaces[$this->names[$space]], $this->engines[$space], $this->names[$space]);
-    }
-
-    public function getDefaultValue(string $type)
-    {
-        switch (strtolower($type)) {
-            case 'str':
-            case 'string':
-                return (string) null;
-
-            case 'bool':
-            case 'boolean':
-                return (bool) null;
-
-            case 'double':
-            case 'float':
-            case 'number':
-                return (float) null;
-
-            case 'integer':
-            case 'unsigned':
-            case 'num':
-            case 'NUM':
-                return (int) null;
-        }
-        throw new Exception("Invalid type $type");
-    }
-
-    public function formatValue(string $type, $value)
-    {
-        if ($value === null) {
-            return null;
-        }
-        switch (strtolower($type)) {
-            case 'str':
-            case 'string':
-                return (string) $value;
-
-            case 'double':
-            case 'float':
-            case 'number':
-                return (float) $value;
-
-            case 'bool':
-            case 'boolean':
-                return (bool) $value;
-
-            case 'integer':
-            case 'unsigned':
-            case 'num':
-            case 'NUM':
-                return (int) $value;
-
-            case 'uuid':
-                if (is_string($value)) {
-                    $value = Uuid::fromString($value);
+        foreach ($this->meta as $id => $row) {
+            if ($row['name'] == $space) {
+                unset($this->meta[$id]);
+                if (array_key_exists($id, $this->spaces)) {
+                    unset($this->spaces[$id]);
                 }
-                return $value;
-
-            default:
-                return $value;
+                $this->mapper->getClient()->call("box.space.$space:drop");
+                return $this;
+            }
         }
+
+        return $this;
     }
 
-    public function getSpace($id): Space
+    public function getMeta(): array
+    {
+        $meta = [];
+
+        foreach ($this->meta as $id => $row) {
+            $meta[$id] = $this->getSpace($row['name'])->getMeta();
+        }
+
+        return $meta;
+    }
+
+    public function getSpace(int|string $id): Space
     {
         if (is_string($id)) {
-            return $this->getSpace($this->getSpaceId($id));
+            foreach ($this->meta as $row) {
+                if ($row['name'] == $id) {
+                    return $this->getSpace($row['id']);
+                }
+            }
+            throw new Exception("Space $id not found");
         }
 
         if (!$id) {
-            throw new Exception("Space id or name not defined");
+            throw new Exception("Undefined space");
         }
 
         if (!array_key_exists($id, $this->spaces)) {
-            $name = array_search($id, $this->names);
-            $meta = array_key_exists($id, $this->params) ? $this->params[$id] : null;
-            $engine = $this->engines[$name];
-            $this->spaces[$id] = new Space($this->mapper, $id, $name, $engine, $meta);
+            $this->spaces[$id] = new Space($this->mapper, $this->meta[$id]);
         }
-        return $this->spaces[$id];
-    }
 
-    public function getSpaceId(string $name): int
-    {
-        if (!$this->hasSpace($name)) {
-            throw new Exception("No space $name");
-        }
-        return $this->names[$name];
+        return $this->spaces[$id];
     }
 
     public function getSpaces(): array
     {
-        foreach ($this->names as $id) {
-            $this->getSpace($id);
+        foreach ($this->meta as $id => $row) {
+            if (!array_key_exists($id, $this->spaces)) {
+                $this->getSpace($id);
+            }
         }
-        return $this->spaces;
+
+        return array_values($this->spaces);
     }
 
-    public function hasSpace(string $name): bool
+    public function hasSpace(string $space): bool
     {
-        return array_key_exists($name, $this->names);
+        foreach ($this->meta as $row) {
+            if ($row['name'] == $space) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function once(string $name, Closure $callback)
@@ -187,7 +150,22 @@ class Schema
         }
     }
 
-    public function forgetOnce(string $name)
+    public function reset(): self
+    {
+        $this->meta = [];
+
+        $data = $this->mapper->getClient()->getSpace('_vspace')
+            ->select(Criteria::allIterator());
+
+        foreach ($data as $tuple) {
+            $row = array_combine(['id', 'owner', 'name', 'engine', 'field_count', 'flags', 'format'], $tuple);
+            $this->meta[$row['id']] = $row;
+        }
+
+        return $this;
+    }
+
+    public function revert(string $name): bool
     {
         $key = 'mapper-once' . $name;
         $row = $this->mapper->findOne('_schema', ['key' => $key]);
@@ -199,71 +177,9 @@ class Schema
         return false;
     }
 
-    public function reset(): self
+    public function setMeta(array $meta): self
     {
-        $this->names = [];
-        $this->engines = [];
-
-        $data = $this->mapper->getClient()->getSpace('_vspace')->select(Criteria::allIterator());
-        foreach ($data as $tuple) {
-            $this->names[$tuple[2]] = $tuple[0];
-            $this->engines[$tuple[2]] = $tuple[3];
-        }
-
-        foreach ($this->getSpaces() as $space) {
-            if (!array_key_exists($space->getName(), $this->names)) {
-                unset($this->spaces[$space->getId()]);
-            }
-        }
-
+        $this->meta = $meta;
         return $this;
-    }
-
-    public function getMeta(): array
-    {
-        $params = [];
-        foreach ($this->getSpaces() as $space) {
-            $params[$space->getId()] = $space->getMeta();
-        }
-
-        return [
-            'engines' => $this->engines,
-            'names' => $this->names,
-            'params' => $params,
-        ];
-    }
-
-    public function setMeta($meta): self
-    {
-        $this->engines = $meta['engines'];
-        $this->names = $meta['names'];
-        $this->params = $meta['params'];
-
-        return $this;
-    }
-
-    private $underscores = [];
-
-    public function toUnderscore(string $input): string
-    {
-        if (!array_key_exists($input, $this->underscores)) {
-            preg_match_all('!([A-Z][A-Z0-9]*(?=$|[A-Z][a-z0-9])|[A-Za-z][a-z0-9]+)!', $input, $matches);
-            $ret = $matches[0];
-            foreach ($ret as &$match) {
-                $match = $match == strtoupper($match) ? strtolower($match) : lcfirst($match);
-            }
-            $this->underscores[$input] = implode('_', $ret);
-        }
-        return $this->underscores[$input];
-    }
-
-    private $camelcase = [];
-
-    public function toCamelCase(string $input): string
-    {
-        if (!array_key_exists($input, $this->camelcase)) {
-            $this->camelcase[$input] = lcfirst(implode('', array_map('ucfirst', explode('_', $input))));
-        }
-        return $this->camelcase[$input];
     }
 }

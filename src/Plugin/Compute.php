@@ -17,10 +17,8 @@ class Compute extends Plugin
 
     public function afterCreate(Entity $entity, Space $space): Entity
     {
-        $name = $space->getName();
-
-        if (array_key_exists($name, $this->dependency)) {
-            foreach ($this->dependency[$name] as [$target, $callback]) {
+        if (array_key_exists($space->name, $this->dependency)) {
+            foreach ($this->dependency[$space->name] as [$target, $callback]) {
                 $this->initializePresenter($target, $callback, $entity);
             }
         }
@@ -30,10 +28,8 @@ class Compute extends Plugin
 
     public function afterRemove(Entity $entity, Space $space): Entity
     {
-        $name = $space->getName();
-
-        if (array_key_exists($name, $this->dependency)) {
-            foreach ($this->dependency[$name] as [$target, $callback]) {
+        if (array_key_exists($space->name, $this->dependency)) {
+            foreach ($this->dependency[$space->name] as [$target, $callback]) {
                 $this->getMapper()->remove($target, ['id' => $entity->id]);
             }
         }
@@ -43,10 +39,8 @@ class Compute extends Plugin
 
     public function afterUpdate(Entity $entity, Space $space): Entity
     {
-        $name = $space->getName();
-
-        if (array_key_exists($name, $this->dependency)) {
-            foreach ($this->dependency[$name] as [$target, $callback]) {
+        if (array_key_exists($space->name, $this->dependency)) {
+            foreach ($this->dependency[$space->name] as [$target, $callback]) {
                 $child = $this->getMapper()->findOne($target, $entity->id);
                 foreach ($callback($entity) as $k => $v) {
                     $child->$k = $v;
@@ -65,7 +59,7 @@ class Compute extends Plugin
         }
         foreach ($this->dependency as $source => $dependencies) {
             foreach ($dependencies as [$target]) {
-                if ($target == $space->getName()) {
+                if ($target == $space->name) {
                     throw new Exception("Space $target is computed from $source");
                 }
             }

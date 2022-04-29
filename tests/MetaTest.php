@@ -1,11 +1,13 @@
 <?php
 
-use Tarantool\Mapper\Client;
-use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Schema;
-use Tarantool\Mapper\Plugin\Sequence;
+namespace Tarantool\Mapper\Tests;
+
 use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Client\Request\InsertRequest;
+use Tarantool\Mapper\Client;
+use Tarantool\Mapper\Mapper;
+use Tarantool\Mapper\Plugin\Sequence;
+use Tarantool\Mapper\Schema;
 
 class MetaTest extends TestCase
 {
@@ -35,6 +37,11 @@ class MetaTest extends TestCase
 
         $logger2 = new Logger();
         $mapper2 = $this->createMapper(new LoggingMiddleware($logger2));
+
+        foreach ($meta as $spaceMeta) {
+            $this->assertArrayHasKey('indexes', $spaceMeta);
+        }
+
         $this->assertEquals($meta, $mapper2->getMeta());
 
         $logger3 = new Logger();
@@ -42,8 +49,8 @@ class MetaTest extends TestCase
         $logger3->flush();
         $mapper3->setMeta($meta);
 
-        $mapper3->getSchema()->getSpace('tester')->getFormat();
-        $mapper3->getSchema()->getSpace('tester2')->getFormat();
+        $mapper3->getSchema()->getSpace('tester')->getProperties();
+        $mapper3->getSchema()->getSpace('tester2')->getProperties();
         $this->assertCount(0, $logger3->getLog());
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
 use Psr\Log\AbstractLogger;
 use Symfony\Component\Uid\Uuid;
 use Tarantool\Client\Client;
@@ -34,7 +36,6 @@ class UuidTest extends TestCase
             'id' => $uuid,
         ]);
 
-        $mapper->getRepository('test_space')->forget($instance);
         $this->assertNotNull($mapper->findOne('test_space', $uuid));
     }
 
@@ -63,19 +64,16 @@ class UuidTest extends TestCase
         $this->assertSame($instance->uuid, $uuid);
         $this->assertEquals($instance->uuid, $uuid);
 
-        $mapper->getRepository('test_space')->forget($instance->id);
 
         $instance = $mapper->findOne('test_space', $instance->id);
         $this->assertNotSame($instance->uuid, $uuid);
         $this->assertEquals($instance->uuid, $uuid);
 
         // find using uuid instance
-        $mapper->getRepository('test_space')->forget($instance->id);
         $instance = $mapper->findOne('test_space', [ 'uuid' => $uuid ]);
         $this->assertEquals($instance->uuid, $uuid);
 
         // find using uuid string (type casting)
-        $mapper->getRepository('test_space')->forget($instance->id);
         $instance = $mapper->findOne('test_space', [ 'uuid' => (string) $uuid ]);
         $this->assertEquals($instance->uuid, $uuid);
     }

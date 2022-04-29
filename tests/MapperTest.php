@@ -1,14 +1,17 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
+use Exception;
 use Psr\Log\AbstractLogger;
 use Tarantool\Client\Client;
 use Tarantool\Client\Middleware\FirewallMiddleware;
 use Tarantool\Client\Middleware\LoggingMiddleware;
-use Tarantool\Client\Schema\Operations;
 use Tarantool\Client\Request\InsertRequest;
+use Tarantool\Client\Schema\Operations;
 use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Plugin\Sequence;
 use Tarantool\Mapper\Plugin\Procedure;
+use Tarantool\Mapper\Plugin\Sequence;
 use Tarantool\Mapper\Procedure\FindOrCreate;
 use Tarantool\Mapper\Schema;
 
@@ -22,12 +25,10 @@ class MapperTest extends TestCase
         $space = $repository->findOne();
         $this->assertNotNull($space);
 
-        $tuple = $repository->getOriginal($space);
+        $tuple = $space->getOriginalTuple();
         $this->assertNotNull($tuple);
 
-        $repository->forget($space->id);
-
-        $tupleNew = $repository->getOriginal($space);
+        $tupleNew = $repository->findOne()->getOriginalTuple();
         $this->assertNotNull($tupleNew);
         $this->assertSame($tuple, $tupleNew);
     }
@@ -47,11 +48,12 @@ class MapperTest extends TestCase
             ->addIndex('slug');
 
         $post = $mapper->create('post', ['title' => 'hello']);
-
         $this->assertSame("", $post->slug);
+
         $mapper->getClient()->getSpace('post')->update([$post->id], Operations::set(2, 'hello'));
         $this->assertSame("", $post->slug);
-        $post->sync();
+
+        $post = $mapper->findOrFail('post');
         $this->assertSame("hello", $post->slug);
     }
 
@@ -73,7 +75,7 @@ class MapperTest extends TestCase
                 'type' => 'tree'
             ]);
 
-        $this->assertSame($tester->getEngine(), 'vinyl');
+        $this->assertSame($tester->engine, 'vinyl');
     }
 
     public function testNullableColumns()
@@ -91,8 +93,8 @@ class MapperTest extends TestCase
                 'type' => 'hash'
             ]);
 
-        $this->assertTrue($tester->isPropertyNullable('value'));
-        $this->assertSame($tester->getEngine(), 'memtx');
+        $this->assertTrue($tester->getProperty('value')->isNullable);
+        $this->assertSame($tester->engine, 'memtx');
 
         $instance = $mapper->findOrCreate('tester', ['id' => 1]);
         $this->assertNull($instance->value);
@@ -133,7 +135,7 @@ class MapperTest extends TestCase
         $tester1 = $mapper->create('tester', ['a' => 1, 'b' => 2]);
 
         [$tester1x] = $mapper->find('tester', ['a' => 1]);
-        $this->assertSame($tester1, $tester1x);
+        $this->assertNotSame($tester1, $tester1x);
         $mapper->remove($tester1x);
 
         $tester2 = $mapper->create('tester', ['a' => 1, 'b' => 2]);
@@ -157,12 +159,12 @@ class MapperTest extends TestCase
             ->addIndex('id')
             ->addIndex('label');
 
-        $this->expectExceptionMessage('tester 1 exists');
-
         $first = $mapper->create('tester', [
             'id' => 1,
             'label' => 1
         ]);
+
+        $this->expectExceptionMessage('Duplicate key exists in unique index "id"');
 
         $second = $mapper->create('tester', [
             'id' => 1,
@@ -289,7 +291,7 @@ class MapperTest extends TestCase
 
         $first = $mapper->findOrCreate('tester', $params);
         $this->assertNotNull($first);
-        $this->assertSame($first, $mapper->findOrCreate('tester', $params));
+        $this->assertEquals($first, $mapper->findOrCreate('tester', $params));
         $this->assertCount(1, $mapper->find('tester'));
 
         $anotherMapper = $this->createMapper();
@@ -300,9 +302,8 @@ class MapperTest extends TestCase
         $params = ['label' => 'zzz'];
         $second = $mapper->findOrCreate('tester', $params);
         $this->assertNotNull($second);
-        $this->assertSame($second, $mapper->findOrCreate('tester', $params));
+        $this->assertEquals($second, $mapper->findOrCreate('tester', $params));
         $this->assertCount(2, $mapper->find('tester'));
-
     }
 
     public function testFindOrFail()
@@ -338,8 +339,8 @@ class MapperTest extends TestCase
             ->addIndex('id')
             ->addIndex('label');
 
-        $this->assertSame(0, $space->castIndex(['id' => 1]));
-        $this->assertSame(1, $space->castIndex(['label' => 1]));
+        $this->assertSame(0, $space->castIndex(['id' => 1])->id);
+        $this->assertSame(1, $space->castIndex(['label' => 1])->id);
     }
 
     public function testComplexIndexCasting()
@@ -359,9 +360,9 @@ class MapperTest extends TestCase
             ->addIndex('id')
             ->addIndex(['year', 'month', 'day']);
 
-        $this->assertSame(0, $space->castIndex(['id' => 1]));
-        $this->assertSame(1, $space->castIndex(['year' => 1, 'month' => 2]));
-        $this->assertSame(1, $space->castIndex(['month' => 2, 'year' => 1]));
+        $this->assertSame(0, $space->castIndex(['id' => 1])->id);
+        $this->assertSame(1, $space->castIndex(['year' => 1, 'month' => 2])->id);
+        $this->assertSame(1, $space->castIndex(['month' => 2, 'year' => 1])->id);
     }
 
     public function testArray()
@@ -446,6 +447,7 @@ class MapperTest extends TestCase
             'id' => "1",
             'module' => "1"
         ]);
+
         // casting on create
         $this->assertSame($rule->id, 1);
         $this->assertNotSame($rule->id, "1");
@@ -506,6 +508,7 @@ class MapperTest extends TestCase
         $anotherPetya = $mapper->findOne('tester', ['id' => '1']);
         $this->assertNotNull($anotherPetya);
     }
+
     public function testIndexRemoved()
     {
         $mapper = $this->createMapper();
@@ -738,7 +741,7 @@ class MapperTest extends TestCase
         $spaceInstance = $mapper->findOne('_space', ['id' => 280]);
         $anotherInstance = $mapper->getRepository('_space')->findOne(['name' => '_space']);
 
-        $this->assertSame($spaceInstance, $anotherInstance);
+        $this->assertEquals($spaceInstance->toArray(), $anotherInstance->toArray());
 
         // validate _space row
         $this->assertSame($spaceInstance->id, 280);
@@ -749,10 +752,7 @@ class MapperTest extends TestCase
         // validate collections
         $spaceData = $mapper->getRepository('_space')->find(['name' => '_space']);
         $anotherData = $mapper->find('_space', ['name' => '_space']);
-        $this->assertSame($spaceData, $anotherData);
-
-        // validate identity map
-        $this->assertSame($spaceData[0], $spaceInstance);
+        $this->assertSame($spaceData[0]->toArray(), $anotherData[0]->toArray());
 
         $guest = $mapper->findOne('_user', ['id' => 0]);
         $this->assertSame($guest->name, 'guest');
@@ -760,14 +760,14 @@ class MapperTest extends TestCase
 
         $guests = $mapper->find('_user', ['name' => 'guest']);
         $this->assertCount(1, $guests);
-        $this->assertSame($guests[0], $guest);
+        $this->assertEquals($guests[0], $guest);
 
         // validate get by id easy call
         $user = $mapper->findOne('_user', [0]);
-        $this->assertSame($user, $guest);
+        $this->assertEquals($user, $guest);
 
         $user = $mapper->findOne('_user', 0);
-        $this->assertSame($user, $guest);
+        $this->assertEquals($user, $guest);
     }
 
     public function testTupleMap()

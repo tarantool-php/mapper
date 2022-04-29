@@ -55,14 +55,8 @@ class Spy extends Plugin
 
     private function getKey(Entity $instance, Space $space): string
     {
-        $key = [$space->getName()];
-
-        $format = $space->getFormat();
-        foreach ($space->getPrimaryIndex()['parts'] as $part) {
-            $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
-            $key[] = $instance->{$format[$field]['name']};
-        }
-
+        $key = $space->getIndex(0)->getValues($instance->toArray());
+        array_unshift($key, $space->name);
         return implode(':', $key);
     }
 

@@ -1,8 +1,11 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
+use Exception;
 use Tarantool\Mapper\Entity;
-use Tarantool\Mapper\Plugin\Compute;
 use Tarantool\Mapper\Plugin\Annotation;
+use Tarantool\Mapper\Plugin\Compute;
 use Tarantool\Mapper\Plugin\Sequence;
 
 class ComputeTest extends TestCase
@@ -38,14 +41,16 @@ class ComputeTest extends TestCase
 
         $compute = $mapper->getPlugin(Compute::class);
 
-        $mapper->getSchema()->createSpace('person', [
+        $mapper->getSchema()
+            ->createSpace('person', [
                 'id' => 'unsigned',
                 'firstname' => 'string',
                 'lastname' => 'string',
             ])
             ->createIndex('id');
 
-        $mapper->getSchema()->createSpace('person_presenter', [
+        $mapper->getSchema()
+            ->createSpace('person_presenter', [
                 'id' => 'unsigned',
                 'name' => 'string',
             ])
@@ -53,7 +58,7 @@ class ComputeTest extends TestCase
 
         $compute->register('person', 'person_presenter', function (Entity $entity) {
             return [
-                'name' => $entity->firstname.' '.$entity->lastname.'!',
+                'name' => $entity->firstname . ' ' . $entity->lastname . '!',
             ];
         });
 

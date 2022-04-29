@@ -1,5 +1,7 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
 use Psr\Log\AbstractLogger;
 
 class Logger extends AbstractLogger

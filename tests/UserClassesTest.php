@@ -1,9 +1,12 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
+use Exception;
 use Tarantool\Mapper\Entity;
+use Tarantool\Mapper\Plugin\UserClasses;
 use Tarantool\Mapper\Repository;
 use Tarantool\Mapper\Space;
-use Tarantool\Mapper\Plugin\UserClasses;
 
 class UserClassesTest extends TestCase
 {
@@ -32,7 +35,7 @@ class UserClassesTest extends TestCase
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('No class UnknownEntityClass');
-        $plugin->mapEntity('test', UnknownEntityClass::class);
+        $plugin->mapEntity('test', \UnknownEntityClass::class);
     }
 
     public function testInvalidEntityClass()
@@ -94,7 +97,7 @@ class UserClassesTest extends TestCase
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('No class UnknownRepositoryClass');
-        $plugin->mapRepository('test', UnknownRepositoryClass::class);
+        $plugin->mapRepository('test', \UnknownRepositoryClass::class);
     }
 
     public function testInvalidRepositoryClass()

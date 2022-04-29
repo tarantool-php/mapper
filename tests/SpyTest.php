@@ -1,8 +1,10 @@
 <?php
 
-use Tarantool\Mapper\Space;
-use Tarantool\Mapper\Plugin\Spy;
+namespace Tarantool\Mapper\Tests;
+
 use Tarantool\Mapper\Plugin\Sequence;
+use Tarantool\Mapper\Plugin\Spy;
+use Tarantool\Mapper\Space;
 
 class SpyTest extends TestCase
 {

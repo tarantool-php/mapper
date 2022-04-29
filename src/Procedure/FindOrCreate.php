@@ -18,33 +18,12 @@ class FindOrCreate extends Procedure
             throw new Exception("No valid index for " . json_encode($params));
         }
 
-        $values = $space->getIndexValues($index, $params);
-
-        $tuple = [];
-        $schema = $space->getMapper()->getSchema();
-
-        foreach ($space->getFormat() as $i => $info) {
-            $name = $info['name'];
-            if (!array_key_exists($name, $params)) {
-                $params[$name] = null;
-            }
-
-            $params[$name] = $schema->formatValue($info['type'], $params[$name]);
-            if ($params[$name] === null) {
-                if (!$space->isPropertyNullable($name)) {
-                    $params[$name] = $schema->getDefaultValue($info['type']);
-                }
-            }
-
-            $tuple[$i] = $params[$name];
-        }
-
-        $key = $space->getPrimaryKey();
+        $key = $space->getIndex(0)->getProperty()?->name;
         $sequence = 0;
         $pkIndex = null;
         if ($key) {
             // convert php to lua index
-            $pkIndex = $space->getPrimaryField() + 1;
+            $pkIndex = $space->getPropertyIndex($key) + 1;
             if (!array_key_exists($key, $params) || !$params[$key]) {
                 $sequence = 1;
                 $space->getMapper()
@@ -53,17 +32,18 @@ class FindOrCreate extends Procedure
             }
         }
 
-        $result = $this($space->getName(), $index, $values, $tuple, $sequence, $pkIndex);
+        $tuple = $space->getTuple($params);
+        $indexValues = $index->getValues($params);
+        $result = $this($space->name, $index->id, $indexValues, $tuple, $sequence, $pkIndex);
 
         if (is_string($result)) {
             throw new Exception($result);
         }
 
         $key = [];
-        $format = $space->getFormat();
-        foreach ($space->getPrimaryIndex()['parts'] as $part) {
-            $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
-            $key[$format[$field]['name']] = $result['tuple'][$field];
+        $fields = $space->getFields();
+        foreach ($index->parts as $part) {
+            $key[$fields[$part['field']]] = $result['tuple'][$part['field']];
         }
         return [
             'created' => !!$result['created'],

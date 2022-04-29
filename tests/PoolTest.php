@@ -1,5 +1,8 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
+use Exception;
 use Tarantool\Mapper\Pool;
 
 class PoolTest extends TestCase
@@ -29,7 +32,7 @@ class PoolTest extends TestCase
     public function testDynamic()
     {
         $this->clean($this->createMapper());
-        
+
         $pool = new Pool();
         $pool->registerResolver(function () {
             return $this->createMapper();
@@ -47,9 +50,9 @@ class PoolTest extends TestCase
         $this->assertNotCount(0, $pool->find('mapper1._space'));
         $this->assertNotNull($pool->findOne('mapper1._space'));
         $this->assertNotNull($pool->findOrFail('mapper1._space'));
-        
+
         $tester = $pool->getMapper('tester');
-        
+
         $tester->getSchema()
             ->createSpace('post', [
                 'id' => 'integer',
@@ -62,7 +65,7 @@ class PoolTest extends TestCase
         ]);
 
         $this->assertNotNull($instance);
-        $this->assertSame($instance, $pool->getMapper('tester')->findOne('post', ['id' => 1]));
+        $this->assertEquals($instance, $pool->getMapper('tester')->findOne('post', ['id' => 1]));
     }
 
     public function testInvalidRegistration()

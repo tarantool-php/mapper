@@ -1,5 +1,8 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
+use Exception;
 use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Plugin\Sequence;
@@ -45,8 +48,8 @@ class SchemaTest extends TestCase
             'name' => 'index_2',
         ]);
 
-        $this->assertFalse($space->isPropertyNullable('field2'));
-        $this->assertTrue($space->isPropertyNullable('field5'));
+        $this->assertFalse($space->getProperty('field2')->isNullable);
+        $this->assertTrue($space->getProperty('field5')->isNullable);
     }
 
     public function testDynamicIndexCreation()
@@ -56,7 +59,8 @@ class SchemaTest extends TestCase
 
         $mapper->getPlugin(Sequence::class);
 
-        $tester = $mapper->getSchema()->createSpace('tester', [
+        $tester = $mapper->getSchema()
+            ->createSpace('tester', [
                 'id' => 'unsigned',
                 'name' => 'string',
             ])
@@ -90,7 +94,8 @@ class SchemaTest extends TestCase
 
         $mapper->getPlugin(Sequence::class);
 
-        $tester = $mapper->getSchema()->createSpace('tester', [
+        $tester = $mapper->getSchema()
+            ->createSpace('tester', [
                 'id' => 'unsigned',
                 'firstName' => 'string',
             ])
@@ -115,7 +120,8 @@ class SchemaTest extends TestCase
 
         $mapper->getPlugin(Sequence::class);
 
-        $tester = $mapper->getSchema()->createSpace('solution-owner', [
+        $tester = $mapper->getSchema()
+            ->createSpace('solution-owner', [
                 'id' => 'unsigned',
                 'firstName' => 'string',
             ])
@@ -124,7 +130,7 @@ class SchemaTest extends TestCase
 
         $tester->removeIndex('firstName');
         $tester->addIndex('firstName');
-        $this->assertNotNull($tester->getFormat());
+        $this->assertNotNull($tester->getProperties());
 
         $d = $mapper->findOrCreate('solution-owner', ['firstName' => 'Dmitry']);
 
@@ -149,7 +155,7 @@ class SchemaTest extends TestCase
 
         $tester->addIndex('id');
 
-        $this->assertCount(2, $tester->getFormat());
+        $this->assertCount(2, $tester->getProperties());
     }
 
     public function testDropSpace()
@@ -162,11 +168,11 @@ class SchemaTest extends TestCase
             'name' => 'string',
         ])->addIndex('id');
 
-        $this->assertTrue($mapper->getSchema()->hasSpace($tester->getName()));
+        $this->assertTrue($mapper->getSchema()->hasSpace($tester->name));
 
-        $mapper->getSchema()->dropSpace($tester->getName());
+        $mapper->getSchema()->dropSpace($tester->name);
 
-        $this->assertFalse($mapper->getSchema()->hasSpace($tester->getName()));
+        $this->assertFalse($mapper->getSchema()->hasSpace($tester->name));
     }
 
     public function testDuplicateProperty()
@@ -191,10 +197,10 @@ class SchemaTest extends TestCase
         $space->addProperty('second', 'unsigned');
         $space->addProperty('third', 'unsigned');
 
-        $this->assertCount(3, $space->getFormat());
+        $this->assertCount(3, $space->getProperties());
 
         $space->removeProperty('third');
-        $this->assertCount(2, $space->getFormat());
+        $this->assertCount(2, $space->getProperties());
 
         $this->expectException(Exception::class);
         $space->removeIndex('first');
@@ -226,7 +232,7 @@ class SchemaTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
         $this->expectException(Exception::class);
-        $space = $mapper->getSchema()->getSpace(null);
+        $space = $mapper->getSchema()->getSpace('bazyaba');
     }
 
     public function testEmptySpace()
@@ -235,7 +241,7 @@ class SchemaTest extends TestCase
         $this->clean($mapper);
 
         $tester = $mapper->getSchema()->createSpace('tester');
-        $this->assertCount(0, $tester->getFormat());
+        $this->assertCount(0, $tester->getProperties());
         $this->assertCount(0, $tester->getIndexes());
     }
 
@@ -254,7 +260,7 @@ class SchemaTest extends TestCase
         $test->createIndex(['a', 'b']);
 
         $indexes = $mapper->find('_index', [
-            'id' => $test->getId()
+            'id' => $test->id
         ]);
 
         $this->assertCount(1, $indexes);
@@ -277,25 +283,25 @@ class SchemaTest extends TestCase
         }
 
         // no once is registered yet
-        $this->assertFalse($schema->forgetOnce('insert'));
+        $this->assertFalse($schema->revert('insert'));
         $this->assertCount(0, $mapper->find('test'));
 
         $iterations = 2;
         while ($iterations--) {
             $schema->once('insert', function (Mapper $mapper) {
-                $mapper->create('test', ['name' => 'example row '.microtime(1)]);
+                $mapper->create('test', ['name' => 'example row ' . microtime(1)]);
             });
         }
         // once was registered and can be removed
-        $this->assertTrue($schema->forgetOnce('insert'));
+        $this->assertTrue($schema->revert('insert'));
         $this->assertCount(1, $mapper->find('test'));
         // no once is registered now
-        $this->assertFalse($schema->forgetOnce('insert'));
-        
+        $this->assertFalse($schema->revert('insert'));
+
         $iterations = 2;
         while ($iterations--) {
             $schema->once('insert', function (Mapper $mapper) {
-                $mapper->create('test', ['name' => 'example row '.microtime(1)]);
+                $mapper->create('test', ['name' => 'example row ' . microtime(1)]);
             });
         }
         $this->assertCount(2, $mapper->find('test'));
@@ -313,7 +319,7 @@ class SchemaTest extends TestCase
         $this->assertTrue($space->hasProperty('id'));
         $this->assertFalse($space->hasProperty('uuid'));
 
-        $this->assertContains($space->getPropertyType('id'), ['num', 'unsigned']);
+        $this->assertContains($space->getProperty('id')->type, ['num', 'unsigned']);
     }
 
     public function testBasics()
@@ -349,7 +355,7 @@ class SchemaTest extends TestCase
             'type' => 'hash'
         ]);
 
-        $indexes = $mapper->find('_index', ['id' => $person->getId()]);
+        $indexes = $mapper->find('_index', ['id' => $person->id]);
         $this->assertCount(4, $indexes);
 
         list($id, $name, $birthday, $nameBirthday) = $indexes;
@@ -374,14 +380,14 @@ class SchemaTest extends TestCase
         $logger->flush();
         $mapper->save($nekufa);
         $this->assertCount(1, $logger->getLog());
-        
+
         $this->assertSame($nekufa->id, 1);
         $this->assertSame($nekufa->name, 'nekufa');
         $this->assertSame($nekufa->birthday, 19840127);
         $this->assertSame($nekufa->gender, 'male');
 
         $person = $mapper->findOne('person', ['birthday' => '19840127']);
-        $this->assertSame($person, $nekufa);
+        $this->assertEquals($person, $nekufa);
 
         $nekufa->birthday = '19860127';
         $mapper->save($nekufa);
@@ -393,7 +399,7 @@ class SchemaTest extends TestCase
         $this->assertNull($person);
 
         $person = $mapper->findOne('person', ['birthday' => '19860127']);
-        $this->assertSame($person, $nekufa);
+        $this->assertEquals($person, $nekufa);
 
         $this->assertCount(5, $logger->getLog());
 
@@ -461,11 +467,22 @@ class SchemaTest extends TestCase
         $indexes = $anotherMapper->getSchema()->getSpace('task')->getIndexes();
         $this->assertCount(3, $indexes);
         list($id, $ymd, $symd) = $indexes;
-        $this->assertSame($id['name'], 'id');
-        $this->assertSame($id['parts'], [[0, 'unsigned']]);
-        $this->assertSame($ymd['name'], 'year_month_day');
-        $this->assertSame($ymd['parts'], [[1, 'unsigned'], [2, 'unsigned'], [3, 'unsigned']]);
-        $this->assertSame($symd['name'], 'sector_year_month_day');
+        $this->assertCount(1, $id->parts);
+        $this->assertSame($id->name, 'id');
+        $this->assertSame($id->parts[0]['field'], 0);
+        $this->assertSame($id->parts[0]['type'], 'unsigned');
+
+        $this->assertCount(3, $ymd->parts);
+        $this->assertSame($ymd->name, 'year_month_day');
+        $this->assertSame($ymd->parts[0]['field'], 1);
+        $this->assertSame($ymd->parts[0]['type'], 'unsigned');
+        $this->assertSame($ymd->parts[1]['field'], 2);
+        $this->assertSame($ymd->parts[1]['type'], 'unsigned');
+        $this->assertSame($ymd->parts[2]['field'], 3);
+        $this->assertSame($ymd->parts[2]['type'], 'unsigned');
+
+        $this->assertCount(4, $symd->parts);
+        $this->assertSame($symd->name, 'sector_year_month_day');
 
         $this->expectExceptionMessage("No index on task for [day]");
         $anotherMapper->find('task', ['day' => 1]);

@@ -1,7 +1,10 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
 use Entity\Type\Complex;
 use Entity\Type\Simple;
+use Exception;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin\Annotation;
 use Tarantool\Mapper\Plugin\Sequence;
@@ -15,7 +18,6 @@ class AnnotationTest extends TestCase
         $mapper = $this->createMapper();
         $this->clean($mapper);
         $mapper->getPlugin(Sequence::class);
-
 
         $mapper->getPlugin(Annotation::class)
             ->register('Entity\\Post')
@@ -39,7 +41,7 @@ class AnnotationTest extends TestCase
         $annotation->register('Entity\\Paycode');
         $annotation->migrate();
         $active = $mapper->getSchema()->getSpace('paycode')->getProperty('active');
-        $this->assertSame($active['type'], 'boolean');
+        $this->assertSame($active->type, 'boolean');
 
         $paycode = $mapper->create('paycode', [
             'active' => 1,
@@ -90,8 +92,7 @@ class AnnotationTest extends TestCase
         $this->assertInstanceOf(Simple::class, $simple);
 
         $types = $mapper->find('type');
-        $this->assertContains($simple, $types);
-        $this->assertContains($complex, $types);
+        $this->assertCount(2, $types);
 
         $legacy = $mapper->create('legacy_type', [
             'class' => 'blablabla'
@@ -118,10 +119,10 @@ class AnnotationTest extends TestCase
 
         $repository = $mapper->getRepository('camel_child');
         $this->assertInstanceOf('Repository\\CamelChild', $repository);
-        $this->assertSame($repository->getSpace()->getEngine(), 'vinyl');
+        $this->assertSame($repository->getSpace()->engine, 'vinyl');
 
-        $this->assertSame($child->getCamelParent(), $parent);
-        $this->assertSame($parent->getCamelChildCollection(), [$child]);
+        $this->assertEquals($child->getCamelParent(), $parent);
+        $this->assertEquals($parent->getCamelChildCollection()[0]->toArray(), $child->toArray());
     }
 
     public function testAnnotationAddProperty()
@@ -146,8 +147,8 @@ class AnnotationTest extends TestCase
         $annotation->register('Entity\\Paycode');
         $annotation->migrate();
 
-        $this->assertTrue($paycodeSpace->isPropertyNullable('factor'));
-        $this->assertTrue($paycodeSpace->hasDefaultValue('factor'));
+        $this->assertTrue($paycodeSpace->getProperty('factor')->isNullable);
+        $this->assertNotNull($paycodeSpace->getProperty('factor')->defaultValue);
 
         $paycode = $mapper->create('paycode', [
             'id' => 2,
@@ -160,6 +161,8 @@ class AnnotationTest extends TestCase
     {
         $mapper = $this->createMapper();
         $this->clean($mapper);
+
+        $mapper->getPlugin(Sequence::class);
 
         $annotation = $mapper->getPlugin(Annotation::class);
         $annotation->register('Entity\\Paycode');
@@ -188,7 +191,7 @@ class AnnotationTest extends TestCase
         $i = $mapper->create('invalid_index', ['id' => 1]);
 
         $annotation = $mapper->getPlugin(Annotation::class);
-        $annotation->register('Entity\\InvalidIndex');
+        // no name property found
         $annotation->register('Repository\\InvalidIndex');
 
         $this->expectException(Exception::class);
@@ -198,6 +201,7 @@ class AnnotationTest extends TestCase
     public function testTarantoolTypeHint()
     {
         $mapper = $this->createMapper();
+        $mapper->getPlugin(Sequence::class);
 
         $annotation = $mapper->getPlugin(Annotation::class);
         $annotation->register('Entity\\Address');
@@ -284,7 +288,7 @@ class AnnotationTest extends TestCase
         $this->assertInstanceOf('Entity\\Person', $nekufa);
         $this->assertInstanceOf('Repository\\Post', $mapper->getSchema()->getSpace('post')->getRepository());
 
-        $this->assertSame($post->getAuthor(), $nekufa);
+        $this->assertEquals($post->getAuthor(), $nekufa);
         $this->assertSame($nekufa->fullName, 'Dmitry.Krokhin!');
 
         $meta = $mapper->getMeta();

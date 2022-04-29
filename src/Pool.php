@@ -13,35 +13,9 @@ class Pool
     private $resolvers = [];
     private $repositories = [];
 
-    public function register($name, $handler)
+    public function create(string $space, $data)
     {
-        if (array_key_exists($name, $this->description)) {
-            throw new Exception("Mapper $name was registered");
-        }
-
-        if ($handler instanceof Mapper) {
-            $this->description[$name] = $handler;
-            $this->mappers[$name] = $handler;
-            return;
-        }
-
-        if (!is_callable($handler)) {
-            throw new Exception("Invalid $name handler");
-        }
-
-        $this->description[$name] = $handler;
-        return $this;
-    }
-
-    public function registerResolver($resolver)
-    {
-        $this->resolvers[] = $resolver;
-        return $this;
-    }
-
-    public function get($name)
-    {
-        return $this->getMapper($name);
+        return $this->getRepository($space)->create($data)->save();
     }
 
     public function drop($name)
@@ -54,6 +28,31 @@ class Pool
                 unset($this->repositories[$space]);
             }
         }
+    }
+
+    public function find(string $space, $params = [])
+    {
+        return $this->getRepository($space)->find($params);
+    }
+
+    public function findOne(string $space, $params = [])
+    {
+        return $this->getRepository($space)->findOne($params);
+    }
+
+    public function findOrCreate(string $space, $params = [], $data = [])
+    {
+        return $this->getRepository($space)->findOrCreate($params, $data)->save();
+    }
+
+    public function findOrFail(string $space, $params = [])
+    {
+        return $this->getRepository($space)->findOrFail($params);
+    }
+
+    public function get($name)
+    {
+        return $this->getMapper($name);
     }
 
     public function getMapper($name)
@@ -93,28 +92,29 @@ class Pool
         return $this->repositories[$space];
     }
 
-    public function create(string $space, $data)
+    public function register($name, $handler)
     {
-        return $this->getRepository($space)->create($data)->save();
+        if (array_key_exists($name, $this->description)) {
+            throw new Exception("Mapper $name was registered");
+        }
+
+        if ($handler instanceof Mapper) {
+            $this->description[$name] = $handler;
+            $this->mappers[$name] = $handler;
+            return;
+        }
+
+        if (!is_callable($handler)) {
+            throw new Exception("Invalid $name handler");
+        }
+
+        $this->description[$name] = $handler;
+        return $this;
     }
 
-    public function findOne(string $space, $params = [])
+    public function registerResolver($resolver)
     {
-        return $this->getRepository($space)->findOne($params);
-    }
-
-    public function findOrCreate(string $space, $params = [], $data = [])
-    {
-        return $this->getRepository($space)->findOrCreate($params, $data)->save();
-    }
-
-    public function findOrFail(string $space, $params = [])
-    {
-        return $this->getRepository($space)->findOrFail($params);
-    }
-
-    public function find(string $space, $params = [])
-    {
-        return $this->getRepository($space)->find($params);
+        $this->resolvers[] = $resolver;
+        return $this;
     }
 }

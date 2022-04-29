@@ -15,17 +15,6 @@ class Bootstrap
         $this->mapper = $mapper;
     }
 
-    public function register($instance): self
-    {
-        foreach ($this->migrations as $candidate) {
-            if ($candidate == $instance) {
-                return $this;
-            }
-        }
-        $this->migrations[] = $instance;
-        return $this;
-    }
-
     public function migrate(): Mapper
     {
         $schema = $this->mapper->getSchema();
@@ -39,5 +28,16 @@ class Bootstrap
         }
 
         return $this->mapper;
+    }
+
+    public function register($instance): self
+    {
+        foreach ($this->migrations as $candidate) {
+            if ($candidate == $instance) {
+                return $this;
+            }
+        }
+        $this->migrations[] = $instance;
+        return $this;
     }
 }

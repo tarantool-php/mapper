@@ -15,7 +15,7 @@ class Sequence extends Plugin
 {
     public function generateKey(Entity $instance, Space $space): Entity
     {
-        $key = $space->getPrimaryKey();
+        $key = $space->getIndex(0)->getProperty()?->name;
         if ($key) {
             if (!property_exists($instance, $key) || $instance->$key === null) {
                 $instance->$key = $this->generateValue($space);
@@ -35,7 +35,7 @@ class Sequence extends Plugin
             }
         }
 
-        $name = $space->getName();
+        $name = $space->name;
 
         if (array_key_exists($name, $this->sequences)) {
             // sequence exists
@@ -48,16 +48,14 @@ class Sequence extends Plugin
         }
 
         [$primaryIndex] = $space->getIndexes();
-        if (count($primaryIndex['parts']) !== 1) {
+        if (count($primaryIndex->parts) !== 1) {
             throw new Exception("Composite primary key");
         }
 
         $this->mapper
             ->getPlugin(Procedure::class)
             ->get(CreateSequence::class)
-            ->execute($name, $primaryIndex['name'], $primaryIndex['parts'][0][0] + 1);
-
-        $this->mapper->getRepository('_vsequence')->flushCache();
+            ->execute($name, $primaryIndex->name, $primaryIndex->parts[0]['field'] + 1);
 
         $this->sequences[$name] = true;
     }
@@ -66,7 +64,7 @@ class Sequence extends Plugin
     {
         $this->initializeSequence($space);
 
-        $name = $space->getName();
+        $name = $space->name;
         if (!array_key_exists($name, $this->sequences)) {
             if (array_key_exists($name . '_seq', $this->sequences)) {
                 // use tarantool standard sequence name

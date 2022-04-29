@@ -1,5 +1,7 @@
 <?php
 
+namespace Tarantool\Mapper\Tests;
+
 use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Plugin\Sequence;
@@ -23,10 +25,10 @@ class SqlTest extends TestCase
         $mapper->getSchema()->reset();
 
         $this->assertCount(3, $mapper->find('USERS'));
-        $this->assertCount(1, $mapper->find('USERS', ['id' => 2]));
-        $this->assertSame(3, $mapper->findOne('USERS', ['id' => 3])->ID);
-        
-        $values = $mapper->getSchema()->getSpace('USERS')->getIndexValues(0, ['ID' => 5]);
+        $this->assertCount(1, $mapper->find('USERS', ['ID' => 2]));
+        $this->assertSame(3, $mapper->findOne('USERS', ['ID' => 3])->ID);
+
+        $values = $mapper->getSchema()->getSpace('USERS')->getIndex(0)->getValues(['ID' => 5]);
         $this->assertSame($values, [5]);
     }
 }

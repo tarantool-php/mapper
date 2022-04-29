@@ -17,8 +17,8 @@ class UserClasses extends Plugin
 
     public function getRepositoryClass(Space $space): ?string
     {
-        if (array_key_exists($space->getName(), $this->repositoryMapping)) {
-            return $this->repositoryMapping[$space->getName()];
+        if (array_key_exists($space->name, $this->repositoryMapping)) {
+            return $this->repositoryMapping[$space->name];
         }
 
         return null;
@@ -26,8 +26,8 @@ class UserClasses extends Plugin
 
     public function getEntityClass(Space $space, array $data): ?string
     {
-        if (array_key_exists($space->getName(), $this->entityMapping)) {
-            return $this->entityMapping[$space->getName()];
+        if (array_key_exists($space->name, $this->entityMapping)) {
+            return $this->entityMapping[$space->name];
         }
 
         return null;

@@ -12,6 +12,7 @@ use phpDocumentor\Reflection\Types\ContextFactory;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
+use Tarantool\Mapper\Converter;
 use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Plugin\NestedSet;
 use Tarantool\Mapper\Repository;
@@ -143,7 +144,7 @@ class Annotation extends UserClasses
 
             if ($schema->hasSpace($spaceName)) {
                 $space = $schema->getSpace($spaceName);
-                if ($space->getEngine() != $params['engine']) {
+                if ($space->engine != $params['engine']) {
                     throw new Exception("Space engine can't be updated");
                 }
             } else {
@@ -193,7 +194,7 @@ class Annotation extends UserClasses
                         $opts['reference'] = $this->getSpaceName((string) $phpType);
                     }
                     if (array_key_exists('default', $byTypes)) {
-                        $opts['default'] = $schema->formatValue($type, (string) $byTypes['default']);
+                        $opts['default'] = Converter::formatValue($type, (string) $byTypes['default']);
                     }
                     $space->addProperty($propertyName, $type, $opts);
                 }
@@ -235,7 +236,7 @@ class Annotation extends UserClasses
 
                     $index['if_not_exists'] = true;
                     try {
-                        $space->addIndex($index);
+                        $space->createIndex($index);
                     } catch (Exception $e) {
                         $presentation = json_encode($properties['indexes'][$i]);
                         throw new Exception("Failed to add index $presentation. " . $e->getMessage(), 0, $e);
@@ -353,7 +354,7 @@ class Annotation extends UserClasses
                 }
             }
 
-            $this->spaceNames[$class] = $this->mapper->getSchema()->toUnderscore($className);
+            $this->spaceNames[$class] = Converter::toUnderscore($className);
         }
 
         return $this->spaceNames[$class];

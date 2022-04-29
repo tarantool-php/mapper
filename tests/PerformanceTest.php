@@ -1,9 +1,11 @@
 <?php
 
-use Tarantool\Mapper\Mapper;
-use Tarantool\Client\Middleware\LoggingMiddleware;
-use Tarantool\Mapper\Plugin\Sequence;
+namespace Tarantool\Mapper\Tests;
+
 use Psr\Log\AbstractLogger;
+use Tarantool\Client\Middleware\LoggingMiddleware;
+use Tarantool\Mapper\Mapper;
+use Tarantool\Mapper\Plugin\Sequence;
 
 class PerformanceTest extends TestCase
 {
