@@ -3,9 +3,6 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      NATS_CLIENT_LOG: 1
-      NATS_TEST_LOG: 1
     strategy:
       matrix:
         php: ["8.0", "8.1"]
