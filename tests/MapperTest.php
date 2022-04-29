@@ -164,7 +164,7 @@ class MapperTest extends TestCase
             'label' => 1
         ]);
 
-        $this->expectExceptionMessage('Duplicate key exists in unique index "id"');
+        $this->expectExceptionMessage('Duplicate key exists in unique index');
 
         $second = $mapper->create('tester', [
             'id' => 1,
