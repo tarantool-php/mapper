@@ -1,0 +1,19 @@
+name: tests
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      NATS_CLIENT_LOG: 1
+      NATS_TEST_LOG: 1
+    strategy:
+      matrix:
+        php: ["8.0", "8.1"]
+        tarantool: ["1.10", "2.6", "2.8", "2.10"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: php-actions/composer@v6
+        with:
+          php_version: ${{ matrix.php }}
+      - run: docker run -d -p 3301:3301 tarantool:${{ matrx.tarantool }}
+      - run: vendor/bin/phpunit tests
