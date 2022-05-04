@@ -57,7 +57,6 @@ class Repository
         }
 
         foreach ($this->getMapper()->getPlugins() as $plugin) {
-            $plugin->generateKey($instance, $this->space);
             $plugin->afterInstantiate($instance, $this->space);
         }
 
@@ -299,6 +298,8 @@ class Repository
             $client->getSpaceById($this->getSpace()->id)
                 ->insert($tuple);
 
+            $instance->setOriginalTuple($tuple);
+
             foreach ($this->getMapper()->getPlugins() as $plugin) {
                 $plugin->afterCreate($instance, $this->space);
             }
@@ -306,8 +307,6 @@ class Repository
             if (method_exists($instance, 'afterCreate')) {
                 $instance->afterCreate();
             }
-
-            $instance->setOriginalTuple($tuple);
         }
 
         return $instance;

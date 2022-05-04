@@ -13,6 +13,29 @@ use Tarantool\Mapper\Repository;
 
 class AnnotationTest extends TestCase
 {
+    public function testEntityTriggers()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+        $mapper->getPlugin(Sequence::class);
+
+        $mapper->getPlugin(Annotation::class)
+            ->register('Entity\\Person')
+            ->migrate();
+
+        $person = $mapper->getRepository('person')->create([
+            'name' => 'bazyabushka',
+        ]);
+
+        $this->assertNull($person->fullName);
+        $this->assertNull($person->id);
+
+        $person->save();
+
+        $this->assertNotNull($person->id);
+        $this->assertSame($person->fullName, 'bazyabushka!@');
+    }
+
     public function testMixedClassMap()
     {
         $mapper = $this->createMapper();
