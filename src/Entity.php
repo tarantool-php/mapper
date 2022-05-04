@@ -112,6 +112,9 @@ class Entity
     public function setOriginalTuple(array $tuple): self
     {
         foreach ($this->getRepository()->getSpace()->getMap($tuple) as $k => $v) {
+            if ($v === null && property_exists($this, $k)) {
+                $v = $this->$k;
+            }
             $this->$k = $v;
         }
 
