@@ -5,14 +5,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ["8.0", "8.1"]
         tarantool: ["2.6", "2.8", "2.10.0-beta2"]
     steps:
       - uses: actions/checkout@v2
       - run: docker run -d -p 3301:3301 tarantool/tarantool:${{ matrix.tarantool }}
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: 8.1
           extensions: xdebug
           tools: phpunit, composer:v2
       - run: composer install
