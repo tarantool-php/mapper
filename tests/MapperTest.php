@@ -9,7 +9,9 @@ use Tarantool\Client\Middleware\FirewallMiddleware;
 use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Client\Request\InsertRequest;
 use Tarantool\Client\Schema\Operations;
+use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Mapper;
+use Tarantool\Mapper\Plugin;
 use Tarantool\Mapper\Plugin\Procedure;
 use Tarantool\Mapper\Plugin\Sequence;
 use Tarantool\Mapper\Procedure\FindOrCreate;
@@ -17,6 +19,21 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testAfterInstantiateTrigger()
+    {
+        $mapper = $this->createMapper();
+        $mapper->getPlugin(new class ($mapper) extends Plugin {
+            public function afterInstantiate(Entity $instance): Entity
+            {
+                $instance->mySecretProperty = 'tester';
+                return $instance;
+            }
+        });
+
+        $this->assertSame($mapper->findOrFail('_vspace')->mySecretProperty, 'tester');
+        $this->assertSame($mapper->getRepository('_vspace')->create([])->mySecretProperty, 'tester');
+    }
+
     public function testEmptyStringPersistence()
     {
         $mapper = $this->createMapper();

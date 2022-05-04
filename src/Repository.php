@@ -48,27 +48,17 @@ class Repository
             }
         }
 
-        $instance = $this->createInstance();
-        foreach ($data as $key => $value) {
-            if ($value instanceof Entity) {
-                $value  = $value->getRepository()->getSpace()->getIndex(0)->getValue($value->toArray()) ?: null;
-            }
-            $instance->$key = $value;
-        }
-
-        foreach ($this->getMapper()->getPlugins() as $plugin) {
-            $plugin->afterInstantiate($instance, $this->space);
-        }
+        $instance = $this->createInstance([], $data);
 
         return $instance;
     }
 
-    public function createInstance(array $tuple = []): Entity
+    public function createInstance(array $tuple = [], array $data = []): Entity
     {
         $class = Entity::class;
-        $data = $this->getSpace()->getMap($tuple);
+        $map = $this->getSpace()->getMap($tuple);
         foreach ($this->getMapper()->getPlugins() as $plugin) {
-            $entityClass = $plugin->getEntityClass($this->space, $data);
+            $entityClass = $plugin->getEntityClass($this->space, $map);
             if (!$entityClass) {
                 continue;
             }
@@ -79,6 +69,17 @@ class Repository
         }
 
         $instance = new $class($this, $tuple);
+
+        foreach ($data as $key => $value) {
+            if ($value instanceof Entity) {
+                $value  = $value->getRepository()->getSpace()->getIndex(0)->getValue($value->toArray()) ?: null;
+            }
+            $instance->$key = $value;
+        }
+
+        foreach ($this->getMapper()->getPlugins() as $plugin) {
+            $plugin->afterInstantiate($instance, $this->space);
+        }
 
         return $instance;
     }
