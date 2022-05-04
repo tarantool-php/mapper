@@ -96,7 +96,7 @@ class Entity
     {
         $changes = [];
         foreach ($this->toTuple() as $k => $v) {
-            if (!array_key_exists($k, $this->originalTuple) || $this->originalTuple[$k] != $v) {
+            if (!array_key_exists($k, $this->originalTuple) || $this->originalTuple[$k] !== $v) {
                 $changes[$k] = $v;
             }
         }

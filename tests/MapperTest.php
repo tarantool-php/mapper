@@ -17,6 +17,29 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testEmptyStringPersistence()
+    {
+        $mapper = $this->createMapper();
+        $space = $mapper->getSchema()->createSpace('actor', [
+            'id' => 'integer',
+            'note' => 'string'
+        ])->addIndex('id');
+
+        $this->assertTrue($space->getProperty('note')->isNullable);
+        $actor = $mapper->create('actor', ['id' => 1]);
+        $this->assertNull($actor->note);
+
+        $actor = $mapper->findOrFail('actor', $actor->id);
+        $this->assertNull($actor->note);
+        $this->assertCount(0, $actor->getTupleChanges());
+        $actor->note = "";
+        $this->assertCount(1, $actor->getTupleChanges());
+        $actor->save();
+
+        $actor = $mapper->findOrFail('actor', $actor->id);
+        $this->assertSame("", $actor->note);
+    }
+
     public function testTupleGetterAfterCleanup()
     {
         $mapper = $this->createMapper();
