@@ -69,7 +69,7 @@ class Index
             $type = array_key_exists(1, $part) ? $part[1] : $part['type'];
             $value = Converter::formatValue($type, $params[$part['property']->name]);
             if ($value === null && !$part['property']->isNullable) {
-                $value = Converter::getDefaultValue($format[$field]['type']);
+                $value = Converter::getDefaultValue($part['property']->type);
             }
             $values[] = $value;
         }

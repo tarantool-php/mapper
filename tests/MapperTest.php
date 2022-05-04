@@ -810,6 +810,24 @@ class MapperTest extends TestCase
         $this->assertEquals($user, $guest);
     }
 
+    public function testIndexValueCasting()
+    {
+        $mapper = $this->createMapper();
+        $tester = $mapper->getSchema()
+            ->createSpace('tester', [
+                'id' => 'integer',
+                'name' => 'string',
+            ])
+            ->createIndex('id');
+
+        $default = $tester->getIndex(0)->getValues([]);
+        $this->assertSame($default, []);
+
+        $default = $tester->getIndex(0)->getValues(['id' => null]);
+        // type-based default value casting
+        $this->assertSame($default, [0]);
+    }
+
     public function testTupleMap()
     {
         $mapper = $this->createMapper();
