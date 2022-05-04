@@ -14,7 +14,7 @@
         "phpdocumentor/reflection-docblock": "Annotation Plugin"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.2.5",
+        "phpunit/phpunit": "^9.5",
         "rybakit/msgpack": "^0.8.0",
         "phpdocumentor/reflection-docblock": "^5.2.2",
         "nesbot/carbon": "^2.51.1",
