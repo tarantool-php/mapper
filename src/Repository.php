@@ -166,7 +166,7 @@ class Repository
 
         $instance = $this->findOne($params);
         if (!$instance) {
-            $instance = $this->create($params);
+            $instance = $this->create($params)->save();
         }
         return $instance;
     }
