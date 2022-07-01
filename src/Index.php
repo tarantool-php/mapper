@@ -22,7 +22,10 @@ class Index
 
         $fields = $space->getFields();
         foreach ($parts as $i => $part) {
-            $parts[$i]['property'] = $space->getProperty($fields[$part['field']]);
+            $parts[$i]['property'] = null;
+            if (array_key_exists($part['field'], $fields)) {
+                $parts[$i]['property'] = $space->getProperty($fields[$part['field']]);
+            }
         }
 
         return new static(
