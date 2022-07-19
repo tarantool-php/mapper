@@ -22,7 +22,9 @@ class Spy extends Plugin
     public function afterUpdate(Entity $instance, Space $space): Entity
     {
         $key = $this->getKey($instance, $space);
-        if (!array_key_exists($key, $this->created)) {
+        if (array_key_exists($key, $this->created)) {
+            $this->created[$key] = $instance;
+        } else {
             $this->updated[$key] = $instance;
         }
 
