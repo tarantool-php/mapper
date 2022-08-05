@@ -10,6 +10,20 @@ use Tarantool\Mapper\Space;
 
 class SchemaTest extends TestCase
 {
+    public function testPropertyInitializeOnExistenceSpace()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()->createSpace('tester', [
+            'id' => 'unsigned',
+            'nick' => 'string',
+        ])->addIndex('id');
+
+        $tester = $this->createMapper()->getSchema()->getSpace('tester');
+        $this->assertSame('string', $tester->getProperty('nick')->type);
+    }
+
     public function testNullableIndexes()
     {
         $mapper = $this->createMapper();

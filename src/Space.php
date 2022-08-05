@@ -267,8 +267,8 @@ class Space
 
     public function getProperty(string $name, bool $required = true): ?Property
     {
-        if (array_key_exists($name, $this->properties)) {
-            return $this->properties[$name];
+        if (array_key_exists($name, $this->getProperties())) {
+            return $this->getProperties()[$name];
         }
 
         if ($required) {
