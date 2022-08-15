@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tarantool\Mapper;
 
+use Exception;
 use Symfony\Component\Uid\Uuid;
 
 final class Converter
