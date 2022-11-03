@@ -19,6 +19,52 @@ use Tarantool\Mapper\Schema;
 
 class MapperTest extends TestCase
 {
+    public function testFindOrCreateIncompleteParams()
+    {
+        $mapper = $this->createMapper();
+        $this->clean($mapper);
+
+        $mapper->getSchema()->createSpace('task', [
+            'id' => 'integer',
+            'created_at' => 'integer',
+            'complete_at' => 'integer',
+        ])
+        ->addIndex('id')
+        ->addIndex('complete_at');
+
+        $mapper->getPlugin(new Sequence($mapper));
+
+        $task1 = $mapper->findOrCreate(
+            'task',
+            ['complete_at' => 0],
+            ['created_at' => 1]
+        );
+
+        $task2 = $mapper->findOrCreate(
+            'task',
+            ['complete_at' => 0],
+            ['created_at' => 2]
+        );
+
+        $this->assertSame($task1->id, $task2->id);
+        $this->assertCount(1, $mapper->find('task'));
+
+        $task1->complete_at = 1;
+        $task1->save();
+
+        $task3 = $mapper->findOrCreate(
+            'task',
+            ['complete_at' => 0],
+            ['created_at' => 3]
+        );
+
+        $this->assertNotSame($task1->id, $task3->id);
+        $this->assertCount(2, $mapper->find('task'));
+
+        $this->assertSame($task1->created_at, 1);
+        $this->assertSame($task3->created_at, 3);
+    }
+
     public function testAfterInstantiateTrigger()
     {
         $mapper = $this->createMapper();

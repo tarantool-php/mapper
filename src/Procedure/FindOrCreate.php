@@ -33,7 +33,7 @@ class FindOrCreate extends Procedure
         }
 
         $tuple = $space->getTuple($params);
-        $indexValues = $index->getValues($params);
+        $indexValues = $index->getValues($query);
         $result = $this($space->name, $index->id, $indexValues, $tuple, $sequence, $pkIndex);
 
         if (is_string($result)) {
