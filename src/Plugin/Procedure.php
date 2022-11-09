@@ -44,9 +44,16 @@ class Procedure extends Plugin
         return $procedure;
     }
 
+    public array $presence = [];
+
     private function validatePresence(BaseProcedure $procedure)
     {
         $name = $procedure->getName();
+        if (array_key_exists($name, $this->presence)) {
+            return true;
+        }
+        $this->presence[$name] = true;
+
         [$exists] = $this->mapper->getClient()->evaluate("return _G.$name ~= nil");
 
         $instance = $this->mapper->findOrCreate('_procedure', [
@@ -69,6 +76,12 @@ class Procedure extends Plugin
 
     private function initSchema()
     {
+        if (array_key_exists(__CLASS__, $this->presence)) {
+            return true;
+        }
+
+        $this->presence[__CLASS__] = true;
+
         $this->mapper->getSchema()->once(__CLASS__, function ($mapper) {
             $mapper->getSchema()
                 ->createSpace('_procedure')
