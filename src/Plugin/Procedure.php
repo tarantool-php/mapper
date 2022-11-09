@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tarantool\Mapper\Plugin;
 
+use Exception;
+use Tarantool\Client\Exception\RequestFailed;
 use Tarantool\Mapper\Plugin;
 use Tarantool\Mapper\Procedure as BaseProcedure;
-use Exception;
 
 class Procedure extends Plugin
 {
@@ -20,11 +21,20 @@ class Procedure extends Plugin
         $name = $procedure->getName();
         $this->initSchema();
         $this->validatePresence($procedure);
-        $result = $this->mapper->getClient()->call($name, ...$params);
-        if (!count($result)) {
-            return null;
+        try {
+            $result = $this->mapper->getClient()->call($name, ...$params);
+            if (!count($result)) {
+                return null;
+            }
+            return $result[0];
+        } catch (RequestFailed $e) {
+            $name = $procedure->getName();
+            if (strpos($e->getMessage(), "Procedure '$name' is not defined") === 0) {
+                unset($this->presence[$name]);
+                return $this->invoke($procedure, $params);
+            }
+            throw $e;
         }
-        return $result[0];
     }
 
     public function isRegistered($class): bool
