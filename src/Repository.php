@@ -11,6 +11,7 @@ use Tarantool\Client\Schema\Operations;
 use Tarantool\Mapper\Plugin\Procedure;
 use Tarantool\Mapper\Procedure\FindOrCreate;
 
+#[\AllowDynamicProperties]
 class Repository
 {
     public function __construct(

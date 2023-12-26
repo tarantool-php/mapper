@@ -164,7 +164,7 @@ class AnnotationTest extends TestCase
             'id' => 1,
             'name' => 'tester'
         ]);
-        $this->assertObjectNotHasAttribute('factor', $paycode);
+        $this->assertObjectNotHasProperty('factor', $paycode);
 
         $annotation = $mapper->getPlugin(Annotation::class);
         $annotation->register('Entity\\Paycode');

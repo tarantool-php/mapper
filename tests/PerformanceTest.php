@@ -3,13 +3,15 @@
 namespace Tarantool\Mapper\Tests;
 
 use Psr\Log\AbstractLogger;
+use Psr\Log\LoggerInterface;
 use Tarantool\Client\Middleware\LoggingMiddleware;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Plugin\Sequence;
 
 class PerformanceTest extends TestCase
 {
-    public $counter = 1000;
+    public int $counter = 1000;
+    public LoggerInterface $logger;
 
     public function test()
     {
@@ -72,6 +74,8 @@ class PerformanceTest extends TestCase
                 $mapper->find('tester');
             });
         }
+
+        $this->assertTrue(true);
     }
 
     private function score($label, $goal, callable $runner)

@@ -17,7 +17,8 @@ class Temporal extends Plugin
 {
     private $actor;
     private $timestamps = [];
-    private $aggregator;
+    private Aggregator $aggregator;
+    private Schema $schema;
 
     public function __construct(Mapper $mapper)
     {

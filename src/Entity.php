@@ -8,6 +8,7 @@ use BadMethodCallException;
 use Exception;
 use Tarantool\Mapper\Plugin\Annotation;
 
+#[\AllowDynamicProperties]
 class Entity
 {
     private $gettersCache = [];
