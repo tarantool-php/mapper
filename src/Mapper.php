@@ -7,6 +7,7 @@ namespace Tarantool\Mapper;
 use Exception;
 use Tarantool\Client\Client;
 
+#[\AllowDynamicProperties]
 class Mapper
 {
     private $client;
