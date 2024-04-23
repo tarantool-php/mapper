@@ -4,142 +4,178 @@ declare(strict_types=1);
 
 namespace Tarantool\Mapper;
 
-use Exception;
+use Psr\Cache\CacheItemPoolInterface;
 use Tarantool\Client\Client;
+use Tarantool\Client\Exception\RequestFailed;
+use Tarantool\Client\Schema\Criteria;
+use Tarantool\Client\Schema\Space as ClientSpace;
 
-#[\AllowDynamicProperties]
-class Mapper
+class Mapper extends Api
 {
-    private $client;
-    private $plugins = [];
-    private $schema;
-    private $bootstrap;
+    public bool $spy = false;
+
+    private array $spaceId = [];
+    private array $spaces = [];
+    private int $schemaId = 0;
+
+    public readonly Client $client;
+    public readonly Converter $converter;
+    public readonly Middleware $middleware;
+    public ?CacheItemPoolInterface $cache = null;
 
     public function __construct(Client $client)
     {
-        $this->client = $client;
+        $this->middleware = new Middleware($this);
+        $this->client = $client->withMiddleware($this->middleware);
+        $this->converter = new Converter();
     }
 
-    public function create(string $space, $data): Entity
+    public function call(string $query, array $params = [])
     {
-        return $this->getRepository($space)->create($data)->save();
+        return $this->evaluate($query, $params, true);
     }
 
-    public function find(string $space, $params = []): array
+    public function createSpace(string $space, array $options = []): Space
     {
-        return $this->getRepository($space)->find($params);
+        $this->client->evaluate('box.schema.space.create(...)', $space, $options);
+        return $this->getSpace($space);
     }
 
-    public function findOne(string $space, $params = []): ?Entity
+    public function evaluate(string $query, array $params = [], bool $createFunction = false)
     {
-        return $this->getRepository($space)->findOne($params);
-    }
-
-    public function findOrCreate(string $space, $params = [], $data = []): Entity
-    {
-        return $this->getRepository($space)->findOrCreate($params, $data)->save();
-    }
-
-    public function findOrFail(string $space, $params = []): Entity
-    {
-        return $this->getRepository($space)->findOrFail($params);
-    }
-
-    public function findRepository(Entity $instance): Repository
-    {
-        return $instance->getRepository();
-    }
-
-    public function getBootstrap(): Bootstrap
-    {
-        return $this->bootstrap ?: $this->bootstrap = new Bootstrap($this);
-    }
-
-    public function getClient(): Client
-    {
-        return $this->client;
-    }
-
-    public function getMeta(): array
-    {
-        return $this->getSchema()->getMeta();
-    }
-
-    public function getPlugin($mixed)
-    {
-        if (!is_subclass_of($mixed, Plugin::class)) {
-            throw new Exception("Plugin should extend " . Plugin::class . " class");
+        if (!count($params)) {
+            return $this->client->evaluate($query);
         }
 
-        $plugin = is_object($mixed) ? $mixed : new $mixed($this);
-        $class = get_class($plugin);
-
-        if ($plugin == $mixed && array_key_exists($class, $this->plugins)) {
-            // overwrite plugin instance
-            throw new Exception($class . ' is registered');
+        if (!$createFunction) {
+            $query = 'local ' . implode(', ', array_keys($params)) . ' = ...' . PHP_EOL . $query;
+            return $this->client->evaluate($query, ...array_values($params));
         }
 
-        if (!array_key_exists($class, $this->plugins)) {
-            $this->plugins[$class] = $plugin;
+        $name = 'evaluate_' . md5($query . json_encode(array_keys($params)));
+        try {
+            return $this->client->call($name, ...array_values($params));
+        } catch (RequestFailed $e) {
+            if ($e->getMessage() == "Procedure '$name' is not defined") {
+                $body = implode(PHP_EOL, [
+                    "function(" . implode(', ', array_keys($params)) . ")",
+                    $query,
+                    "end",
+                ]);
+                $options = [
+                    'body' => $body,
+                    'if_not_exists' => true,
+                ];
+                $this->client->call('box.schema.func.create', $name, $options);
+
+                return $this->client->call($name, ...array_values($params));
+            }
+            throw $e;
         }
-
-        return $this->plugins[$class];
     }
 
-    public function getPlugins(): array
+    public function fetchSchema()
     {
-        return array_values($this->plugins);
-    }
-
-    public function getRepositories(): array
-    {
-        $repositories = [];
-        foreach ($this->getSchema()->getSpaces() as $space) {
-            if ($space->repositoryExists()) {
-                $repositories[] = $space->getRepository();
+        $tuples = $this->client->getSpaceById(ClientSpace::VSPACE_ID)->select(Criteria::key([]));
+        $spaceKeys = [];
+        $indexKeys = [];
+        foreach ($tuples as $tuple) {
+            if ($tuple[0] == ClientSpace::VSPACE_ID) {
+                foreach ($tuple[6] as $field) {
+                    $spaceKeys[] = $field['name'];
+                }
+            }
+            if ($tuple[0] == ClientSpace::VINDEX_ID) {
+                foreach ($tuple[6] as $field) {
+                    $indexKeys[] = $field['name'];
+                }
             }
         }
-        return $repositories;
-    }
-
-    public function getRepository(string $space): Repository
-    {
-        return $this->getSchema()->getSpace($space)->getRepository();
-    }
-
-    public function getSchema(): Schema
-    {
-        return $this->schema ?: $this->schema = new Schema($this);
-    }
-
-    public function hasPlugin(string $class): bool
-    {
-        return array_key_exists($class, $this->plugins);
-    }
-
-    public function remove($space, $params = []): self
-    {
-        if ($space instanceof Entity) {
-            $space->getRepository()->remove($space);
-        } else {
-            $this->getRepository($space)->remove($params);
+        $spaces = [];
+        foreach ($tuples as $tuple) {
+            $spaces[] = array_combine($spaceKeys, $tuple);
+        }
+        $tuples = $this->client->getSpaceById(ClientSpace::VINDEX_ID)->select(Criteria::key([]));
+        $indexes = [];
+        foreach ($tuples as $tuple) {
+            $indexes[] = array_combine($indexKeys, $tuple);
         }
 
-        return $this;
+        return [$spaces, $indexes];
     }
 
-    public function save(Entity $instance): Entity
+    public function flushChanges(): void
     {
-        return $instance->save();
+        $this->middleware->flush();
     }
 
-    public function setMeta(array $meta): self
+    public function getChanges(): array
     {
-        if ($this->schema) {
-            $this->schema->setMeta($meta);
-        } else {
-            $this->schema = new Schema($this, $meta);
+        return $this->middleware->getChanges();
+    }
+
+    public function getSpace(int|string $id): Space
+    {
+        if (!count($this->spaces)) {
+            $this->setSchemaId(0);
         }
-        return $this;
+
+        return is_string($id) ? $this->getSpace($this->spaceId[$id]) : $this->spaces[$id];
+    }
+
+    public function getSpaces(): array
+    {
+        return array_values($this->spaces);
+    }
+
+    public function hasSpace(string $space): bool
+    {
+        return array_key_exists($space, $this->spaceId);
+    }
+
+    public function setSchemaId(int $schemaId)
+    {
+        if (!$this->schemaId || $this->schemaId !== $schemaId) {
+            $this->schemaId = $schemaId;
+            if ($this->cache !== null) {
+                $item = $this->cache->getItem("schema.$schemaId");
+                if (!$item->isHit()) {
+                    $item->set($this->fetchSchema());
+                }
+                $this->cache->save($item);
+                [$spaces, $indexes] = $item->get();
+            } else {
+                [$spaces, $indexes] = $this->fetchSchema();
+            }
+
+            $this->spaceId = [];
+            foreach ($spaces as $row) {
+                if (!array_key_exists($row['id'], $this->spaces)) {
+                    $this->spaces[$row['id']] = new Space($this, $row);
+                } else {
+                    $this->spaces[$row['id']]->setFormat($row['format']);
+                }
+                $this->spaceId[$row['name']] = $row['id'];
+            }
+
+            foreach (array_keys($this->spaces) as $id) {
+                if (!array_search($id, $this->spaceId)) {
+                    unset($this->spaces[$id]);
+                }
+            }
+
+            $spaceIndexes = [];
+            foreach ($indexes as $row) {
+                if (!array_key_exists($row['id'], $spaceIndexes)) {
+                    $spaceIndexes[$row['id']] = [$row];
+                } else {
+                    $spaceIndexes[$row['id']][] = $row;
+                }
+            }
+
+            foreach ($spaceIndexes as $id => $indexes) {
+                $this->spaces[$id]->setIndexes($indexes);
+            }
+        }
     }
 }

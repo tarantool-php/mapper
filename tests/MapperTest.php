@@ -1,910 +1,207 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tarantool\Mapper\Tests;
 
-use Exception;
-use Psr\Log\AbstractLogger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use PHPUnit\Framework\TestCase;
 use Tarantool\Client\Client;
-use Tarantool\Client\Middleware\FirewallMiddleware;
-use Tarantool\Client\Middleware\LoggingMiddleware;
-use Tarantool\Client\Request\InsertRequest;
-use Tarantool\Client\Schema\Operations;
-use Tarantool\Mapper\Entity;
 use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Plugin;
-use Tarantool\Mapper\Plugin\Procedure;
-use Tarantool\Mapper\Plugin\Sequence;
-use Tarantool\Mapper\Procedure\FindOrCreate;
-use Tarantool\Mapper\Schema;
+use Tarantool\Mapper\Pool;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 class MapperTest extends TestCase
 {
-    public function testFindOrCreateIncompleteParams()
+    private Middleware $middleware;
+    public function createMapper(): Mapper
     {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
+        $host = getenv('TARANTOOL_HOST');
+        $port = getenv('TARANTOOL_PORT') ?: 3301;
+        $this->middleware = new Middleware();
+        $client = Client::fromDsn("tcp://$host:$port")->withMiddleware($this->middleware);
 
-        $mapper->getSchema()->createSpace('task', [
-            'id' => 'integer',
-            'created_at' => 'integer',
-            'complete_at' => 'integer',
-        ])
-        ->addIndex('id')
-        ->addIndex('complete_at');
-
-        $mapper->getPlugin(new Sequence($mapper));
-
-        $task1 = $mapper->findOrCreate(
-            'task',
-            ['complete_at' => 0],
-            ['created_at' => 1]
-        );
-
-        $task2 = $mapper->findOrCreate(
-            'task',
-            ['complete_at' => 0],
-            ['created_at' => 2]
-        );
-
-        $this->assertSame($task1->id, $task2->id);
-        $this->assertCount(1, $mapper->find('task'));
-
-        $task1->complete_at = 1;
-        $task1->save();
-
-        $task3 = $mapper->findOrCreate(
-            'task',
-            ['complete_at' => 0],
-            ['created_at' => 3]
-        );
-
-        $this->assertNotSame($task1->id, $task3->id);
-        $this->assertCount(2, $mapper->find('task'));
-
-        $this->assertSame($task1->created_at, 1);
-        $this->assertSame($task3->created_at, 3);
+        $mapper = new Mapper($client);
+        $mapper->spy = true;
+        return $mapper;
     }
 
-    public function testAfterInstantiateTrigger()
+    public function testCache()
     {
         $mapper = $this->createMapper();
-        $mapper->getPlugin(new class ($mapper) extends Plugin {
-            public function afterInstantiate(Entity $instance): Entity
-            {
-                $instance->mySecretProperty = 'tester';
-                return $instance;
+        $cache = new ArrayAdapter();
+        $mapper->cache = $cache;
+        $this->assertCount(0, $cache->getvalues());
+        $mapper->find('_vspace');
+
+        $this->assertNotCount(0, $cache->getvalues());
+
+        $freshCounter = count($this->middleware->data);
+
+        $mapper = $this->createMapper();
+        $mapper->cache = $cache;
+        $mapper->find('_vspace');
+
+        // 4 requests:
+        // - schema id 0 space + index
+        // - schema id N space + index
+        $this->assertCount($freshCounter - 4, $this->middleware->data);
+    }
+
+    public function testLua()
+    {
+        $mapper = $this->createMapper();
+        foreach ($mapper->find('_vfunc') as $func) {
+            if (strpos($func['name'], 'evaluate_') === 0) {
+                $mapper->client->call('box.schema.func.drop', $func['name']);
             }
-        });
+        }
 
-        $this->assertSame($mapper->findOrFail('_vspace')->mySecretProperty, 'tester');
-        $this->assertSame($mapper->getRepository('_vspace')->create([])->mySecretProperty, 'tester');
+        $functionsLength = count($mapper->find('_vfunc'));
+
+        [$result] = $mapper->evaluate(
+            "return a + b",
+            ['a' => 1, 'b' => 2]
+        );
+        $this->assertSame($result, 3);
+        $this->assertSame($functionsLength, count($mapper->find('_vfunc')));
+
+        [$result] = $mapper->call(
+            "return a + b",
+            ['a' => 1, 'b' => 2]
+        );
+        $this->assertSame($functionsLength + 1, count($mapper->find('_vfunc')));
     }
 
-    public function testEmptyStringPersistence()
+    public function testSpaces()
     {
+        $log = new Logger('test');
+        $log->pushHandler(new StreamHandler('php://output'));
+        echo PHP_EOL;
         $mapper = $this->createMapper();
-        $space = $mapper->getSchema()->createSpace('actor', [
-            'id' => 'integer',
-            'note' => 'string'
-        ])->addIndex('id');
 
-        $this->assertTrue($space->getProperty('note')->isNullable);
-        $actor = $mapper->create('actor', ['id' => 1]);
-        $this->assertNull($actor->note);
+        foreach ($mapper->find('_vspace') as $space) {
+            if ($space['id'] > 512) {
+                $mapper->getSpace($space['id'])->drop();
+            }
+        }
 
-        $actor = $mapper->findOrFail('actor', $actor->id);
-        $this->assertNull($actor->note);
-        $this->assertCount(0, $actor->getTupleChanges());
-        $actor->note = "";
-        $this->assertCount(1, $actor->getTupleChanges());
-        $actor->save();
-
-        $actor = $mapper->findOrFail('actor', $actor->id);
-        $this->assertSame("", $actor->note);
-    }
-
-    public function testTupleGetterAfterCleanup()
-    {
-        $mapper = $this->createMapper();
-        $repository = $mapper->getRepository('_space');
-
-        $space = $repository->findOne();
-        $this->assertNotNull($space);
-
-        $tuple = $space->getOriginalTuple();
-        $this->assertNotNull($tuple);
-
-        $tupleNew = $repository->findOne()->getOriginalTuple();
-        $this->assertNotNull($tupleNew);
-        $this->assertSame($tuple, $tupleNew);
-    }
-
-    public function testSync()
-    {
-        $mapper = $this->createMapper();
-        $mapper->getPlugin(new Sequence($mapper));
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('post')
-            ->addProperty('id', 'unsigned')
-            ->addProperty('title', 'string')
-            ->addProperty('slug', 'string')
-            ->addIndex('id')
-            ->addIndex('slug');
-
-        $post = $mapper->create('post', ['title' => 'hello']);
-        $this->assertSame("", $post->slug);
-
-        $mapper->getClient()->getSpace('post')->update([$post->id], Operations::set(2, 'hello'));
-        $this->assertSame("", $post->slug);
-
-        $post = $mapper->findOrFail('post');
-        $this->assertSame("hello", $post->slug);
-    }
-
-    public function testVinylEngine()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $tester = $mapper->getSchema()
-            ->createSpace('tester', [
-                'engine' => 'vinyl',
-                'properties' => [
-                    'id' => 'unsigned',
-                    'value' => '*',
-                ]
-            ])
-            ->addIndex([
-                'fields' => ['id'],
-                'type' => 'tree'
-            ]);
-
-        $this->assertSame($tester->engine, 'vinyl');
-    }
-
-    public function testNullableColumns()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $tester = $mapper->getSchema()
-            ->createSpace('tester', [
-                'id' => 'unsigned',
-                'value' => '*',
-            ])
-            ->addIndex([
-                'fields' => ['id'],
-                'type' => 'hash'
-            ]);
-
-        $this->assertTrue($tester->getProperty('value')->isNullable);
-        $this->assertSame($tester->engine, 'memtx');
-
-        $instance = $mapper->findOrCreate('tester', ['id' => 1]);
-        $this->assertNull($instance->value);
-    }
-
-    public function testFindAllUsingHashIndex()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'id' => 'unsigned',
-                'name' => 'string',
-            ])
-            ->addIndex([
-                'fields' => ['id'],
-                'type' => 'hash'
-            ]);
-
-        $mapper->create('tester', [1, 'hello world']);
-
-        $this->assertCount(1, $mapper->find('tester'));
-    }
-
-    public function testRemoveAndCreate()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'a' => 'unsigned',
-                'b' => 'unsigned',
-            ])
-            ->addIndex(['a', 'b']);
-
-        $tester1 = $mapper->create('tester', ['a' => 1, 'b' => 2]);
-
-        [$tester1x] = $mapper->find('tester', ['a' => 1]);
-        $this->assertNotSame($tester1, $tester1x);
-        $mapper->remove($tester1x);
-
-        $tester2 = $mapper->create('tester', ['a' => 1, 'b' => 2]);
-
-        $this->assertSame($tester1->a, $tester2->a);
-        $this->assertSame($tester1->b, $tester2->b);
-        $this->assertNotSame($tester1, $tester2);
-    }
-
-    public function testDoubleCreation()
-    {
-        $mapper = $this->createMapper();
-        $mapper->getPlugin(new Sequence($mapper));
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'id'    => 'unsigned',
-                'label' => 'string',
-            ])
-            ->addIndex('id')
-            ->addIndex('label');
-
-        $first = $mapper->create('tester', [
-            'id' => 1,
-            'label' => 1
-        ]);
-
-        $this->expectExceptionMessage('Duplicate key exists in unique index');
-
-        $second = $mapper->create('tester', [
-            'id' => 1,
-            'label' => 2
-        ]);
-    }
-
-    public function testFindOrCreateUsingQuery()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $space = $mapper->getSchema()
-            ->createSpace('tester', [
-                'id' => 'integer',
-                'hash' => 'string',
-                'body' => 'string',
-            ])
-            ->addIndex('id')
-            ->addIndex('hash');
-
-        $procedure = $mapper->getPlugin(Procedure::class)->get(FindOrCreate::class);
-        $result = $procedure->execute($space, ['hash' => '123', 'body' => 'tester'], ['hash' => '123']);
-        $this->assertTrue($result['created']);
-
-        // casting row by optional query param
-        $result = $procedure->execute($space, ['hash' => '123', 'body' => 'tester'], ['hash' => '123']);
-        $this->assertFalse($result['created']);
-
-        $this->assertCount(1, $mapper->find('tester'));
-    }
-
-    public function testFindByParamsOrCreateUsingData()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $space = $mapper->getSchema()
-            ->createSpace('tester', [
-                'id' => 'integer',
-                'hash' => 'string',
-                'body' => 'string',
-            ])
-            ->addIndex('id')
-            ->addIndex('hash');
-
-        $row = $mapper->findOrCreate('tester', [
-            'hash' => 123,
-        ], [
-            'hash' => 123,
-            'body' => 'tester',
-        ]);
-
-        $this->assertSame($row->hash, '123');
-        $this->assertSame($row->body, 'tester');
-    }
-
-    public function testFindOrCreateWithoutSequence()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'flow'    => 'unsigned',
-                'entityId'    => 'unsigned',
-            ])
-            ->addIndex(['flow', 'entityId']);
-
-        $instance = $mapper->findOne('tester', ['flow' => 1, 'entityId' => 2]);
-        $instance = $mapper->findOrCreate('tester', ['flow' => 1, 'entityId' => 2]);
-        $this->assertNotNull($instance);
-        $this->assertSame($instance->flow, 1);
-
-        $anotherMapper = $this->createMapper();
-        $anotherInstance = $anotherMapper->findOrCreate('tester', ['flow' => 1, 'entityId' => 2]);
-
-        $this->assertNotNull($anotherInstance);
-        $this->assertSame($anotherInstance->flow, $instance->flow);
-    }
-
-    public function testMultiUpdates()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'id' => 'unsigned',
-                'a'  => 'string',
-                'b'  => 'string',
-            ])
-            ->addIndex('id');
-
-        $tester = $mapper->findOrCreate('tester', [ 'id' => 1 ]);
-        $tester->a = 'a';
-        $tester->b = 'b';
-        $tester->save();
-
-        $mapper = $this->createMapper();
-        $tester = $mapper->findOrCreate('tester', [ 'id' => 1 ]);
-        $this->assertSame($tester->a, 'a');
-        $this->assertSame($tester->b, 'b');
-    }
-
-    public function testFindOrCreateShortcut()
-    {
-        $mapper = $this->createMapper();
-        $mapper->getPlugin(new Sequence($mapper));
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'idle'  => 'unsigned',
-                'id'    => 'unsigned',
-                'label' => 'string',
-            ])
-            ->addIndex('id')
-            ->addIndex('label');
-
-        $params = [
-            'label' => 'test'
+        $userTypes = [
+            'constructor' => TypedConstructor::class,
+            'properties' => TypedProperties::class,
         ];
 
-        $first = $mapper->findOrCreate('tester', $params);
-        $this->assertNotNull($first);
-        $this->assertEquals($first, $mapper->findOrCreate('tester', $params));
-        $this->assertCount(1, $mapper->find('tester'));
-
-        $anotherMapper = $this->createMapper();
-        $anotherMapper->getPlugin(new Sequence($mapper));
-        $anotherEntity = $anotherMapper->findOrCreate('tester', $params);
-        $this->assertSame($anotherEntity->id, $first->id);
-
-        $params = ['label' => 'zzz'];
-        $second = $mapper->findOrCreate('tester', $params);
-        $this->assertNotNull($second);
-        $this->assertEquals($second, $mapper->findOrCreate('tester', $params));
-        $this->assertCount(2, $mapper->find('tester'));
-    }
-
-    public function testFindOrFail()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-        $mapper->getPlugin(Sequence::class);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'id'    => 'unsigned',
-                'label' => 'string',
-            ])
-            ->addIndex('id')
-            ->addIndex('label');
-
-        $this->expectException(Exception::class);
-        $mapper->findOrFail('tester', ['label' => 'test']);
-    }
-
-    public function testFirstTupleValueIndexCasting()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $client = $mapper->getClient();
-
-        $space = $mapper->getSchema()
-            ->createSpace('tester', [
-                'label' => 'string',
-                'id' => 'unsigned'
-            ])
-            ->addIndex('id')
-            ->addIndex('label');
-
-        $this->assertSame(0, $space->castIndex(['id' => 1])->id);
-        $this->assertSame(1, $space->castIndex(['label' => 1])->id);
-    }
-
-    public function testComplexIndexCasting()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $client = $mapper->getClient();
-
-        $space = $mapper->getSchema()
-            ->createSpace('stage', [
-                'id' => 'unsigned',
-                'year' => 'unsigned',
-                'month' => 'unsigned',
-                'day' => 'unsigned',
-            ])
-            ->addIndex('id')
-            ->addIndex(['year', 'month', 'day']);
-
-        $this->assertSame(0, $space->castIndex(['id' => 1])->id);
-        $this->assertSame(1, $space->castIndex(['year' => 1, 'month' => 2])->id);
-        $this->assertSame(1, $space->castIndex(['month' => 2, 'year' => 1])->id);
-    }
-
-    public function testArray()
-    {
-        $mapper = $this->createMapper();
-        $client = $mapper->getClient();
-
-        $mapper->getSchema()
-            ->createSpace('params', [
-                'id' => 'unsigned',
-                'arr' => '*'
-            ])
-            ->addIndex('id');
-
-        $mapper->create('params', [
-            'id' => 1,
-            'arr' => [1,2,3,4,5],
-        ]);
-
-        $mapper = $this->createMapper();
-        $this->assertSame([1,2,3,4,5], $mapper->findOne('params', 1)->arr);
-    }
-
-    public function testDisableRequestType()
-    {
-        $firewall = FirewallMiddleware::allowReadOnly();
-        $mapper = $this->createMapper($firewall);
-
-        $client = $mapper->getClient();
-
-        $this->assertNotCount(0, $mapper->find('_space'));
-
-        $this->expectException(Exception::class);
-
-        $mapper->getSchema()->createSpace('tester')
-            ->addProperties([
-                'id' => 'unsigned',
-                'name' => 'string',
-            ])
-            ->addIndex(['id']);
-
-        $tester = $mapper->create('tester', [
-            'id' => 1,
-            'name' => 'hello'
-        ]);
-
-        $tester->name = 'hello world';
-        $tester->save();
-    }
-
-    public function testLogging()
-    {
-        $logger = new Logger();
-        $mapper = $this->createMapper(new LoggingMiddleware($logger));
-        $logger->flush();
-        $this->assertCount(0, $logger->getLog());
-
-        $mapper->getClient()->ping();
-
-        // ping
-        $this->assertCount(1, $logger->getLog());
-
-        $logger->flush();
-        $this->assertCount(0, $logger->getLog());
-    }
-
-    public function testTypeCasting()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('rules', [
-                'id' => 'unsigned',
-                'module' => 'unsigned',
-                'rule' => 'unsigned',
-            ])
-            ->addIndex('id')
-            ->addIndex('module');
-
-        $rule = $mapper->create('rules', [
-            'id' => "1",
-            'module' => "1"
-        ]);
-
-        // casting on create
-        $this->assertSame($rule->id, 1);
-        $this->assertNotSame($rule->id, "1");
-
-        $this->assertSame($rule->module, 1);
-        $this->assertNotSame($rule->module, "1");
-
-        $rule->rule = "2";
-        $this->assertSame($rule->rule, "2");
-        $this->assertNotSame($rule->rule, 2);
-        $rule->save();
-
-        // casting on update
-        $this->assertSame($rule->rule, 2);
-        $this->assertNotSame($rule->rule, "2");
-    }
-    public function testNullIndexedValuesFilling()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('rules', [
-                'id' => 'unsigned',
-                'module' => 'unsigned',
-                'rule' => 'unsigned',
-            ])
-            ->addIndex('id')
-            ->addIndex('module')
-            ->addIndex('rule');
-
-        $rule = $mapper->create('rules', [
-            'id' => 1,
-            'module' => 1
-        ]);
-        $this->assertSame($rule->rule, 0);
-    }
-
-    public function testTypesCasting()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'id' => 'unsigned',
-                'name' => 'string',
-            ])
-            ->addIndex('id')
-            ->addIndex('name');
-
-        $petya = $mapper->create('tester', [
-            'id' => '1',
-            'name' => 'petya',
-        ]);
-        $this->assertSame(1, $petya->id);
-
-        $anotherPetya = $mapper->findOne('tester', ['id' => '1']);
-        $this->assertNotNull($anotherPetya);
-    }
-
-    public function testIndexRemoved()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()
-            ->createSpace('tester', [
-                'id' => 'unsigned',
-                'name1' => 'string',
-                'name2' => 'string',
-            ])
-            ->addIndex('id')
-            ->addIndex('name1')
-            ->addIndex('name2')
-            ->removeIndex('name1');
-
-        $mapper->create('tester', [
-            'id' => 1,
-            'name1' => 'q',
-            'name2' => 'w'
-        ]);
-
-        $mapper = $this->createMapper();
-        $this->assertNotNull($mapper->findOne('tester', ['name2' => 'w']));
-    }
-
-    public function testPropertyNameCasting()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getPlugin(Sequence::class);
-
-        $mapper->getSchema()
-            ->createSpace('person', [
-                'id' => 'unsigned',
-                'name' => 'string',
-                'children' => '*',
-            ])
-            ->addIndex(['id']);
-
-        $dmitry = $mapper->create('person', ['dmitry', [1, 2]]);
-        $this->assertSame(1, $dmitry->id);
-        $this->assertSame('dmitry', $dmitry->name);
-    }
-
-    public function testActiveEntity()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()->createSpace('tester')
-            ->addProperties([
-                'id' => 'unsigned',
-                'name' => 'string',
-            ])
-            ->addIndex(['id']);
-
-        $tester = $mapper->create('tester', [
-            'id' => 1,
-            'name' => 'hello'
-        ]);
-
-        $tester->name = 'hello world';
-        $tester->save();
-
-        $mapper = $this->createMapper();
-        $entity = $mapper->findOne('tester', 1);
-        $this->assertSame($entity->name, 'hello world');
-    }
-
-    public function testRemove()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()->createSpace('sector_parent')
-            ->addProperties([
-                'id' => 'unsigned',
-                'parent' => 'unsigned',
-            ])
-            ->addIndex(['id', 'parent']);
-
-        $mapper->create('sector_parent', ['id' => 1, 'parent' => 2]);
-        $mapper->create('sector_parent', ['id' => 1, 'parent' => 3]);
-        $mapper->create('sector_parent', ['id' => 2, 'parent' => 3]);
-
-        $this->assertCount(3, $mapper->find('sector_parent'));
-
-        $mapper->remove('sector_parent', ['id' => 1]);
-        $this->assertCount(1, $mapper->find('sector_parent'));
-
-        $mapper->getRepository('sector_parent')->truncate();
-        $this->assertCount(0, $mapper->find('sector_parent'));
-    }
-
-    public function testCompositeKeys()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()->createSpace('sector_parent')
-            ->addProperties([
-                'id' => 'unsigned',
-                'parent' => 'unsigned',
-            ])
-            ->addIndex(['id', 'parent']);
-
-        $mapper->create('sector_parent', ['id' => 1, 'parent' => 2]);
-        $mapper->create('sector_parent', ['id' => 1, 'parent' => 3]);
-
-        $this->assertCount(2, $mapper->find('sector_parent'));
-    }
-
-    public function testFluentInterface()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()->createSpace('session')
-
-            ->addProperty('uuid', 'string')
-            ->addProperty('activity_at', 'unsigned')
-            ->addProperty('login', 'unsigned')
-            ->addProperty('ip', 'unsigned')
-
-            ->createIndex('uuid')
-
-            ->createIndex([
-                'fields' => 'login',
-                'unique' => false,
-            ])
-
-            ->createIndex([
-                'fields' => 'ip',
-                'unique' => false,
+        foreach ($userTypes as $name => $type) {
+            $space = $mapper->createSpace($name);
+            $space->setClass($type);
+            $space->migrate();
+
+            $this->assertSame($space, $mapper->createSpace($name, ['if_not_exists' => true]));
+            $this->assertSame($space, $mapper->getSpace($space->getId()));
+            $this->assertCount(2, $mapper->find('_vindex', ['id' => $space->getId()]));
+        }
+
+        $space = $mapper->createSpace('array');
+        $space->addProperty('id', 'unsigned');
+        $space->addProperty('name', 'string');
+        $space->addProperty('nick', 'string', ['default' => 'nick']);
+
+        $todo = array_keys($userTypes);
+        $todo[] = 'array';
+
+        foreach ($todo as $nick) {
+            $space = $mapper->getSpace($nick);
+            $this->assertSame($space->getFields(), ['id', 'name', 'nick']);
+            $this->assertEquals($space->getFieldFormat('id'), [
+                'name' => 'id',
+                'type' => 'unsigned',
+                'is_nullable' => false,
+            ]);
+            $this->assertEquals($space->getFieldFormat('name'), [
+                'name' => 'name',
+                'type' => 'string',
+            ]);
+            $this->assertEquals($space->getFieldFormat('nick'), [
+                'name' => 'nick',
+                'type' => 'string',
+                'default' => 'nick',
             ]);
 
-        $entity = $mapper->create('session', [
-            'uuid' => '81b3edc8-0dd0-43b6-80b4-39f1f8045f3e',
-            'login' => 1,
-            'ip' => 2130706433
-        ]);
+            $instance = $mapper->create($nick, ['name' => 'tester']);
+            $tuple = $space->getTuple($instance);
+            $this->assertSame($tuple[0], 1);
+            $this->assertSame($tuple[2], 'nick');
 
-        $this->assertNotNull($entity);
-    }
-
-    public function testArrayPropertyCreation()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $mapper->getSchema()->createSpace('session')
-
-            ->addProperties([
-                'uuid'        => 'string',
-                'activity_at' => 'unsigned',
-                'login'       => 'unsigned',
-                'ip'          => 'unsigned',
-            ])
-
-            ->addIndex('uuid')
-            ->addIndex([
-                'fields' => 'login',
-                'unique' => false,
-            ])
-            ->addIndex([
-                'fields' => 'ip',
-                'unique' => false,
+            $start = microtime(true);
+            $length = 100_000;
+            foreach (range(1, $length) as $_) {
+                $space->getInstance($tuple);
+            }
+            $log->info("instance benchmark", [
+                'space' => $nick,
+                'length' => $length,
+                'time' => microtime(true) - $start,
+                'ips' => (int) ($length / (microtime(true) - $start)),
             ]);
 
-        $entity = $mapper->create('session', [
-            'uuid' => '81b3edc8-0dd0-43b6-80b4-39f1f8045f3e',
-            'login' => 1,
-            'ip' => 2130706433
-        ]);
+            $instance = $mapper->create($nick, ['name' => 'tester', 'nick' => 'tester']);
+            $tuple = $space->getTuple($instance);
+            $this->assertSame($tuple[0], 2);
+            $this->assertSame($tuple[2], 'tester');
+            $this->assertCount(2, $space->find());
 
-        $this->assertNotNull($entity);
-    }
+            $space->addIndex(['nick'], ['unique' => true]);
+            $instance = $mapper->findOrCreate($nick, ['nick' => 'nekufa'], ['name' => 'Dmitry']);
+            $tuple = $space->getTuple($instance);
+            $this->assertSame($tuple[0], 3);
+            $this->assertSame($tuple[1], 'Dmitry');
+            $this->assertSame($tuple[2], 'nekufa');
 
-    public function testBasics()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
+            $instance = $mapper->findOrCreate($nick, ['nick' => 'nekufa']);
+            $tuple = $space->getTuple($instance);
+            $this->assertSame($tuple[0], 3);
 
-        $schema = $mapper->getSchema();
+            $instance = $mapper->findOrFail($nick, ['nick' => 'nekufa']);
+            $this->assertNotNull($instance);
+            $tuple = $space->getTuple($instance);
+            $this->assertSame($tuple[0], 3);
 
-        $session = $schema->createSpace('session');
-        $session->addProperty('uuid', 'string');
-        $session->addProperty('activity_at', 'unsigned');
-        $session->addProperty('login', 'unsigned');
-        $session->addProperty('ip', 'unsigned');
+            $updated = $space->update($instance, ['name' => 'Dmitry Krokhin']);
+            if (is_object($updated)) {
+                $this->assertSame($instance->name, $updated->name);
+            }
+            $tuple = $space->getTuple($updated);
+            $this->assertSame($tuple[1], 'Dmitry Krokhin');
 
-        $session->createIndex('uuid');
-        $session->createIndex([
-            'fields' => 'login',
-            'unique' => false,
-        ]);
+            $instance = $mapper->findOne($nick, ['nick' => 'bazyaba']);
+            $this->assertNull($instance);
 
-        $session->createIndex([
-            'fields' => 'ip',
-            'unique' => false,
-        ]);
+            $space->delete($space->findOrFail(['nick' => 'tester']));
 
-        $entity = $mapper->create('session', [
-            'uuid' => '81b3edc8-0dd0-43b6-80b4-39f1f8045f3e',
-            'login' => 1,
-            'ip' => 2130706433
-        ]);
+            $this->assertCount(2, $mapper->getChanges());
 
-        $this->assertNotNull($entity);
-    }
+            foreach ($mapper->getChanges() as $change) {
+                $this->assertSame($change->type, 'insert');
+                $this->assertSame($change->space, $nick);
+                if ($change->data['id'] == 3) {
+                    // merge insert and updates into single insert
+                    $this->assertSame($change->data['name'], 'Dmitry Krokhin');
+                }
+            }
+            $mapper->flushChanges();
+        }
 
-    public function testInstances()
-    {
-        $mapper = $this->createMapper();
-        $this->assertInstanceOf(Mapper::class, $mapper);
+        $pool = new Pool(function () use ($mapper) {
+            return $mapper;
+        });
 
-        $schema = $mapper->getSchema();
-        $this->assertInstanceOf(Schema::class, $schema);
+        $pool->create('first.array', ['nick' => 'qwerty']);
+        $pool->create('second.constructor', ['nick' => 'asdf']);
 
-        $client = $mapper->getClient();
-        $this->assertInstanceOf(Client::class, $client);
-    }
-
-    public function testMapping()
-    {
-        $mapper = $this->createMapper();
-
-        $spaceInstance = $mapper->findOne('_space', ['id' => 280]);
-        $anotherInstance = $mapper->getRepository('_space')->findOne(['name' => '_space']);
-
-        $this->assertEquals($spaceInstance->toArray(), $anotherInstance->toArray());
-
-        // validate _space row
-        $this->assertSame($spaceInstance->id, 280);
-        $this->assertSame($spaceInstance->owner, 1);
-        $this->assertSame($spaceInstance->name, '_space');
-        $this->assertSame($spaceInstance->engine, 'memtx');
-
-        // validate collections
-        $spaceData = $mapper->getRepository('_space')->find(['name' => '_space']);
-        $anotherData = $mapper->find('_space', ['name' => '_space']);
-        $this->assertSame($spaceData[0]->toArray(), $anotherData[0]->toArray());
-
-        $guest = $mapper->findOne('_user', ['id' => 0]);
-        $this->assertSame($guest->name, 'guest');
-        $this->assertSame($guest->type, 'user');
-
-        $guests = $mapper->find('_user', ['name' => 'guest']);
-        $this->assertCount(1, $guests);
-        $this->assertEquals($guests[0], $guest);
-
-        // validate get by id easy call
-        $user = $mapper->findOne('_user', [0]);
-        $this->assertEquals($user, $guest);
-
-        $user = $mapper->findOne('_user', 0);
-        $this->assertEquals($user, $guest);
-    }
-
-    public function testIndexValueCasting()
-    {
-        $mapper = $this->createMapper();
-        $tester = $mapper->getSchema()
-            ->createSpace('tester', [
-                'id' => 'integer',
-                'name' => 'string',
-            ])
-            ->createIndex('id');
-
-        $default = $tester->getIndex(0)->getValues([]);
-        $this->assertSame($default, []);
-
-        $default = $tester->getIndex(0)->getValues(['id' => null]);
-        // type-based default value casting
-        $this->assertSame($default, [0]);
-    }
-
-    public function testTupleMap()
-    {
-        $mapper = $this->createMapper();
-        $this->clean($mapper);
-
-        $session = $mapper->getSchema()->createSpace('session');
-        $session->addProperty('uuid', 'string');
-        $session->addProperty('activity_at', 'unsigned');
-        $session->addProperty('login', 'unsigned');
-        $session->addProperty('ip', 'unsigned');
-        $session->createIndex('uuid');
-
-        $map = $mapper->getRepository('session')->getSpace()->getTupleMap();
-        $this->assertSame(1, $map->uuid);
-        $this->assertSame(2, $map->activity_at);
-        $this->assertSame(3, $map->login);
-        $this->assertSame(4, $map->ip);
-    }
-
-    public function testQueryCaching()
-    {
-        $mapper = $this->createMapper();
-        $client = $mapper->getClient();
-        $this->assertInstanceOf(Client::class, $client);
-
-        $_space = $mapper->findOne('_space', ['name' => '_space']);
-
-        $mapper->findOne('_space', ['name' => '_space']);
-        $mapper->findOne('_space', ['id' => $_space->id]);
-
-        $data = $mapper->find('_space', ['id' => $_space->id]);
-        $this->assertCount(1, $data);
+        $changes = $pool->getChanges();
+        $this->assertCount(4, $changes);
+        $this->assertSame($changes[0]->space, 'first.array');
+        $this->assertSame($changes[2]->space, 'second.array');
     }
 }

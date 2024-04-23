@@ -25,9 +25,8 @@
 		<ini name="display_errors" value="On" />
 		<ini name="display_startup_errors" value="On" />
 		<ini name="error_reporting" value="E_ALL" />
-		<env name="TNT_CONN_HOST" value="127.0.0.1" />
-		<env name="TNT_CONN_PORT" value="3301" />
-		<env name="SKIP_PERFORMANCE_TEST" value="true" />
+		<env name="TARANTOOL_HOST" value="127.0.0.1" />
+		<env name="TARANTOOL_PORT" value="3301" />
   	</php>
   	<testsuites>
 		<testsuite name="Tests">

@@ -5,35 +5,25 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/tarantool/mapper.svg?style=flat-square)](https://packagist.org/packages/tarantool/mapper)
 [![Telegram](https://img.shields.io/badge/Telegram-join%20chat-blue.svg)](https://t.me/tarantool_php)
 
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Instantiate mapper](#instantiate-mapper)
-- [Logging](#logging)
-- [Existing types](#existing-types)
-- [Describe entities](#describe-entities)
-- [Use migrations](#use-migrations)
-- [Use fluent api](#use-fluent-api)
+- [Getting Started](#getting-started)
+- [Schema Management](#schema-management)
 - [Working with the data](#working-with-the-data)
-- [Indexes](#indexes)
-- [Array properties](#array-properties)
-- [Sequence plugin](#sequence-plugin)
-- [User-defined classes plugin](#user-defined-classes-plugin)
-- [Annotation plugin](#annotation-plugin)
+- [Schema Cache](#schema-cache)
+- [Changes registration](#changes-registration)
+- [Multiple connections](#multiple-connections)
+- [Lua code delivery](#lua-code-delivery)
 - [Performance](#performance)
 
-## Requirements
-You need latest php major version (8.0 or 8.1), and tarantool latest major branch (2.6, 2.8, 2.10).
-
-## Installation
+## Getting started
 The recommended way to install the library is through [Composer](http://getcomposer.org):
-```
-$ composer require tarantool/mapper
+```bash
+composer require tarantool/mapper
 ```
 
-## Create mapper
-Usually, you manage dependencies in your service provider.
-To get started you should instantiate client instance and pass it to mapper constructor.
-In this example we use PurePacker and StreamConnection. It means you don't need any pecl extensions. To see other implementations please check [client documentation](https://github.com/tarantool-php/client#creating-a-client)
+Usually, you manage dependencies in your service provider.\
+To get started you should create client instance and pass it to mapper constructor.\
+In this example we use PurePacker and StreamConnection.\
+To see other implementations please check [client documentation](https://github.com/tarantool-php/client#creating-a-client)
 
 ```php
 use Tarantool\Client\Client;
@@ -41,380 +31,222 @@ use Tarantool\Mapper\Mapper;
 
 $client = Client::fromDefaults();
 $mapper = new Mapper($client);
+
+// internaly mapper wraps client with special middleware
+assert($mapper->client !== $client);
 ```
 
-## Existing types
-You can start with your current configuration.
-Please, note - all instances are mapped to key-value objects.
+## Schema management
+To get started you should describe your spaces, their format and indexes.
 ```php
-$globalSpace = $mapper->findOrFail('_space', ['name' => '_space']);
-echo $globalSpace->id; // 280
+$person = $mapper->createSpace('person', [
+    'engine' => 'memtx',
+    'if_not_exists' => true,
+]);
 
-$indexes = $mapper->find('_index', ['id' => $globalSpace->id]);
-var_dump($indexes); // indexes on _index space
-echo $indexes[0]->name;  // primary index
-echo $indexes[0]->type; // tree
-
-$guest = $mapper->find('_user', ['name' => 'guest']);
-echo $guest->id; // 0
-echo $guest->type; // user
-
-```
-
-## Describe entities
-To get started you should describe your types and fields using meta object.
-```php
-
-$person = $mapper->getSchema()->createSpace('person');
-
-// add properties
+// add properties - name, type and options
 $person->addProperty('id', 'unsigned');
 $person->addProperty('name', 'string');
 $person->addProperty('birthday', 'unsigned');
-$person->addProperty('gender', 'string');
-
-// add multiple properties
-$person->addProperties([
-  'telegram' => 'string',
-  'vk' => 'string',
-  'facebook' => 'string',
+$person->addProperty('gender', 'string', [
+    'default' => 'male'
 ]);
 
-// add indexes
-// first index is primary
-$person->createIndex([
-    'type' => 'hash', // define type
-    'fields' => ['id'],
-]);
+// indexes are created using fields array and optional index configuration
+$person->addIndex(['name']);
+$person->addIndex(['birthday'], ['unique' => true]);
 
-// create unique indexes using property or array of properties as parameter
-$person->createIndex('name');
-
-// create not unique indexes
-$person->createIndex([
-    'fields' => 'birthday',
-    'unique' => false
-]);
-
-// if you wish - you can specify index name
-$person->createIndex([
-    'fields' => ['name', 'birthday'],
+// index name is fields based, but you can specify any preffered one
+$person->addIndex(['name', 'birthday'], [
     'type' => 'hash',
     'name' => 'name_with_birthday',
 ]);
-```
 
-## Use migrations
-
-```php
-use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Migration;
-
-class InitTesterSchema implements Migration
+/**
+ * define format using properties
+ */
+class Tracker
 {
-  public function migrate(Mapper $mapper)
-  {
-    $tester = $mapper->getSchema()->createSpace('tester', [
-      'engine' => 'memtx', // or vinyl
-      'properties' => [
-        'id' => 'unsigned',
-        'name' => 'string',
-      ]
-    ]);
-    $tester->createIndex('id');
-  }
+    public int $id;
+    public int $reference;
+    public string $status;
+
+    public static function initSchema(\Tarantool\Mapper\Space $space)
+    {
+        $space->addIndex(['reference']);
+    }
 }
 
-$mapper->getBootstrap()->register(InitTesterSchema::class);
-// or register instance $mapper->getBootstrap()->register(new InitTesterSchema());
+$tracker = $mapper->createSpace('tracker');
+$tracker->setClass(Tracker::class);
+$tracker->migrate();
 
-$mapper->getBootstrap()->migrate();
-
-```
-
-## Use fluent api
-
-```php
-use Tarantool\Mapper\Mapper;
-use Tarantool\Mapper\Migration;
-
-class InitTesterSchema implements Migration
+/**
+ * define format using constructor promotion
+ */
+class Policy
 {
-  public function migrate(Mapper $mapper)
-  {
-    $mapper->getSchema()->createSpace('person')
-      ->addProperty('id', 'unsigned')
-      ->addProperty('name', 'string')
-      ->addIndex('id');
-  }
+    public function __construct(
+        public int $id,
+        public string $nick,
+        public string $status,
+    ) {
+    }
+
+    public static function initSchema(\Tarantool\Mapper\Space $space)
+    {
+        $space->addIndex(['nick'], ['unique' => true]);
+    }
 }
 
+$policy = $mapper->createSpace('policy');
+$policy->setClass(Policy::class);
+$policy->migrate();
 ```
 
 ## Working with the data
 Now you can store and retreive data from tarantool storage using mapper instance.
 ```php
-// get repository instance
-$persons = $mapper->getRepository('person');
+// get space instance
+$persons = $mapper->getSpace('person');
 
 // create new entity
 $dmitry = $persons->create([
-  'id' => 1,
-  'name' => 'Dmitry'
+    'id' => 1,
+    'name' => 'Dmitry'
 ]);
 
-// save
-$mapper->save($dmitry);
-
-// you can create entities using mapper wrapper.
+// create entities using mapper wrapper.
 // this way entity will be created and saved in the tarantool
 $vasily = $mapper->create('person', [
-  'id' => 2,
-  'name' => 'Vasily'
+    'id' => 2,
+    'name' => 'Vasily'
 ]);
 
-// you can retreive entites by id from repository
-$helloWorld = $mapper->getRepository('post')->find(3);
+// retreive entites by id using space
+$helloWorld = $mapper->getSpace('post')->findOne(['id' => 3]);
 
 // or using mapper wrapper
-$helloWorld = $mapper->find('post', 3);
+$helloWorld = $mapper->findOne('post', ['id' => 3]);
+
+// pass client criteria object as well
+$criteria = Criteria::index('age')->andKey([18])->andGeIterator();
+$adults = $mapper->find('user', $criteria);
 
 // updates are easy
-$helloWorld->title = "Hello World!";
-$mapper->save($helloWorld);
-```
-## Indexes
-```php
-$note = $mapper->getSchema()->createSpace('note');
-$note->addProperty('slug', 'string');
-$note->addProperty('title', 'string',
-$note->addProperty('status', 'string');
-
-$note->addIndex('slug');
-$note->addIndex([
-  'fields' => 'status',
-  'unique' => false
+$posts = $mapper->getSpace('post');
+$helloWorld = $posts->update($helloWorld, [
+    'title' => 'Hello world'
 ]);
 
-// find using repository
-$mapper->getRepository('note')->find(['status' => 'active']);
-// find using shortcut
-$mapper->find('note', ['status' => 'active']);
-
-// find first
-$mapper->getRepository('note')->findOne(['slug' => 'my-secret-note']);
-
-// composite indexes can be used partial
-$person = $mapper->getSchema()->createSpace('person');
-$person->addProperty('id', 'unsigned');
-$person->addProperty('client', 'unsigned');
-$person->addProperty('sector', 'unsigned');
-$person->addProperty('name', 'unsigned');
-
-$person->addIndex('id');
-$person->addIndex([
-  'fields' => ['client', 'sector'],
-  'unique' => false
+// if you use instance classes, instance would be updated
+$policy = $mapper->findOrFail('policy', ['id' => 3]);
+$mapper->update('policy', $policy, [
+    'title' => 'updated title',
 ]);
+echo $policy->title; // updated title
 
-// using index parts
-$mapper->find('person', ['client' => 2]);
-$mapper->find('person', ['client' => 2, 'sector' => 27]);
+// use client operations as well
+use Tarantool\Client\Schema\Operations;
+$mapper->getSpace('policy')->update($policy, Operations::add('counter', 1));
+var_dump($policy->counter); // actual value
 ```
 
-## Array properties
-You can store arrays as property without any serialization to string.
+## Schema Cache
+Any new mapper instance will fetch schema from the tarantool, this requests can takes a bit of database load.\
+Use your favorite psr/cache implementation to persist schema on the application side.\
+For example, we use apcu adapter from `symfony/cache` package.\
+If new schema version is not persisted in cache, mapper will fetch it
 ```php
-$pattern = $mapper->getSchema()->createSpace('shift_pattern');
-$pattern->addProperty('id', 'unsigned');
-$pattern->addProperty('title', 'string');
-$pattern->addProperty('pattern', '*');
+use Symfony\Component\Cache\Adapter\ApcuAdapter;
+$cache = new ApcuAdapter();
 
-$pattern->addIndex('id');
+$mapper = new Mapper(Client::fromDefaults());
+$mapper->cache = $cache;
+$mapper->getSpace('_vspace'); // schema is fetched now
 
-$mapper->create('shift_pattern', [
-  'id' => 1,
-  'title' => '5 days week',
-  'pattern' => [
-    ['work' => true],
-    ['work' => true],
-    ['work' => true],
-    ['work' => true],
-    ['work' => true],
-    ['work' => false],
-    ['work' => false],
-  ]
+$mapper = new Mapper(Client::fromDefaults());
+$mapper->cache = $cache;
+$mapper->getSpace('_vspace'); // no new requests are made
+```
+
+## Changes registration
+In some cases you want to get all changes that were made during current session.\
+By default spy configuration is set to false, this improves performance a bit.
+```php
+$mapper->spy = true;
+
+$nekufa = $mapper->create('user', ['login' => 'nekufa']);
+$firstPost = $mapper->create('post', [
+    'user_id' => $nekufa->id,
+    'title' => 'hello world',
 ]);
+$mapper->update('post', $firstPost, ['title' => 'Final title']);
 
-$mapper->get('shift_pattern', 1)->pattern[5]; // read element with index 5 from pattern array
+// now there are two changes
+[$first, $second] = $mapper->getChanges();
+echo $first->type; // insert
+echo $first->space; // user
+echo $first->data; // ['login' => 'nekufa']
+
+// all changes would be merged by space and key
+// this reduces changes duplicates
+echo $second->type; // insert
+echo $second->space; // post
+echo $second->data; // ['user_id' => 1, 'title' => 'Final title']
+
+// of course you can flush all changes and start registration from scratch
+$mapper->flushChanges();
+```
+## Multiple connections
+If you split your data across multiple tarantool instances you can use prefix based data api.\
+Api is the same but you prefix space name with a connection prefix.
+```php
+$pool = new Pool(function (string $prefix) {
+    return new Mapper(Client::fromDsn('tcp://' . $prefix));
+});
+
+// connect to tarantool instance `volume` and find all timelines.
+$trackers = $pool->findOne('volume.timeline');
+
+$nekufa = $pool->findOrCreate('guard.login', ['username' => 'nekufa']);
+$pool->update('guard.login', $nekufa, ['locked_at' => time()]);
+
+// pool also wraps changes with the prefixes
+echo $pool->getChanges()[0]->space; // guard.login
+
+// all expressions do the same behind the scenes
+$pool->find('flow.tracker', ['status' => 'active']);
+$pool->getMapper('flow')->find('tracker', ['status' => 'active']);
+$pool->getMapper('flow')->getSpace('tracker')->find(['status' => 'active']);
 ```
 
-## Sequence plugin
-If you want you can use sequence plugin that generates next value based on sequence space.
-Or you can implement id generator using any other source, for example with raft protocol.
+## Lua code delivery
+Iproto usage is very powerful but sometimes is not enough.\
+You can easily execute lua code and pass local variables using associative array.
+
+In addition, if you don't want to deliver it every request, use magic `call` method.\
+When you use call method, mapper generates unique function name and creates it if it's not exist.
 ```php
-$mapper->getSchema()->createSpace('post', [
-    'id' => 'unsigned',
-    'title' => 'string',
-    'body' => 'string',
-  ])
-  ->addIndex('id');
+// this method will always deliver and parse lua code on the tarantool side
+$mapper->evaluate('return a + b', ['a' => 2, 'b' => 7]); // 9
 
-$mapper->getPlugin(Tarantool\Mapper\Plugin\Sequence::class);
+// first call a function would be created with name evaluate_{BODYHASH}
+// there would be two requests - create function and call it
+$mapper->call('return a + b', ['a' => 2, 'b' => 7]); // 9
 
-$entity = $mapper->create('post', [
-  'title' => 'Autoincrement implemented',
-  'body' => 'You can use Sequence plugin to track and fill your entity id'
-]);
-
-echo $entity->id; // will be set when you create an instance
-```
-
-## User-defined classes plugin
-If you want you can specify classes to use for repository and entity instances.
-Entity and repository class implementation are ommited, but you should just extend base classes.
-```php
-$userClasses = $mapper->getPlugin(Tarantool\Mapper\Plugin\UserClasses::class);
-$userClasses->mapEntity('person', Application\Entity\Person::class);
-$userClasses->mapRepository('person', Application\Repository\Person::class);
-
-$nekufa = $mapper->create('person', [
-  'email' => 'nekufa@gmail.com'
-]);
-
-get_class($nekufa); // Application\Entity\Person;
-
-$mapper->getSchema()->getSpace('person')->getRepository(); // will be instance of Application\Repository\Person
-```
-
-## Annotation plugin
-You can describe your entities using dobclock. Mapper will create space, format and indexes for you.
-
-```php
-namespace Entity;
-
-use Tarantool\Mapper\Entity;
-
-class Person extends Entity
-{
-    /**
-     * @var integer
-     */
-    public $id;
-
-    /**
-     * @var string
-     */
-    public $name;
-}
-
-class Post extends Entity
-{
-    /**
-     * @var integer
-     */
-    public $id;
-
-    /**
-     * @var string
-     */
-    public $slug;
-
-    /**
-     * @var string
-     */
-    public $title;
-
-    /**
-     * @var string
-     */
-    public $body;
-
-    /**
-     * @var Person
-     */
-    public $author;
-
-    /**
-     * @var integer
-     * @required
-     */
-    public $salary;
-}
-```
-If you want to index fields, extend repository and define indexes property
-```php
-namespace Repository;
-
-use Tarantool\Mapper\Repository;
-
-class Post extends Repository
-{
-    public $engine = 'memtx'; // or vinyl
-
-    public $indexes = [
-        // if your index is unique, you can set property collection
-        ['id'],
-        // extended definition unique index with one field
-        [
-          'fields' => ['slug'],
-          'unique' => true,
-        ],
-        // extended definition (similar to Space::addIndex params)
-        // [
-        //  'fields' => ['year', 'month', 'day'],
-        //  'unique' => true
-        // ],
-    ];
-}
-```
-Register plugin and all your classes:
-```php
-$mapper->getPlugin(Tarantool\Mapper\Plugin\Sequence::class); // just not to fill id manually
-$mapper->getPlugin(Tarantool\Mapper\Plugin\Annotation::class)
-  ->register(Entity\Person::class)
-  ->register(Entity\Post::class)
-  ->register(Repository\Person::class)
-  ->migrate(); // sync database schema with code
-
-$nekufa = $mapper->create('person', ['name' => 'dmitry']);
-
-$post = $mapper->create('post', [
-  'author' => $nekufa,
-  'slug' => 'hello-world',
-  'title' => 'Hello world',
-  'body' => 'Now you can use mapper better way'
-]);
-
-// in addition you can simple get related entity
-$post->getAuthor() == $nekufa; // true
-
-// or related collection
-$nekufa->getPostCollection() == [$post]; // true
-
+// second call will produce single request with function name and arguments
+$mapper->call('return a + b', ['a' => 2, 'b' => 7]); // 9
 ```
 
 ## Performance
-Mapper overhead depends on amount of rows and operation type.
-Table contains overhead in **milliseconds** per entity. In some cases, overhead can't be calculated due float precision.
+We can calculate mapper overhead using getInstance method that is called per each instance.\
+In addition there is single schema fetch on connection and when schema is upgraded.\
+Perfomance test was made on (AMD Ryzen 5 3600X), Ubuntu 23.10  using PHP 8.3.6
 
-| Operation | Counter | Client time | Mapper time | Total time | Client RPS | Mapper RPS | Total RPS |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| create one | 1 | 0.000 | 0.001 | 0.001 | ∞ | 1,555.174 | 1,555.174 |
-| single read | 1 | 0.000 | 0.001 | 0.001 | ∞ | 1,634.569 | 1,634.569 |
-| mass read | 1 | 0.000 | 0.000 | 0.000 | ∞ | 8,774.695 | 8,774.695 |
-| create one | 10 | 0.000 | 0.002 | 0.002 | ∞ | 4,514.859 | 4,514.859 |
-| single read | 10 | 0.000 | 0.002 | 0.002 | ∞ | 6,177.178 | 6,177.178 |
-| mass read | 10 | 0.000 | 0.000 | 0.000 | ∞ | 75,166.738 | 75,166.738 |
-| create one | 100 | 0.000 | 0.015 | 0.015 | ∞ | 6,467.801 | 6,467.801 |
-| single read | 100 | 0.000 | 0.012 | 0.012 | ∞ | 8,208.192 | 8,208.192 |
-| mass read | 100 | 0.000 | 0.000 | 0.000 | ∞ | 314,415.592 | 314,415.592 |
-| create one | 1000 | 0.000 | 0.141 | 0.141 | ∞ | 7,078.098 | 7,078.098 |
-| single read | 1000 | 0.001 | 0.116 | 0.117 | 1,000,000.000 | 8,650.659 | 8,576.467 |
-| mass read | 1000 | 0.001 | 0.001 | 0.002 | 1,000,000.000 | 709,252.555 | 414,948.951 |
-| create one | 10000 | 0.023 | 1.349 | 1.372 | 434,782.609 | 7,414.542 | 7,290.218 |
-| single read | 10000 | 0.005 | 1.000 | 1.005 | 2,000,000.000 | 10,003.891 | 9,954.101 |
-| mass read | 10000 | 0.007 | 0.014 | 0.021 | 1,428,571.429 | 727,699.315 | 482,114.991 |
+| Instance type | Instances per second |
+| --- | --- |
+| constructor | 4 664 172 |
+| properties | 4 328 442 |
+| simple array | 11 983 040 |
 
-Perfomance test was made on (intel i5-4670K), Ubuntu 23.10  using PHP 8.3.1
-For example, when single select will produce 10 000 entites, you will get about 12s overhead.

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tarantool\Mapper;
 
-interface Migration
+class Exception extends \Exception
 {
-    public function migrate(Mapper $mapper);
 }

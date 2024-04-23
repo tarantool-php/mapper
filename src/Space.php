@@ -4,176 +4,214 @@ declare(strict_types=1);
 
 namespace Tarantool\Mapper;
 
-use Exception;
-use Tarantool\Client\Schema\Space as ClientSpace;
+use ReflectionClass;
+use ReflectionMethod;
+use Tarantool\Client\Keys;
+use Tarantool\Client\Request\InsertRequest;
+use Tarantool\Client\Response;
 use Tarantool\Client\Schema\Criteria;
+use Tarantool\Client\Schema\Operations;
 
 class Space
 {
-    public int $id;
-    public string $name;
-    public string $engine;
-    public array $format = [];
+    private readonly int $id;
+    private readonly string $name;
 
-    private $properties = [];
+    private array $fields = [];
+    private array $format = [];
+    private array $indexes = [];
 
-    private $indexes = [];
-    private $tupleMap = null;
-    private $repository;
+    private ?string $class = null;
+    private ?ReflectionMethod $constructor = null;
 
-    public function __construct(
-        public readonly Mapper $mapper,
-        array $meta,
-    ) {
+    public function __construct(public readonly Mapper $mapper, array $meta = [])
+    {
         $this->id = $meta['id'];
         $this->name = $meta['name'];
-        $this->engine = $meta['engine'];
-        $this->format = $meta['format'];
+        $this->setFormat($meta['format']);
     }
 
-    public function addIndex($config): self
+    public function addIndex(array $fields, array $config = [])
     {
-        return $this->createIndex($config);
-    }
-
-    public function addProperties(array $config): self
-    {
-        foreach ($config as $name => $type) {
-            $this->addProperty($name, $type);
-        }
-        return $this;
-    }
-
-    public function addProperty(string $name, string $type, array $opts = []): self
-    {
-        if (!count($this->properties)) {
-            $opts['is_nullable'] = false;
-        }
-
-        if (array_key_exists($name, $this->properties)) {
-            throw new Exception("Property $this->name.$name exists!");
-        }
-
-        $this->properties[$name] = new Property($name, $type, $opts);
-
-        return $this->updateFormat();
-    }
-
-    public function castIndex(array $params, bool $suppressException = false): ?Index
-    {
-        if (!count($this->getIndexes())) {
-            return null;
-        }
-
-        $keys = [];
-        foreach ($params as $name => $value) {
-            $keys[$this->getPropertyIndex($name)] = $name;
-        }
-
-        // equals
-        foreach ($this->getIndexes() as $index) {
-            $equals = false;
-            if (count($keys) == count($index->parts)) {
-                // same length
-                $equals = true;
-                foreach ($index->parts as $part) {
-                    $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
-                    $equals = $equals && array_key_exists($field, $keys);
-                }
+        $config['parts'] = [];
+        foreach ($fields as $field) {
+            if (!in_array($field, $this->fields)) {
+                throw new Exception("Invalid field $field");
             }
+            $config['parts'][] = [
+                'field' => $field,
+                'type' => $this->format[array_search($field, $this->fields)]['type'],
+            ];
+        }
+        if (!array_key_exists('unique', $config)) {
+            $config['unique'] = true;
+        }
+        if (!array_key_exists('if_not_exists', $config)) {
+            $config['if_not_exists'] = true;
+        }
+        $name = implode('_', $fields);
+        $this->mapper->client->call("box.space.$this->name:create_index", $name, $config);
+    }
 
-            if ($equals) {
+    public function addProperty(string $name, string $type, array $config = [])
+    {
+        $config = array_merge(compact('name', 'type'), $config);
+
+        if (!count($this->fields)) {
+            $config['is_nullable'] = false;
+        } elseif (in_array($name, $this->fields)) {
+            throw new Exception("Duplicate property $name");
+        }
+
+        $this->format[] = $config;
+        $this->mapper->client->call("box.space.$this->name:format", $this->format);
+
+        if (count($this->fields) == 1) {
+            $this->addIndex($this->fields, [
+                'unique' => true,
+            ]);
+            $this->mapper->client->call('box.schema.sequence.create', $this->name);
+        }
+    }
+
+    public function castIndex(array $fields): ?array
+    {
+        foreach ($this->indexes as $index) {
+            if ($index['fields'] == $fields) {
                 return $index;
             }
         }
 
-        // index part
-        foreach ($this->getIndexes() as $index) {
-            $partial = [];
-            foreach ($index->parts as $n => $part) {
-                $field = array_key_exists(0, $part) ? $part[0] : $part['field'];
-                if (!array_key_exists($field, $keys)) {
-                    break;
-                }
-                $partial[] = $keys[$field];
-            }
-
-            if (count($partial) == count($keys)) {
+        foreach ($this->indexes as $index) {
+            if (array_slice($index['fields'], 0, count($fields)) == $fields) {
                 return $index;
             }
         }
 
-        if (!$suppressException) {
-            throw new Exception("No index on " . $this->name . ' for [' . implode(', ', array_keys($params)) . ']');
-        }
-
-        return null;
+        throw new Exception("Index casting failure");
     }
 
-    public function createIndex($config): self
+    public function create(array $data)
     {
-        if (!is_array($config)) {
-            $config = ['fields' => $config];
+        if (!array_key_exists('id', $data)) {
+            [$data['id']] = $this->mapper->client->call("box.sequence.$this->name:next");
         }
-
-        if (!array_key_exists('fields', $config)) {
-            if (array_values($config) != $config) {
-                throw new Exception("Invalid index configuration");
-            }
-            $config = [
-                'fields' => $config
-            ];
-        }
-
-        if (!is_array($config['fields'])) {
-            $config['fields'] = [$config['fields']];
-        }
-
-        $options = [
-            'parts' => []
-        ];
-
-        foreach ($config as $k => $v) {
-            if ($k != 'name' && $k != 'fields') {
-                $options[$k] = $v;
-            }
-        }
-
-        foreach ($config['fields'] as $part) {
-            $isNullable = false;
-            if (is_array($part)) {
-                if (array_key_exists('is_nullable', $part)) {
-                    $isNullable = $part['is_nullable'];
-                }
-                $part = $part['property'];
-            }
-            $property = $this->getProperty($part);
-            if ($property->isNullable !== $isNullable) {
-                $property->isNullable = $isNullable;
-                $this->updateFormat();
-            }
-            $options['parts'][] = [
-                'field' => $this->getPropertyIndex($part) + 1,
-                'type' => $property->type,
-                'is_nullable' => $isNullable,
-            ];
-        }
-
-        $name = array_key_exists('name', $config) ? $config['name'] : implode('_', $config['fields']);
-        $this->mapper->getClient()->call("box.space.$this->name:create_index", $name, $options);
-        $this->indexes = [];
-
-        return $this;
+        [$tuple] = $this->mapper->client->getSpace($this->name)->insert($this->getTuple($data));
+        return $this->getInstance($tuple);
     }
 
-    public function getEngine(): string
+    public function delete($instance)
     {
-        return $this->engine;
+        $this->mapper->client->getSpace($this->name)->delete($this->getKey($instance));
+    }
+
+    public function drop()
+    {
+        if (func_num_args() != 0) {
+            throw new Exception("use delete instead of drop");
+        }
+        $this->mapper->client->call("box.space.$this->name:drop");
+        $this->mapper->client->call("box.sequence.$this->name:drop");
+    }
+
+    public function find(Criteria|array|null $criteria = null, ?int $limit = null): array
+    {
+        if (!$criteria) {
+            $criteria = Criteria::allIterator();
+        } elseif (is_array($criteria)) {
+            $index = $this->castIndex(array_keys($criteria));
+            $criteria = Criteria::eqIterator()
+                ->andIndex($index['iid'])
+                ->andKey($this->getKey($criteria, $index));
+        }
+
+        if ($limit) {
+            $criteria = $criteria->andLimit($limit);
+        }
+
+        $tuples = $this->mapper->client->getSpaceById($this->id)->select($criteria);
+        return array_map($this->getInstance(...), $tuples);
+    }
+
+    public function findOne(Criteria|array|null $criteria = null)
+    {
+        $rows = $this->find($criteria, 1);
+
+        if (count($rows)) {
+            return $rows[0];
+        }
+    }
+
+    public function findOrCreate(array $query, ?array $data = null)
+    {
+        if ($data == null) {
+            $data = $query;
+        } else {
+            $data = array_merge($query, $data);
+        }
+
+        $index = $this->castIndex(array_keys($query));
+        $select = [];
+        foreach ($index['fields'] as $field) {
+            if (array_key_exists($field, $query)) {
+                $select[] = $query[$field];
+            } else {
+                break;
+            }
+        }
+
+        [$present, $tuple] = $this->mapper->call(
+            <<<LUA
+            local tuples = box.space[space].index[index]:select(select, {limit=1})
+            if #tuples > 0 then
+                return true, tuples[1]
+            end
+            if tuple[1] == 0 then
+                tuple[1] = box.sequence[space]:next()
+            end
+            return false, box.space[space]:insert(tuple)
+            LUA,
+            [
+                'space' => $this->name,
+                'index' => $index['iid'],
+                'select' => $select,
+                'tuple' => $this->getTuple($data),
+            ]
+        );
+        if (!$present) {
+            $this->mapper->middleware->register(
+                new InsertRequest($this->id, $tuple),
+                new Response([], [Keys::DATA => [$tuple]]),
+            );
+        }
+
+        return $this->getInstance($tuple);
+    }
+
+    public function findOrFail(Criteria|array|null $criteria = null)
+    {
+        $one = $this->findOne($criteria);
+        if ($one) {
+            return $one;
+        }
+
+        throw new Exception("Not found");
+    }
+
+    public function getFieldFormat(string $name): array
+    {
+        foreach ($this->format as $field) {
+            if ($field['name'] == $name) {
+                return $field;
+            }
+        }
+
+        throw new Exception("Field $name not found");
     }
 
     public function getFields(): array
     {
-        return array_keys($this->getProperties());
+        return $this->fields;
     }
 
     public function getId(): int
@@ -181,72 +219,40 @@ class Space
         return $this->id;
     }
 
-    public function getIndex(int $id): Index
+    public function getInstance(array $tuple)
     {
-        foreach ($this->getIndexes() as $index) {
-            if ($index->id == $id) {
-                return $index;
-            }
+        if ($this->constructor) {
+            return new $this->class(...$tuple);
         }
 
-        throw new Exception("Invalid index #$id");
+        if ($this->class) {
+            $instance = new $this->class();
+            foreach ($this->fields as $n => $field) {
+                $instance->$field = $tuple[$n];
+            }
+            return $instance;
+        }
+
+        return array_combine($this->fields, $tuple);
     }
 
-    public function getIndexes(): array
+    public function getKey($query, ?array $index = null): array
     {
-        if (!count($this->indexes)) {
-            if ($this->id == ClientSpace::VINDEX_ID) {
-                $indexTuples = $this->mapper->getClient()
-                    ->getSpaceById(ClientSpace::VINDEX_ID)
-                    ->select(Criteria::key([$this->id]));
+        if ($index == null) {
+            [$index] = $this->indexes;
+        }
+        $values = [];
 
-                $fields = $this->mapper->getSchema()->getSpace(ClientSpace::VINDEX_ID)->getFields();
-
-                foreach ($indexTuples as $tuple) {
-                    $instance = [];
-                    foreach ($fields as $index => $name) {
-                        $instance[$name] = $tuple[$index];
-                    }
-                    $this->indexes[] = $instance;
-                }
+        foreach ($index['fields'] as $field) {
+            if (is_array($query) && array_key_exists($field, $query)) {
+                $values[] = $query[$field];
+            } elseif (is_object($query) && property_exists($query, $field)) {
+                $values[] = $query->$field;
             } else {
-                $indexes = $this->mapper->find('_vindex', [
-                    'id' => $this->id,
-                ]);
-                foreach ($indexes as $index) {
-                    $this->indexes[] = $index->toArray();
-                }
-            }
-            foreach ($this->indexes as $i => $index) {
-                $this->indexes[$i] = Index::fromConfiguration($this, $index);
+                break;
             }
         }
-        return $this->indexes;
-    }
-
-    public function getMap(array $tuple): array
-    {
-        $map = [];
-        foreach ($this->getFields() as $index => $name) {
-            $map[$name] = array_key_exists($index, $tuple) ? $tuple[$index] : null;
-        }
-        return $map;
-    }
-
-    public function getMapper(): Mapper
-    {
-        return $this->mapper;
-    }
-
-    public function getMeta(): array
-    {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'engine' => $this->engine,
-            'format' => $this->format,
-            'indexes' => $this->getIndexes(),
-        ];
+        return $values;
     }
 
     public function getName(): string
@@ -254,146 +260,118 @@ class Space
         return $this->name;
     }
 
-    public function getProperties(): array
-    {
-        if (!count($this->properties)) {
-            foreach ($this->format as $row) {
-                $property = Property::fromConfiguration($row);
-                $this->properties[$property->name] = $property;
-            }
-        }
-        return $this->properties;
-    }
-
-    public function getProperty(string $name, bool $required = true): ?Property
-    {
-        if (array_key_exists($name, $this->getProperties())) {
-            return $this->getProperties()[$name];
-        }
-
-        if ($required) {
-            throw new Exception("No property $name found in space $this->name");
-        }
-
-        return null;
-    }
-
-    public function getPropertyIndex(string $name): int
-    {
-        $index = array_search($name, $this->getFields());
-
-        if ($index === false) {
-            throw new Exception("No property $name found in space $this->name");
-        }
-
-        return $index;
-    }
-
-    public function getRepository(): Repository
-    {
-        $class = Repository::class;
-        foreach ($this->mapper->getPlugins() as $plugin) {
-            $repositoryClass = $plugin->getRepositoryClass($this);
-            if ($repositoryClass) {
-                if ($class !== Repository::class && !is_subclass_of($class, Repository::class)) {
-                    throw new Exception('Repository class override');
-                }
-                $class = $repositoryClass;
-            }
-        }
-        return $this->repository ?: $this->repository = new $class($this);
-    }
-
-    public function getTuple(array $array): array
+    public function getTuple($data)
     {
         $tuple = [];
-        $schema = $this->getMapper()->getSchema();
-        foreach ($this->getFields() as $i => $field) {
-            $property = $this->getProperty($field);
+        foreach ($this->format as $field) {
             $value = null;
-            if (array_key_exists($field, $array)) {
-                $value = Converter::formatValue($property->type, $array[$field]);
+            if (is_array($data) && array_key_exists($field['name'], $data)) {
+                $value = $data[$field['name']];
+            } elseif (!is_array($data) && property_exists($data, $field['name'])) {
+                $value = $data->{$field['name']};
+            } elseif (array_key_exists('default', $field)) {
+                $value = $field['default'];
+            } elseif (array_key_exists('is_nullable', $field) && $field['is_nullable']) {
+                $tuple[] = $value;
+                continue;
+            } else {
+                $value = $this->mapper->converter->getDefaultValue($field['type']);
             }
-
-            if ($value === null && !$property->isNullable) {
-                $value = Converter::getDefaultValue($property->type);
-            }
-
-            $tuple[$i] = $value;
+            $tuple[] = $this->mapper->converter->formatValue($field['type'], $value);
         }
         return $tuple;
     }
 
-    public function getTupleMap()
+    public function migrate()
     {
-        if ($this->tupleMap === null) {
-            $this->tupleMap = (object) [];
-            foreach ($this->getFields() as $i => $field) {
-                $this->tupleMap->$field = $i + 1;
+        if (!$this->class) {
+            return;
+        }
+
+        $reflection = new ReflectionClass($this->class);
+        $constructor = $reflection->getConstructor();
+        $source = $this->constructor ? $constructor->getParameters() : $reflection->getProperties();
+
+        foreach ($source as $property) {
+            $tarantoolType = match ((string) $property->getType()) {
+                'bool' => 'boolean',
+                'float' => 'number',
+                'int' => 'unsigned',
+                'mixed' => '*',
+                'array' => '*',
+                default => 'string',
+            };
+            $opts = [];
+
+            if (method_exists($property, 'hasDefaultValue') && $property->hasDefaultValue()) {
+                $opts['default'] = $property->getDefaultValue();
+            }
+
+            if (method_exists($property, 'isDefaultValueAvailable') && $property->isDefaultValueAvailable()) {
+                $opts['default'] = $property->getDefaultValue();
+            }
+
+            $this->addProperty($property->getName(), $tarantoolType, $opts);
+        }
+        $init = $reflection->getMethod('initSchema');
+
+        if ($init && $init->isStatic()) {
+            $init->invoke(null, $this);
+        }
+    }
+
+    public function setClass(string $class)
+    {
+        $reflection = new ReflectionClass($class);
+        $this->class = $class;
+        $this->constructor = $reflection->getConstructor();
+    }
+
+    public function setFormat(array $format)
+    {
+        $this->fields = [];
+        $this->format = $format;
+        foreach ($format as $field) {
+            $this->fields[] = $field['name'];
+        }
+    }
+
+    public function setIndexes(array $indexes)
+    {
+        foreach ($indexes as $n => $index) {
+            $indexes[$n]['fields'] = [];
+            foreach ($index['parts'] as $part) {
+                $indexes[$n]['fields'][] = $this->fields[$part[0]];
             }
         }
-
-        return $this->tupleMap;
+        $this->indexes = $indexes;
     }
 
-    public function hasProperty(string $name): bool
+    public function update($instance, Operations|array $operations)
     {
-        return array_key_exists($name, $this->getProperties());
-    }
-
-    public function isSystem(): bool
-    {
-        return $this->id < 512;
-    }
-
-    public function removeIndex(string $name): self
-    {
-        foreach ($this->getIndexes() as $i => $index) {
-            if ($index->name == $name) {
-                $this->mapper->getClient()->call("box.space.$this->name.index.$name:drop");
-                unset($this->indexes[$i]);
-                $this->indexes = array_values($this->indexes);
-                return $this;
+        if (is_array($operations)) {
+            $data = $operations;
+            $operations = null;
+            foreach ($data as $k => $v) {
+                if ($operations == null) {
+                    $operations = Operations::set($k, $v);
+                } else {
+                    $operations = $operations->andSet($k, $v);
+                }
             }
         }
-
-        throw new Exception("Index $name not found");
-    }
-
-    public function removeProperty(string $name): self
-    {
-        $fields = $this->getFields();
-        if (!count($fields)) {
-            return $this->getProperty($name);
+        [$tuple] = $this->mapper->client->getSpace($this->name)->update(
+            $this->getKey($instance),
+            $operations,
+        );
+        $data = $this->getInstance($tuple);
+        if (is_array($instance)) {
+            return $data;
         }
-
-        if (array_reverse($fields)[0] !== $name) {
-            throw new Exception("Remove only last property");
+        foreach ($operations->toArray() as $operation) {
+            $field = $operation[1];
+            $instance->$field = $data->$field;
         }
-
-        array_pop($this->properties);
-
-        return $this->updateFormat();
-    }
-
-    public function repositoryExists(): bool
-    {
-        return !!$this->repository;
-    }
-
-    public function setPropertyNullable(string $name, bool $nullable = true): self
-    {
-        $this->getProperty($name)->isNullable = $nullable;
-        $this->updateFormat();
-
-        return $this;
-    }
-
-    public function updateFormat(): self
-    {
-        $this->format = array_map(fn($property) => $property->getConfiguration(), array_values($this->getProperties()));
-        $this->mapper->getClient()->call("box.space.$this->name:format", $this->format);
-
-        return $this;
+        return $instance;
     }
 }
