@@ -154,7 +154,7 @@ var_dump($policy->counter); // actual value
 
 ## Schema Cache
 Any new mapper instance will fetch schema from the tarantool, this requests can takes a bit of database load.\
-Use your favorite psr/cache implementation to persist schema on the application side.\
+Use your favorite `psr/cache` implementation to persist schema on the application side.\
 For example, we use apcu adapter from `symfony/cache` package.\
 If new schema version is not persisted in cache, mapper will fetch it
 ```php
