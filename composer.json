@@ -7,12 +7,12 @@
     "require": {
         "php": ">=8.0",
         "tarantool/client": ">=0.10.0",
-        "psr/cache": "^3.0"
+        "psr/cache": "^2.0"
     },
     "require-dev": {
-        "monolog/monolog": "^3.6",
+        "monolog/monolog": "^2.9.3",
         "phpunit/phpunit": "^9.5",
-        "symfony/cache": "^7.0"
+        "symfony/cache": "^5.4.38"
     },
     "autoload": {
         "psr-4": {
