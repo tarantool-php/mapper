@@ -11,6 +11,7 @@ use Tarantool\Client\Request\InsertRequest;
 use Tarantool\Client\Response;
 use Tarantool\Client\Schema\Criteria;
 use Tarantool\Client\Schema\Operations;
+use ValueError;
 
 class Space
 {
@@ -233,7 +234,15 @@ class Space
             return $instance;
         }
 
-        return array_combine($this->fields, $tuple);
+        try {
+            return array_combine($this->fields, $tuple);
+        } catch (ValueError $_) {
+            $instance = [];
+            foreach ($this->fields as $n => $field) {
+                $instance[$field] = array_key_exists($n, $tuple) ? $tuple[$n] : null;
+            }
+            return $instance;
+        }
     }
 
     public function getKey($query, ?array $index = null): array
