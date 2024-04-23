@@ -236,7 +236,7 @@ class Space
 
         try {
             return array_combine($this->fields, $tuple);
-        } catch (ValueError $_) {
+        } catch (ValueError) {
             $instance = [];
             foreach ($this->fields as $n => $field) {
                 $instance[$field] = array_key_exists($n, $tuple) ? $tuple[$n] : null;
