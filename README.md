@@ -241,7 +241,7 @@ $mapper->call('return a + b', ['a' => 2, 'b' => 7]); // 9
 
 ## Performance
 We can calculate mapper overhead using getInstance method that is called per each instance.\
-In addition there is single schema fetch on connection and when schema is upgraded.\
+If you don't use cache, there is single schema fetch on connection and each time schema is upgraded.\
 Perfomance test was made on (AMD Ryzen 5 3600X), Ubuntu 23.10  using PHP 8.3.6
 
 | Instance type | Instances per second |
