@@ -6,7 +6,7 @@ jobs:
     strategy:
       matrix:
         php: ["8.0", "8.3"]
-        tarantool: ["1.10", "2.11", "3.0", "3.1"]
+        tarantool: ["2.11", "3.0", "3.1"]
     steps:
       - uses: actions/checkout@v2
       - uses: php-actions/composer@v6

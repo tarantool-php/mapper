@@ -15,6 +15,7 @@
 - [Performance](#performance)
 
 ## Getting started
+Supported versions are php 8+ and tarantool 2+.\
 The recommended way to install the library is through [Composer](http://getcomposer.org):
 ```bash
 composer require tarantool/mapper
