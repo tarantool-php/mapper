@@ -23,6 +23,7 @@ class Space
     private array $indexes = [];
 
     private ?string $class = null;
+    private ?string $init = null;
     private ?ReflectionMethod $constructor = null;
 
     public function __construct(public readonly Mapper $mapper, array $meta = [])
@@ -322,17 +323,18 @@ class Space
 
             $this->addProperty($property->getName(), $tarantoolType, $opts);
         }
-        $init = $reflection->getMethod('initSchema');
+        $init = $reflection->getMethod($this->init);
 
         if ($init && $init->isStatic()) {
             $init->invoke(null, $this);
         }
     }
 
-    public function setClass(string $class)
+    public function setClass(string $class, string $init = 'initSchema')
     {
         $reflection = new ReflectionClass($class);
         $this->class = $class;
+        $this->init = $init;
         $this->constructor = $reflection->getConstructor();
     }
 

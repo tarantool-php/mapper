@@ -94,14 +94,14 @@ class Policy
     ) {
     }
 
-    public static function initSchema(\Tarantool\Mapper\Space $space)
+    public static function initialize(\Tarantool\Mapper\Space $space)
     {
         $space->addIndex(['nick'], ['unique' => true]);
     }
 }
 
 $policy = $mapper->createSpace('policy');
-$policy->setClass(Policy::class);
+$policy->setClass(Policy::class, 'initialize'); // use custom initialize method
 $policy->migrate();
 ```
 
