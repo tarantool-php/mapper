@@ -82,7 +82,7 @@ class MapperTest extends TestCase
         $mapper = $this->createMapper();
 
         foreach ($mapper->find('_vspace') as $space) {
-            if ($space['id'] > 512) {
+            if ($space['id'] >= 512) {
                 $mapper->getSpace($space['id'])->drop();
             }
         }
