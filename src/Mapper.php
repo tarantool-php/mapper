@@ -21,10 +21,11 @@ class Mapper extends Api
     public readonly Client $client;
     public readonly Converter $converter;
     public readonly Middleware $middleware;
-    public ?CacheItemPoolInterface $cache = null;
 
-    public function __construct(Client $client)
-    {
+    public function __construct(
+        Client $client,
+        public ?CacheItemPoolInterface $cache = null,
+    ) {
         $this->middleware = new Middleware($this);
         $this->client = $client->withMiddleware($this->middleware);
         $this->converter = new Converter();
