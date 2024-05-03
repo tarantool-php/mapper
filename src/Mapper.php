@@ -12,8 +12,6 @@ use Tarantool\Client\Schema\Space as ClientSpace;
 
 class Mapper extends Api
 {
-    public bool $spy = false;
-
     private array $spaceId = [];
     private array $spaces = [];
     private int $schemaId = 0;
@@ -25,6 +23,7 @@ class Mapper extends Api
     public function __construct(
         Client $client,
         public ?CacheItemPoolInterface $cache = null,
+        public bool $spy = false,
     ) {
         $this->middleware = new Middleware($this);
         $this->client = $client->withMiddleware($this->middleware);
