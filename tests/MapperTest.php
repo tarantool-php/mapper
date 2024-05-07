@@ -51,11 +51,6 @@ class MapperTest extends TestCase
         $this->assertCount($freshCounter - 4, $this->middleware->data);
     }
 
-    // public function testSpaceGetFormat()
-    // {
-
-    // }
-
     public function testDifferentIndexPartConfiguration()
     {
         $mapper = $this->createMapper();
