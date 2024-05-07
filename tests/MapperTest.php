@@ -7,9 +7,11 @@ namespace Tarantool\Mapper\Tests;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use Tarantool\Client\Client;
 use Tarantool\Mapper\Mapper;
 use Tarantool\Mapper\Pool;
+use Tarantool\Mapper\Space;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 class MapperTest extends TestCase
@@ -47,6 +49,53 @@ class MapperTest extends TestCase
         // - schema id 0 space + index
         // - schema id N space + index
         $this->assertCount($freshCounter - 4, $this->middleware->data);
+    }
+
+    // public function testSpaceGetFormat()
+    // {
+
+    // }
+
+    public function testDifferentIndexPartConfiguration()
+    {
+        $mapper = $this->createMapper();
+        foreach ($mapper->find('_vspace') as $space) {
+            if ($space['id'] >= 512) {
+                $mapper->getSpace($space['id'])->drop();
+            }
+        }
+
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('id', 'unsigned');
+        $tester->addProperty('name', 'string');
+
+        $tester->addIndex(['name'], ['name'=>'first']);
+
+        $mapper->client->call("box.space.tester:create_index", 'second', [
+            'parts' => ['name']
+        ]);
+
+        $indexSpace = $mapper->getSpace('_index');
+
+        $third = [
+            'id' => $tester->getId(),
+            'iid' => count($mapper->find('_vindex', ['id' => $tester->getId()])) + 1,
+            'name' => 'third',
+            'opts' => ['unique' => false],
+            'type' => 'tree',
+            'parts' => [
+                ['field'=> 1, 'type' => 'str']
+            ]
+        ];
+
+        $mapper->client->call("box.space._index:insert", $indexSpace->getTuple($third));
+
+        $property = new ReflectionProperty(Space::class, 'indexes');
+        $property->setAccessible(true);
+        $indexes = $property->getValue($tester);
+
+        $this->assertSame($indexes[1]['fields'], $indexes[2]['fields']);
+        $this->assertSame($indexes[1]['fields'], $indexes[3]['fields']);
     }
 
     public function testLua()
