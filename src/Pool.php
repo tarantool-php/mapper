@@ -15,6 +15,13 @@ class Pool extends Api
     ) {
     }
 
+    public function flushChanges(): void
+    {
+        foreach ($this->mappers as $mapper) {
+            $mapper->flushChanges();
+        }
+    }
+
     public function getChanges(): array
     {
         $changes = [];
