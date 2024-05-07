@@ -352,7 +352,7 @@ class Space
         foreach ($indexes as $n => $index) {
             $indexes[$n]['fields'] = [];
             foreach ($index['parts'] as $part) {
-                if (array_key_exists('field', $part)){
+                if (array_key_exists('field', $part)) {
                     $indexes[$n]['fields'][] = $this->fields[$part['field']];
                 } else {
                     $indexes[$n]['fields'][] = $this->fields[$part[0]];
