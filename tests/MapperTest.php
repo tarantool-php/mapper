@@ -140,6 +140,7 @@ class MapperTest extends TestCase
             $space = $mapper->createSpace($name);
             $space->setClass($type);
             $space->migrate();
+            $space->migrate();
 
             $this->assertSame($space, $mapper->createSpace($name, ['if_not_exists' => true]));
             $this->assertSame($space, $mapper->getSpace($space->getId()));

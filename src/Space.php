@@ -303,6 +303,9 @@ class Space
         $source = $this->constructor ? $constructor->getParameters() : $reflection->getProperties();
 
         foreach ($source as $property) {
+            if (in_array($property->getName(), $this->fields)) {
+                continue;
+            }
             $tarantoolType = match ((string) $property->getType()) {
                 'bool' => 'boolean',
                 'float' => 'number',
