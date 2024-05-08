@@ -235,6 +235,11 @@ class MapperTest extends TestCase
                 }
             }
             $mapper->flushChanges();
+            $instance = $mapper->create($nick, ['nick' => 'mapper.delete']);
+            $this->assertCount(1, $mapper->getChanges());
+            $this->assertCount(1, $mapper->getChanges(), 'changes keep untill flush');
+            $mapper->delete($nick, $instance);
+            $this->assertCount(0, $mapper->getChanges(), 'insert and delete merges into nothing');
         }
 
         $pool = new Pool(function () use ($mapper) {

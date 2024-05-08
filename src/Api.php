@@ -16,6 +16,11 @@ abstract class Api
         return $this->getSpace($space)->create($data);
     }
 
+    public function delete(string $space, $instance)
+    {
+        $this->getSpace($space)->delete($instance);
+    }
+
     public function find(string $space, Criteria|array|null $query = null): array
     {
         return $this->getSpace($space)->find($query);
