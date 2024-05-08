@@ -35,13 +35,19 @@ class Pool extends Api
         return $changes;
     }
 
+    public function getMapper(string $name): Mapper
+    {
+        if (!array_key_exists($name, $this->mappers)) {
+            $callback = $this->callback;
+            $this->mappers[$name] = $callback($name);
+        }
+
+        return $this->mappers[$name];
+    }
+
     public function getSpace(string $name): Space
     {
         [$mapper, $space] = explode('.', $name);
-        if (!array_key_exists($mapper, $this->mappers)) {
-            $callback = $this->callback;
-            $this->mappers[$mapper] = $callback($mapper);
-        }
-        return $this->mappers[$mapper]->getSpace($space);
+        return $this->getMapper($mapper)->getSpace($space);
     }
 }
