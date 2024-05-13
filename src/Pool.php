@@ -6,8 +6,10 @@ namespace Tarantool\Mapper;
 
 use Closure;
 
-class Pool extends Api
+class Pool
 {
+    use Api;
+
     private array $mappers = [];
 
     public function __construct(

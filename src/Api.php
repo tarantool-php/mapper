@@ -7,7 +7,7 @@ namespace Tarantool\Mapper;
 use Tarantool\Client\Schema\Criteria;
 use Tarantool\Client\Schema\Operations;
 
-abstract class Api
+trait Api
 {
     abstract public function getSpace(string $name): Space;
 

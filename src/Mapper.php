@@ -10,8 +10,10 @@ use Tarantool\Client\Exception\RequestFailed;
 use Tarantool\Client\Schema\Criteria;
 use Tarantool\Client\Schema\Space as ClientSpace;
 
-class Mapper extends Api
+class Mapper
 {
+    use Api;
+
     private array $spaceId = [];
     private array $spaces = [];
     private int $schemaId = 0;
