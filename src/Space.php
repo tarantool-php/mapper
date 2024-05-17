@@ -72,7 +72,9 @@ class Space
             $this->addIndex($this->fields, [
                 'unique' => true,
             ]);
-            $this->mapper->client->call('box.schema.sequence.create', $this->name);
+            if ($this->fields[0] == 'id') {
+                $this->mapper->client->call('box.schema.sequence.create', $this->name);
+            }
         }
     }
 
@@ -95,7 +97,7 @@ class Space
 
     public function create(array $data)
     {
-        if (!array_key_exists('id', $data)) {
+        if (!array_key_exists('id', $data) && $this->fields[0] == 'id') {
             [$data['id']] = $this->mapper->client->call("box.sequence.$this->name:next");
         }
         [$tuple] = $this->mapper->client->getSpace($this->name)->insert($this->getTuple($data));
@@ -113,7 +115,11 @@ class Space
             throw new Exception("use delete instead of drop");
         }
         $this->mapper->client->call("box.space.$this->name:drop");
-        $this->mapper->client->call("box.sequence.$this->name:drop");
+
+        try {
+            $this->mapper->client->call("box.sequence.$this->name:drop");
+        } catch (\Exception) {
+        }
     }
 
     public function find(Criteria|array|null $criteria = null, ?int $limit = null): array
@@ -168,8 +174,8 @@ class Space
             if #tuples > 0 then
                 return true, tuples[1]
             end
-            if tuple[1] == 0 then
-                tuple[1] = box.sequence[space]:next()
+            if tuple[id_key] == 0 and box.sequence[space] then
+                tuple[id_key] = box.sequence[space]:next()
             end
             return false, box.space[space]:insert(tuple)
             LUA,
@@ -178,6 +184,7 @@ class Space
                 'index' => $index['iid'],
                 'select' => $select,
                 'tuple' => $this->getTuple($data),
+                'id_key' => array_search('id', $this->fields) + 1
             ]
         );
         if (!$present) {
