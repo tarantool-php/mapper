@@ -121,6 +121,7 @@ class MapperTest extends TestCase
         $tester->create($testRow);
         $result = $mapper->client->evaluate("return box.space.tester:select()")[0][0];
         $this->assertSame(array_values($testRow), array_values($result));
+        $this->assertNull($mapper->client->evaluate('return box.sequence.tester')[0]);
 
         $tester->drop();
 
