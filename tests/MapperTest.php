@@ -64,7 +64,7 @@ class MapperTest extends TestCase
         $tester->addProperty('id', 'unsigned');
         $tester->addProperty('name', 'string');
 
-        $tester->addIndex(['name'], ['name'=>'first']);
+        $tester->addIndex(['name'], ['name' => 'first']);
 
         $mapper->client->call("box.space.tester:create_index", 'second', [
             'parts' => ['name']
@@ -79,7 +79,7 @@ class MapperTest extends TestCase
             'opts' => ['unique' => false],
             'type' => 'tree',
             'parts' => [
-                ['field'=> 1, 'type' => 'str']
+                ['field' => 1, 'type' => 'str']
             ]
         ];
 
@@ -91,6 +91,116 @@ class MapperTest extends TestCase
 
         $this->assertSame($indexes[1]['fields'], $indexes[2]['fields']);
         $this->assertSame($indexes[1]['fields'], $indexes[3]['fields']);
+    }
+
+    public function testCreateRow()
+    {
+        $mapper = $this->createMapper();
+        foreach ($mapper->find('_vspace') as $space) {
+            if ($space['id'] >= 512) {
+                $mapper->getSpace($space['id'])->drop();
+            }
+        }
+
+        // No 'id' field, sequence isn't created
+        $tester = $mapper->createSpace('tester');
+        $format = [
+            [
+                'name' => 'key',
+                'type' => 'string'
+            ],[
+                'name' => 'value',
+                'type' => 'string'
+            ]
+        ];
+        $tester->setFormat($format);
+        $fields = $tester->getFields();
+        $mapper->client->call("box.space.tester:format", $format);
+        $tester->addIndex(['key'], ['name' => 'first']);
+        $testRow = ['key' => 'green', 'value' => 'apple'];
+        $tester->create($testRow);
+        $result = $mapper->client->evaluate("return box.space.tester:select()")[0][0];
+        $this->assertSame(array_values($testRow), array_values($result));
+
+        $tester->drop();
+
+        // There is 'id' field and it is first, sequense is created
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('id', 'unsigned');
+        $tester->addProperty('name', 'string');
+        $testRow = ['name' => 'Vasiliy'];
+        $testRow2 = ['name' => 'Ivan'];
+        $tester->create($testRow);
+        $tester->create($testRow2);
+        $result = $mapper->client->evaluate("return box.space.tester:select()")[0];
+        $this->assertTrue($result[1][0] == 2);
+
+        $tester->drop();
+
+        // Field 'id' isn't first, sequense isn't created
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('name', 'string');
+        $tester->addProperty('id', 'unsigned');
+        $testRow = ['name' => 'Vasiliy'];
+        $testRow2 = ['name' => 'Ivan'];
+        $tester->create($testRow);
+        $tester->create($testRow2);
+        $result = $mapper->client->evaluate("return box.space.tester:select()")[0];
+        $this->assertFalse($result[1][1] == 2);
+
+        $tester->drop();
+    }
+
+    public function testFindOrCreateRow()
+    {
+        $mapper = $this->createMapper();
+        foreach ($mapper->find('_vspace') as $space) {
+            if ($space['id'] >= 512) {
+                $mapper->getSpace($space['id'])->drop();
+            }
+        }
+
+        $tester = $mapper->createSpace('tester');
+
+        //id is not first field, sequence isn't created
+        $format = [
+            [
+                'name' => 'idle',
+                'type' => 'unsigned'
+            ],[
+                'name' => 'id',
+                'type' => 'unsigned'
+            ],[
+                'name' => 'nick',
+                'type' => 'string'
+            ]
+        ];
+        $tester->setFormat($format);
+        $mapper->client->call("box.space.tester:format", $format);
+        $tester->addIndex(['nick']);
+        $firstRow = $tester->findOrCreate(['nick' => 'Billy'], ['idle' => 0]);
+        $secondRow = $tester->findOrCreate(['nick' => 'Jimmy'], ['idle' => 0]);
+        $findRow = $tester->findOrCreate(['nick' => 'Billy']);
+        $result = $mapper->client->evaluate("return box.space.tester.index.nick:select('Jimmy')")[0];
+        $this->assertTrue($result[0][1] == 0);
+        $this->assertSame($secondRow['id'], $result[0][1]);
+        $this->assertSame($firstRow, $findRow);
+        $tester->drop();
+
+        //id is first field
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('id', 'unsigned');
+        $tester->addProperty('idle', 'unsigned');
+        $tester->addProperty('nick', 'string');
+        $tester->addIndex(['nick']);
+        $tester->findOrCreate(['nick' => 'Billy'], ['idle' => 0]);
+        $secondRow = $tester->findOrCreate(['nick' => 'Jimmy'], ['idle' => 0]);
+        $findRow = $tester->findOrCreate(['nick' => 'Jimmy']);
+        $result = $mapper->client->evaluate("return box.space.tester.index.nick:select('Jimmy')")[0];
+        $this->assertTrue($result[0][0] == 2);
+        $this->assertSame($secondRow['id'], $result[0][0]);
+        $this->assertSame($secondRow, $findRow);
+        $tester->drop();
     }
 
     public function testLua()
