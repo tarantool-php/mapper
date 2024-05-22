@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tarantool\Mapper;
 
+use Exception;
 use ReflectionClass;
 use ReflectionMethod;
 use Tarantool\Client\Keys;
