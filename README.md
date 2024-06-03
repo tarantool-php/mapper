@@ -240,6 +240,36 @@ $mapper->call('return a + b', ['a' => 2, 'b' => 7]); // 9
 $mapper->call('return a + b', ['a' => 2, 'b' => 7]); // 9
 ```
 
+## Migrations
+Use basic migration class to implement some logic before or after schema creation.\
+Pass migrations to mapper migrate method and that's all.
+```phpu
+
+use Tarantool\Mapper\Migration;
+use Tarantool\Mapper\Space;
+
+class DropLegacySpaces extends Migration
+{
+    public function beforeSchema(Mapper $mapper)
+    {
+        $mapper->call(<<<LUA
+            if box.space.legacy then
+                box.space.legacy:drop()
+                box.space.legacy_detail:drop()
+            end
+        LUA);
+    }
+}
+class InitializeData extends Migration
+{
+    public function afterSchema(Mapper $mapper)
+}
+$mapper = $container->get(Mapper::class);
+
+// also migrate accepts migration instance, or migration class arrays
+$mapper->migrate(DropLegacySpaces::class, InitializeData::class);
+``
+
 ## Performance
 We can calculate mapper overhead using getInstance method that is called per each instance.\
 If you don't use cache, there is single schema fetch on connection and each time schema is upgraded.\

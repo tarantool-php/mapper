@@ -135,6 +135,22 @@ class Mapper
         return array_key_exists($space, $this->spaceId);
     }
 
+    public function migrate(array $migrations = []): void
+    {
+        $migrations = [];
+        foreach (func_get_args() as $arg) {
+            if (!is_array($arg)) {
+                $arg = (array) $arg;
+            }
+            foreach ($arg as $instance) {
+                $migrations[] = is_string($instance) ? new $instance() : $instance;
+            }
+        }
+        array_map(fn(Migration $migration) => $migration->beforeSchema($this), $migrations);
+        array_map(fn(Space $space) => $space->migrate(), $this->getSpaces());
+        array_map(fn(Migration $migration) => $migration->afterSchema($this), $migrations);
+    }
+
     public function setSchemaId(int $schemaId)
     {
         if (!$this->schemaId || $this->schemaId !== $schemaId) {
