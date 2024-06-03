@@ -333,6 +333,9 @@ class MapperTest extends TestCase
             $instance = $mapper->findOne($nick, ['nick' => 'bazyaba']);
             $this->assertNull($instance);
 
+            $this->assertNotNull($mapper->get($nick, 1));
+            $this->assertNotNull($mapper->get($nick, 2));
+
             $space->delete($space->findOrFail(['nick' => 'tester']));
 
             $this->assertCount(2, $mapper->getChanges());

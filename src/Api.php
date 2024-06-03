@@ -41,6 +41,15 @@ trait Api
         return $this->getSpace($space)->findOrFail($query);
     }
 
+    public function get(string $space, int $id, bool $require = true)
+    {
+        if ($require) {
+            return $this->getSpace($space)->findOrFail(compact('id'));
+        }
+
+        return $this->getSpace($space)->findOne(compact('id'));
+    }
+
     public function update(string $space, $instance, Operations|array $operations)
     {
         $this->getSpace($space)->update($instance, $operations);
