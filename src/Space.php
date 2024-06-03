@@ -101,13 +101,13 @@ class Space
         if (!array_key_exists('id', $data) && $this->fields[0] == 'id') {
             [$data['id']] = $this->mapper->client->call("box.sequence.$this->name:next");
         }
-        [$tuple] = $this->mapper->client->getSpace($this->name)->insert($this->getTuple($data));
+        [$tuple] = $this->mapper->client->getSpaceById($this->id)->insert($this->getTuple($data));
         return $this->getInstance($tuple);
     }
 
     public function delete($instance)
     {
-        $this->mapper->client->getSpace($this->name)->delete($this->getKey($instance));
+        $this->mapper->client->getSpaceById($this->id)->delete($this->getKey($instance));
     }
 
     public function drop()
@@ -386,7 +386,7 @@ class Space
                 }
             }
         }
-        [$tuple] = $this->mapper->client->getSpace($this->name)->update(
+        [$tuple] = $this->mapper->client->getSpaceById($this->id)->update(
             $this->getKey($instance),
             $operations,
         );
