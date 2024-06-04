@@ -142,6 +142,7 @@ $helloWorld = $posts->update($helloWorld, [
 
 // if you use instance classes, instance would be updated
 $policy = $mapper->findOrFail('policy', ['id' => 3]);
+$policy = $mapper->get('policy', 3); // getter shortcut
 $mapper->update('policy', $policy, [
     'title' => 'updated title',
 ]);

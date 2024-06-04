@@ -244,14 +244,19 @@ class Space
         }
 
         try {
-            return array_combine($this->fields, $tuple);
+            $instance = array_combine($this->fields, $tuple);
         } catch (ValueError) {
             $instance = [];
             foreach ($this->fields as $n => $field) {
                 $instance[$field] = array_key_exists($n, $tuple) ? $tuple[$n] : null;
             }
+        }
+
+        if ($this->mapper->arrays) {
             return $instance;
         }
+
+        return (object) $instance;
     }
 
     public function getKey($query, ?array $index = null): array

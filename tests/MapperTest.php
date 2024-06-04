@@ -55,8 +55,8 @@ class MapperTest extends TestCase
     {
         $mapper = $this->createMapper();
         foreach ($mapper->find('_vspace') as $space) {
-            if ($space['id'] >= 512) {
-                $mapper->getSpace($space['id'])->drop();
+            if ($space->id >= 512) {
+                $mapper->getSpace($space->id)->drop();
             }
         }
 
@@ -97,8 +97,8 @@ class MapperTest extends TestCase
     {
         $mapper = $this->createMapper();
         foreach ($mapper->find('_vspace') as $space) {
-            if ($space['id'] >= 512) {
-                $mapper->getSpace($space['id'])->drop();
+            if ($space->id >= 512) {
+                $mapper->getSpace($space->id)->drop();
             }
         }
 
@@ -156,8 +156,8 @@ class MapperTest extends TestCase
     {
         $mapper = $this->createMapper();
         foreach ($mapper->find('_vspace') as $space) {
-            if ($space['id'] >= 512) {
-                $mapper->getSpace($space['id'])->drop();
+            if ($space->id >= 512) {
+                $mapper->getSpace($space->id)->drop();
             }
         }
 
@@ -184,8 +184,8 @@ class MapperTest extends TestCase
         $findRow = $tester->findOrCreate(['nick' => 'Billy']);
         $result = $mapper->client->evaluate("return box.space.tester.index.nick:select('Jimmy')")[0];
         $this->assertTrue($result[0][1] == 0);
-        $this->assertSame($secondRow['id'], $result[0][1]);
-        $this->assertSame($firstRow, $findRow);
+        $this->assertSame($secondRow->id, $result[0][1]);
+        $this->assertEquals($firstRow, $findRow);
         $tester->drop();
 
         //id is first field
@@ -199,8 +199,8 @@ class MapperTest extends TestCase
         $findRow = $tester->findOrCreate(['nick' => 'Jimmy']);
         $result = $mapper->client->evaluate("return box.space.tester.index.nick:select('Jimmy')")[0];
         $this->assertTrue($result[0][0] == 2);
-        $this->assertSame($secondRow['id'], $result[0][0]);
-        $this->assertSame($secondRow, $findRow);
+        $this->assertSame($secondRow->id, $result[0][0]);
+        $this->assertEquals($secondRow, $findRow);
         $tester->drop();
     }
 
@@ -208,8 +208,8 @@ class MapperTest extends TestCase
     {
         $mapper = $this->createMapper();
         foreach ($mapper->find('_vfunc') as $func) {
-            if (strpos($func['name'], 'evaluate_') === 0) {
-                $mapper->client->call('box.schema.func.drop', $func['name']);
+            if (strpos($func->name, 'evaluate_') === 0) {
+                $mapper->client->call('box.schema.func.drop', $func->name);
             }
         }
 
@@ -237,8 +237,8 @@ class MapperTest extends TestCase
         $mapper = $this->createMapper();
 
         foreach ($mapper->find('_vspace') as $space) {
-            if ($space['id'] >= 512) {
-                $mapper->getSpace($space['id'])->drop();
+            if ($space->id >= 512) {
+                $mapper->getSpace($space->id)->drop();
             }
         }
 
@@ -263,10 +263,17 @@ class MapperTest extends TestCase
         $space->addProperty('name', 'string');
         $space->addProperty('nick', 'string', ['default' => 'nick']);
 
+        $space = $mapper->createSpace('object');
+        $space->addProperty('id', 'unsigned');
+        $space->addProperty('name', 'string');
+        $space->addProperty('nick', 'string', ['default' => 'nick']);
+
         $todo = array_keys($userTypes);
         $todo[] = 'array';
+        $todo[] = 'object';
 
         foreach ($todo as $nick) {
+            $mapper->arrays = $nick == 'array';
             $space = $mapper->getSpace($nick);
             $this->assertSame($space->getFields(), ['id', 'name', 'nick']);
             $this->assertEquals($space->getFieldFormat('id'), [

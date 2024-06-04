@@ -26,6 +26,7 @@ class Mapper
         Client $client,
         public ?CacheItemPoolInterface $cache = null,
         public bool $spy = false,
+        public bool $arrays = false,
     ) {
         $this->middleware = new Middleware($this);
         $this->client = $client->withMiddleware($this->middleware);
