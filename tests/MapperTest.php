@@ -233,7 +233,7 @@ class MapperTest extends TestCase
         $this->assertTrue($result[0][0] == 2);
         $this->assertSame($secondRow->id, $result[0][0]);
         $this->assertEquals($secondRow, $findRow);
-        
+        $tester->drop();
     }
 
     public function testLua()
