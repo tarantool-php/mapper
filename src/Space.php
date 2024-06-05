@@ -95,8 +95,9 @@ class Space
 
         foreach ($this->indexes as $index) {
             $check = false;
+            $partialIndexFields = array_slice($index['fields'], 0, count($fields));
             foreach ($fields as $field) {
-                if (in_array($field, array_slice($index['fields'], 0, count($fields)))) {
+                if (in_array($field, $partialIndexFields)) {
                     $check = true;
                 } else {
                     $check = false;
