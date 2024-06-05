@@ -152,6 +152,38 @@ class MapperTest extends TestCase
         $tester->drop();
     }
 
+    public function testIndexCasting()
+    {
+        $mapper = $this->createMapper();
+
+        $mapper->arrays = true;
+
+        foreach ($mapper->find('_vspace') as $space) {
+            if ($space['id'] >= 512) {
+                $mapper->getSpace($space['id'])->drop();
+            }
+        }
+
+        $tester = $mapper->createSpace('tester');
+
+        $tester->addProperty('id', 'unsigned');
+        $tester->addProperty('name', 'string');
+        $tester->addProperty('nick', 'string');
+        $tester->addProperty('age', 'unsigned');
+        $tester->addIndex(['name', 'nick', 'age']);
+
+        $testRow = ['id' => 1, 'name' => 'Vladimir', 'nick' => 'vovan1', 'age' => 20];
+        $tester->create($testRow);
+
+        $row1 = $mapper->find('tester', ['name' => 'Vladimir', 'nick' => 'vovan1']);
+        $row2 = $mapper->find('tester', ['nick' => 'vovan1', 'name' => 'Vladimir']);
+        $row3 = $mapper->find('tester', ['name' => 'Vladimir', 'age' => 20, 'nick' => 'vovan1']);
+
+        $this->assertSame($row1, $row2);
+        $this->assertSame($row1, $row3);
+        $tester->drop();
+    }
+
     public function testFindOrCreateRow()
     {
         $mapper = $this->createMapper();
@@ -201,7 +233,7 @@ class MapperTest extends TestCase
         $this->assertTrue($result[0][0] == 2);
         $this->assertSame($secondRow->id, $result[0][0]);
         $this->assertEquals($secondRow, $findRow);
-        $tester->drop();
+        
     }
 
     public function testLua()

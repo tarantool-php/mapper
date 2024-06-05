@@ -93,6 +93,21 @@ class Space
             }
         }
 
+        foreach ($this->indexes as $index) {
+            $check = false;
+            foreach ($fields as $field) {
+                if (in_array($field, array_slice($index['fields'], 0, count($fields)))) {
+                    $check = true;
+                } else {
+                    $check = false;
+                    break;
+                }
+            }
+            if ($check) {
+                return $index;
+            }
+        }
+
         throw new Exception("Index casting failure");
     }
 
