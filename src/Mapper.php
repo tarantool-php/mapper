@@ -44,6 +44,17 @@ class Mapper
         return $this->getSpace($space);
     }
 
+    public function dropUserSpaces(): static
+    {
+        foreach ($this->find('_vspace') as $space) {
+            $id = $this->arrays ? $space['id'] : $space->id;
+            if ($id >= 512) {
+                $this->getSpace($id)->drop();
+            }
+        }
+        return $this;
+    }
+
     public function evaluate(string $query, array $params = [], bool $createFunction = false)
     {
         if (!count($params)) {

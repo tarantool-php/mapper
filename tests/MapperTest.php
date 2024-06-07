@@ -17,32 +17,40 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 class MapperTest extends TestCase
 {
     private Middleware $middleware;
-    public function createMapper(): Mapper
-    {
+
+    public function createMapper(
+        bool $arrays = false,
+        bool $dropUserSpaces = true,
+    ): Mapper {
         $host = getenv('TARANTOOL_HOST');
         $port = getenv('TARANTOOL_PORT') ?: 3301;
         $this->middleware = new Middleware();
         $client = Client::fromDsn("tcp://$host:$port")->withMiddleware($this->middleware);
 
-        $mapper = new Mapper($client);
-        $mapper->spy = true;
+        $mapper = new Mapper($client, arrays: $arrays, spy: true);
+        if ($dropUserSpaces) {
+            $mapper->dropUserSpaces();
+        }
+
         return $mapper;
     }
 
     public function testCache()
     {
-        $mapper = $this->createMapper();
+        $mapper = $this->createMapper(dropUserSpaces: false);
         $cache = new ArrayAdapter();
         $mapper->cache = $cache;
         $this->assertCount(0, $cache->getvalues());
+        $mapper->dropUserSpaces();
         $mapper->find('_vspace');
 
         $this->assertNotCount(0, $cache->getvalues());
 
         $freshCounter = count($this->middleware->data);
 
-        $mapper = $this->createMapper();
+        $mapper = $this->createMapper(dropUserSpaces: false);
         $mapper->cache = $cache;
+        $mapper->dropUserSpaces();
         $mapper->find('_vspace');
 
         // 4 requests:
@@ -54,11 +62,6 @@ class MapperTest extends TestCase
     public function testDifferentIndexPartConfiguration()
     {
         $mapper = $this->createMapper();
-        foreach ($mapper->find('_vspace') as $space) {
-            if ($space->id >= 512) {
-                $mapper->getSpace($space->id)->drop();
-            }
-        }
 
         $tester = $mapper->createSpace('tester');
         $tester->addProperty('id', 'unsigned');
@@ -96,11 +99,6 @@ class MapperTest extends TestCase
     public function testCreateRow()
     {
         $mapper = $this->createMapper();
-        foreach ($mapper->find('_vspace') as $space) {
-            if ($space->id >= 512) {
-                $mapper->getSpace($space->id)->drop();
-            }
-        }
 
         // No 'id' field, sequence isn't created
         $tester = $mapper->createSpace('tester');
@@ -154,16 +152,7 @@ class MapperTest extends TestCase
 
     public function testIndexCasting()
     {
-        $mapper = $this->createMapper();
-
-        $mapper->arrays = true;
-
-        foreach ($mapper->find('_vspace') as $space) {
-            if ($space['id'] >= 512) {
-                $mapper->getSpace($space['id'])->drop();
-            }
-        }
-
+        $mapper = $this->createMapper(arrays: true);
         $tester = $mapper->createSpace('tester');
 
         $tester->addProperty('id', 'unsigned');
@@ -187,12 +176,6 @@ class MapperTest extends TestCase
     public function testFindOrCreateRow()
     {
         $mapper = $this->createMapper();
-        foreach ($mapper->find('_vspace') as $space) {
-            if ($space->id >= 512) {
-                $mapper->getSpace($space->id)->drop();
-            }
-        }
-
         $tester = $mapper->createSpace('tester');
 
         //id is not first field, sequence isn't created
@@ -268,11 +251,6 @@ class MapperTest extends TestCase
         echo PHP_EOL;
         $mapper = $this->createMapper();
 
-        foreach ($mapper->find('_vspace') as $space) {
-            if ($space->id >= 512) {
-                $mapper->getSpace($space->id)->drop();
-            }
-        }
 
         $userTypes = [
             'constructor' => TypedConstructor::class,
