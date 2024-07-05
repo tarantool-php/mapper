@@ -123,6 +123,28 @@ class MapperTest extends TestCase
 
         $tester->drop();
 
+        // 'id' field present, but sequence isn't created
+        $tester = $mapper->createSpace('tester');
+        $format = [
+            [
+                'name' => 'id',
+                'type' => 'unsigned'
+            ],[
+                'name' => 'value',
+                'type' => 'string'
+            ]
+        ];
+        $tester->setFormat($format);
+        $mapper->client->call("box.space.tester:format", $format);
+        $tester->addIndex(['id']);
+        $testRow = ['value' => 'apple'];
+        $tester->create($testRow);
+        $result = $mapper->client->evaluate("return box.space.tester:select()")[0][0];
+        $this->assertNotSame($result[0], 0);
+        $this->assertSame($testRow['value'], $result[1]);
+        $this->assertNotNull($mapper->client->evaluate('return box.sequence.tester')[0]);
+        $tester->drop();
+
         // There is 'id' field and it is first, sequense is created
         $tester = $mapper->createSpace('tester');
         $tester->addProperty('id', 'unsigned');

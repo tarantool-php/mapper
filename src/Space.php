@@ -7,6 +7,7 @@ namespace Tarantool\Mapper;
 use Exception;
 use ReflectionClass;
 use ReflectionMethod;
+use Tarantool\Client\Exception\RequestFailed;
 use Tarantool\Client\Keys;
 use Tarantool\Client\Request\InsertRequest;
 use Tarantool\Client\Response;
@@ -115,7 +116,15 @@ class Space
     public function create(array $data)
     {
         if (!array_key_exists('id', $data) && $this->fields[0] == 'id') {
-            [$data['id']] = $this->mapper->client->call("box.sequence.$this->name:next");
+            try {
+                [$data['id']] = $this->mapper->client->call("box.sequence.$this->name:next");
+            } catch (RequestFailed $e) {
+                if (str_contains($e->getMessage(), "box.sequence.$this->name:next")) {
+                    $this->mapper->client->call('box.schema.sequence.create', $this->name);
+                    return $this->create($data);
+                }
+                throw $e;
+            }
         }
         [$tuple] = $this->mapper->client->getSpaceById($this->id)->insert($this->getTuple($data));
         return $this->getInstance($tuple);
