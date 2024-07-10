@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tarantool\Mapper;
 
 use Exception;
+use Psr\Cache\CacheItemPoolInterface;
 use ReflectionClass;
 use ReflectionMethod;
 use Tarantool\Client\Exception\RequestFailed;
@@ -17,6 +18,8 @@ use ValueError;
 
 class Space
 {
+    public ?CacheItemPoolInterface $cache = null;
+
     private readonly int $id;
     private readonly string $name;
 
@@ -163,8 +166,22 @@ class Space
             $criteria = $criteria->andLimit($limit);
         }
 
+        $item = null;
+        if ($this->cache) {
+            $item = $this->cache->getItem(md5(serialize($criteria)));
+            if ($item->isHit()) {
+                return $item->get();
+            }
+        }
+
         $tuples = $this->mapper->client->getSpaceById($this->id)->select($criteria);
-        return array_map($this->getInstance(...), $tuples);
+        $result = array_map($this->getInstance(...), $tuples);
+        if ($item) {
+            $item->set($result);
+            $this->cache->save($item);
+        }
+
+        return $result;
     }
 
     public function findOne(Criteria|array|null $criteria = null)

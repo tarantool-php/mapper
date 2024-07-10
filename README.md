@@ -172,6 +172,20 @@ $mapper->cache = $cache;
 $mapper->getSpace('_vspace'); // no new requests are made
 ```
 
+## Query Cache
+If you don't want to perform select queries you can inject cache interface to space instance/\
+For example, we use apcu adapter from `symfony/cache` package.
+```php
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+
+$mapper = new Mapper(Client::fromDefaults());
+$mapper->getSpace('_vspace')->cache = new ArrayAdapter(); // feel free to set default ttl
+
+$mapper->find('_vspace'); // query is executed
+$mapper->find('_vspace'); // results are fetched from cache
+$mapper->find('_vspace'); // results are fetched from cache
+```
+
 ## Changes registration
 In some cases you want to get all changes that were made during current session.\
 By default spy configuration is set to false, this improves performance a bit.

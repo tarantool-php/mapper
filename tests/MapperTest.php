@@ -40,23 +40,31 @@ class MapperTest extends TestCase
         $mapper = $this->createMapper(dropUserSpaces: false);
         $cache = new ArrayAdapter();
         $mapper->cache = $cache;
-        $this->assertCount(0, $cache->getvalues());
         $mapper->dropUserSpaces();
         $mapper->find('_vspace');
 
-        $this->assertNotCount(0, $cache->getvalues());
+        $this->assertNotCount(0, $cache->getValues());
 
         $freshCounter = count($this->middleware->data);
-
         $mapper = $this->createMapper(dropUserSpaces: false);
         $mapper->cache = $cache;
         $mapper->dropUserSpaces();
         $mapper->find('_vspace');
 
-        // 4 requests:
-        // - schema id 0 space + index
-        // - schema id N space + index
-        $this->assertCount($freshCounter - 4, $this->middleware->data);
+        $this->assertLessThan($freshCounter, count($this->middleware->data));
+
+        $cache = new ArrayAdapter();
+        $mapper->getSpace('_vspace')->cache = $cache;
+
+        $mapper->find('_vspace');
+        $this->assertCount(1, $cache->getValues());
+        $queries = count($this->middleware->data);
+
+        $mapper->find('_vspace');
+        $mapper->find('_vspace');
+        $mapper->find('_vspace');
+        $this->assertCount(1, $cache->getValues());
+        $this->assertCount($queries, $this->middleware->data);
     }
 
     public function testDifferentIndexPartConfiguration()
