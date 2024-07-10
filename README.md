@@ -9,6 +9,7 @@
 - [Schema Management](#schema-management)
 - [Working with the data](#working-with-the-data)
 - [Schema Cache](#schema-cache)
+- [Query Cache](#query-cache)
 - [Changes registration](#changes-registration)
 - [Multiple connections](#multiple-connections)
 - [Lua code delivery](#lua-code-delivery)
