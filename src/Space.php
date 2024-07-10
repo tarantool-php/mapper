@@ -257,6 +257,11 @@ class Space
         throw new Exception("Not found");
     }
 
+    public function getClass(): ?string
+    {
+        return $this->class;
+    }
+
     public function getCriteria(Criteria|array|null $criteria = null, ?int $limit = null): Criteria
     {
         if (!$criteria) {
