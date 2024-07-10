@@ -285,7 +285,7 @@ $mapper = $container->get(Mapper::class);
 
 // also migrate accepts migration instance, or migration class arrays
 $mapper->migrate(DropLegacySpaces::class, InitializeData::class);
-``
+```
 
 ## Performance
 We can calculate mapper overhead using getInstance method that is called per each instance.\
