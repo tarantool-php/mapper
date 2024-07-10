@@ -65,6 +65,17 @@ class MapperTest extends TestCase
         $mapper->find('_vspace');
         $this->assertCount(1, $cache->getValues());
         $this->assertCount($queries, $this->middleware->data);
+
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('id', 'unsigned');
+        $tester->cache = new ArrayAdapter();
+        $mapper->findOrCreate('tester', []); // created
+        $queries = count($this->middleware->data);
+        $mapper->findOrCreate('tester', []);
+        $mapper->findOrCreate('tester', []);
+        $mapper->findOrCreate('tester', []);
+        $mapper->findOrCreate('tester', []);
+        $this->assertCount($queries, $this->middleware->data);
     }
 
     public function testDifferentIndexPartConfiguration()

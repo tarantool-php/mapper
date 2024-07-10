@@ -153,18 +153,7 @@ class Space
 
     public function find(Criteria|array|null $criteria = null, ?int $limit = null): array
     {
-        if (!$criteria) {
-            $criteria = Criteria::allIterator();
-        } elseif (is_array($criteria)) {
-            $index = $this->castIndex(array_keys($criteria));
-            $criteria = Criteria::eqIterator()
-                ->andIndex($index['iid'])
-                ->andKey($this->getKey($criteria, $index));
-        }
-
-        if ($limit) {
-            $criteria = $criteria->andLimit($limit);
-        }
+        $criteria = $this->getCriteria($criteria, $limit);
 
         $item = null;
         if ($this->cache) {
@@ -195,6 +184,15 @@ class Space
 
     public function findOrCreate(array $query, ?array $data = null)
     {
+        if ($this->cache) {
+            $instance = $this->findOne($query);
+            if ($instance) {
+                return $instance;
+            }
+            $criteria = $this->getCriteria($query, 1);
+            $this->cache->deleteItem(md5(serialize($criteria)));
+        }
+
         if ($data == null) {
             $data = $query;
         } else {
@@ -230,6 +228,7 @@ class Space
                 'id_key' => array_search('id', $this->fields) + 1
             ]
         );
+
         if (!$present) {
             $this->mapper->middleware->register(
                 new InsertRequest($this->id, $tuple),
@@ -237,7 +236,15 @@ class Space
             );
         }
 
-        return $this->getInstance($tuple);
+        $instance = $this->getInstance($tuple);
+        if ($this->cache) {
+            $criteria = $this->getCriteria($query, 1);
+            $item = $this->cache->getItem(md5(serialize($criteria)));
+            $item->set([$instance]);
+            $this->cache->save($item);
+        }
+
+        return $instance;
     }
 
     public function findOrFail(Criteria|array|null $criteria = null)
@@ -248,6 +255,24 @@ class Space
         }
 
         throw new Exception("Not found");
+    }
+
+    public function getCriteria(Criteria|array|null $criteria = null, ?int $limit = null): Criteria
+    {
+        if (!$criteria) {
+            $criteria = Criteria::allIterator();
+        } elseif (is_array($criteria)) {
+            $index = $this->castIndex(array_keys($criteria));
+            $criteria = Criteria::eqIterator()
+                ->andIndex($index['iid'])
+                ->andKey($this->getKey($criteria, $index));
+        }
+
+        if ($limit) {
+            $criteria = $criteria->andLimit($limit);
+        }
+
+        return $criteria;
     }
 
     public function getFieldFormat(string $name): array
