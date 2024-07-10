@@ -174,7 +174,7 @@ $mapper->getSpace('_vspace'); // no new requests are made
 ```
 
 ## Query Cache
-If you don't want to perform select queries you can inject cache interface to space instance.\
+If you don't want to repeat select queries you can inject cache interface implementation to space.\
 Use your favorite psr/cache implementation to persist schema on the application side.\
 For example, we use array adapter from `symfony/cache` package.
 ```php
