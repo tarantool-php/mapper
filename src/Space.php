@@ -70,6 +70,10 @@ class Space
             throw new Exception("Duplicate property $name");
         }
 
+        if (array_key_exists('default', $config) && !is_string($config['default'])) {
+            $config['default'] = (string) $config['default'];
+        }
+
         $this->format[] = $config;
         $this->mapper->client->call("box.space.$this->name:format", $this->format);
 

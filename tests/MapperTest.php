@@ -35,6 +35,15 @@ class MapperTest extends TestCase
         return $mapper;
     }
 
+    public function testDefaults()
+    {
+        $mapper = $this->createMapper();
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('id', 'unsigned');
+        $tester->addProperty('number', 'unsigned', ['default' => 0]);
+        $tester->addProperty('string', 'string', ['default' => '']);
+    }
+
     public function testCache()
     {
         $mapper = $this->createMapper(dropUserSpaces: false);
