@@ -48,12 +48,22 @@ class MapperTest extends TestCase
         $this->assertEquals($row, $mapper->findOne('constructor'));
     }
 
+    public function testIdleField()
+    {
+        $mapper = $this->createMapper();
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('name', 'string');
+        $tester->addProperty('idle', 'unsigned');
+        $this->assertCount(0, $mapper->find('_index', ['id' => $tester->getId()]));
+    }
+
     public function testUpdateStringPrimaryKey()
     {
         $mapper = $this->createMapper();
         $userdata = $mapper->createSpace('userdata');
         $userdata->addProperty('key', 'string');
         $userdata->addProperty('value', 'string');
+        $userdata->addIndex(['key']);
 
         $name = $userdata->create(['key' => 'name', 'value' => 'nekufa']);
         $mapper->update('userdata', $name, ['value' => 'Dmitry Krokhin']);
@@ -223,6 +233,8 @@ class MapperTest extends TestCase
         $tester = $mapper->createSpace('tester');
         $tester->addProperty('name', 'string');
         $tester->addProperty('id', 'unsigned');
+        $tester->addIndex(['name']);
+
         $testRow = ['name' => 'Vasiliy'];
         $testRow2 = ['name' => 'Ivan'];
         $tester->create($testRow);

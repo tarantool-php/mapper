@@ -77,7 +77,7 @@ class Space
         $this->format[] = $config;
         $this->mapper->client->call("box.space.$this->name:format", $this->format);
 
-        if (count($this->fields) == 1) {
+        if (count($this->fields) == 1 && $this->fields == ['id']) {
             $this->addIndex($this->fields, [
                 'unique' => true,
             ]);
