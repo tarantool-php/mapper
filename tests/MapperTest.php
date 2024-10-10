@@ -34,6 +34,17 @@ class MapperTest extends TestCase
 
         return $mapper;
     }
+    public function testUpdateStringPrimaryKey()
+    {
+        $mapper = $this->createMapper();
+        $userdata = $mapper->createSpace('userdata');
+        $userdata->addProperty('key', 'string');
+        $userdata->addProperty('value', 'string');
+
+        $name = $userdata->create(['key' => 'name', 'value' => 'nekufa']);
+        $mapper->update('userdata', $name, ['value' => 'Dmitry Krokhin']);
+        $this->assertSame($name->value, 'Dmitry Krokhin');
+    }
 
     public function testDefaults()
     {
