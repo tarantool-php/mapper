@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tarantool\Mapper;
 
 use Psr\Cache\CacheItemPoolInterface;
+use ReflectionClass;
 use Tarantool\Client\Client;
 use Tarantool\Client\Exception\RequestFailed;
 use Tarantool\Client\Schema\Criteria;
@@ -14,6 +15,7 @@ class Mapper
 {
     use Api;
 
+    private array $classNames = [];
     private array $spaceId = [];
     private array $spaces = [];
     private int $schemaId = 0;
@@ -40,6 +42,7 @@ class Mapper
 
     public function createSpace(string $space, array $options = []): Space
     {
+        $space = $this->getClassSpace($space);
         $this->client->evaluate('box.schema.space.create(...)', $space, $options);
         return $this->getSpace($space);
     }
@@ -128,13 +131,33 @@ class Mapper
         return $this->middleware->getChanges();
     }
 
+    public function getClassSpace(int|string $class): int|string
+    {
+        if (!is_integer($class) && class_exists($class)) {
+            if (!array_key_exists($class, $this->classNames)) {
+                $this->registerClass($class);
+            }
+            return $this->classNames[$class];
+        }
+
+        return $class;
+    }
+
     public function getSpace(int|string $id): Space
     {
         if (!count($this->spaces)) {
             $this->setSchemaId(0);
         }
 
-        return is_string($id) ? $this->getSpace($this->spaceId[$id]) : $this->spaces[$id];
+        $space = $this->getClassSpace($id);
+        if ($space !== $id) {
+            if (!$this->hasSpace($space)) {
+                $spaceInstance = $this->createSpace($space);
+                $spaceInstance->setClass($id);
+                $spaceInstance->migrate();
+            }
+        }
+        return is_string($space) ? $this->getSpace($this->spaceId[$space]) : $this->spaces[$space];
     }
 
     public function getSpaces(): array
@@ -144,7 +167,7 @@ class Mapper
 
     public function hasSpace(string $space): bool
     {
-        return array_key_exists($space, $this->spaceId);
+        return array_key_exists($this->getClassSpace($space), $this->spaceId);
     }
 
     public function migrate(array $migrations = []): void
@@ -161,6 +184,26 @@ class Mapper
         array_map(fn(Migration $migration) => $migration->beforeSchema($this), $instances);
         array_map(fn(Space $space) => $space->migrate(), $this->getSpaces());
         array_map(fn(Migration $migration) => $migration->afterSchema($this), $instances);
+    }
+
+    public function registerClass(string $class)
+    {
+        if (!array_key_exists($class, $this->classNames)) {
+            if (method_exists($class, 'getSpaceName')) {
+                $space = call_user_func([$class, 'getSpaceName']);
+            } else {
+                $space = preg_replace(
+                    ['/(?<=[^A-Z])([A-Z])/', '/(?<=[^0-9])([0-9])/'],
+                    '_$0',
+                    (new ReflectionClass($class))->getShortName(),
+                );
+                $space = strtolower($space);
+            }
+            if (array_key_exists($space, $this->spaceId)) {
+                $this->spaces[$this->spaceId[$space]]->setClass($class);
+            }
+            $this->classNames[$class] = strtolower($space);
+        }
     }
 
     public function setSchemaId(int $schemaId)
@@ -186,6 +229,10 @@ class Mapper
                     $this->spaces[$row['id']]->setFormat($row['format']);
                 }
                 $this->spaceId[$row['name']] = $row['id'];
+
+                if (array_search($row['name'], $this->classNames)) {
+                    $this->spaces[$row['id']]->setClass(array_search($row['name'], $this->classNames));
+                }
             }
 
             foreach (array_keys($this->spaces) as $id) {

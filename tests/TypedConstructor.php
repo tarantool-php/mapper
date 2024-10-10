@@ -15,6 +15,11 @@ class TypedConstructor
     ) {
     }
 
+    public static function getSpaceName(): string
+    {
+        return 'constructor';
+    }
+
     public static function initSchema(Space $space)
     {
         $space->addIndex(['name'], ['unique' => false]);

@@ -101,9 +101,30 @@ class Policy
     }
 }
 
-$policy = $mapper->createSpace('policy');
+$policy = $mapper->createSpace('policy', ['if_not_exists' => true]);
 $policy->setClass(Policy::class, 'initialize'); // use custom initialize method
 $policy->migrate();
+
+/**
+ * mapper access using class name
+ */
+class Login
+{
+    public function __construct(
+        public int $id,
+        public string $username,
+        public string $password,
+    ) {
+    }
+
+    public static function initSchema(\Tarantool\Mapper\Space $space)
+    {
+        $space->addIndex(['username'], ['unique' => true]);
+    }
+}
+
+$nekufa = $mapper->findOrCreate(Login::class, ['username' = 'nekufa']);
+$mapper->update(Login::class, $nekufa, ['password' => password_hash("secret")]);
 ```
 
 ## Working with the data

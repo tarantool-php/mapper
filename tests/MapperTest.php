@@ -35,6 +35,19 @@ class MapperTest extends TestCase
         return $mapper;
     }
 
+    public function testClassBased()
+    {
+        $mapper = $this->createMapper();
+
+        $row = $mapper->findOrCreate(TypedConstructor::class, []);
+        $this->assertEquals($row, $mapper->findOne('constructor'));
+
+        $mapper = $this->createMapper(dropUserSpaces: false);
+        $mapper->registerClass(TypedConstructor::class);
+        $this->assertInstanceOf(TypedConstructor::class, $mapper->findOne('constructor'));
+        $this->assertEquals($row, $mapper->findOne('constructor'));
+    }
+
     public function testUpdateStringPrimaryKey()
     {
         $mapper = $this->createMapper();
@@ -323,19 +336,27 @@ class MapperTest extends TestCase
 
 
         $userTypes = [
-            'constructor' => TypedConstructor::class,
-            'properties' => TypedProperties::class,
+            'constructor' => TypedConstructor::class, // static space name
+            'typed_properties' => TypedProperties::class, // class basd space name
         ];
 
         foreach ($userTypes as $name => $type) {
+            foreach ([$name, $type] as $target) {
+                $space = $mapper->createSpace($target);
+                $space->setClass($type);
+                $space->migrate();
+                $space->migrate();
+                $this->assertSame($space->getName(), $name);
+
+                $this->assertSame($space, $mapper->createSpace($target, ['if_not_exists' => true]));
+                $this->assertSame($space, $mapper->getSpace($space->getId()));
+                $this->assertCount(2, $mapper->find('_vindex', ['id' => $space->getId()]));
+                $space->drop();
+            }
+
             $space = $mapper->createSpace($name);
             $space->setClass($type);
             $space->migrate();
-            $space->migrate();
-
-            $this->assertSame($space, $mapper->createSpace($name, ['if_not_exists' => true]));
-            $this->assertSame($space, $mapper->getSpace($space->getId()));
-            $this->assertCount(2, $mapper->find('_vindex', ['id' => $space->getId()]));
         }
 
         $space = $mapper->createSpace('array');
