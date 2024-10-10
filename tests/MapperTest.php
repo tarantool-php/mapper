@@ -40,8 +40,16 @@ class MapperTest extends TestCase
         $mapper = $this->createMapper();
         $tester = $mapper->createSpace('tester');
         $tester->addProperty('id', 'unsigned');
-        $tester->addProperty('number', 'unsigned', ['default' => 0]);
-        $tester->addProperty('string', 'string', ['default' => '']);
+        $tester->addProperty('number', 'unsigned', ['default' => '1']);
+        $tester->addProperty('string', 'string', ['default' => 'zzz']);
+
+        $tester = $mapper->create('tester', []);
+        $this->assertSame($tester->number, 1);
+        $this->assertSame($tester->string, 'zzz');
+
+        $tester = $mapper->create('tester', ['number' => 2, 'string' => 'www']);
+        $this->assertSame($tester->number, 2);
+        $this->assertSame($tester->string, 'www');
     }
 
     public function testCache()
