@@ -34,6 +34,7 @@ class MapperTest extends TestCase
 
         return $mapper;
     }
+
     public function testUpdateStringPrimaryKey()
     {
         $mapper = $this->createMapper();
