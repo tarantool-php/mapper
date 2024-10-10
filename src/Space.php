@@ -460,10 +460,10 @@ class Space
             $data = $operations;
             $operations = null;
             foreach ($data as $k => $v) {
-                if ($operations == null) {
-                    $operations = Operations::set($k, $v);
-                } else {
+                if ($operations !== null) {
                     $operations = $operations->andSet($k, $v);
+                } else {
+                    $operations = Operations::set($k, $v);
                 }
             }
         }
