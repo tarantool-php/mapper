@@ -1,5 +1,5 @@
 # Tarantool Mapper
-[![License](https://poser.pugx.org/tarantool/mapper/license.png)](https://packagist.org/packages/tarantool/mapper)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Testing](https://github.com/tarantool-php/mapper/actions/workflows/tests.yml/badge.svg)](https://github.com/tarantool-php/mapper/actions/workflows/tests.yml)
 [![Latest Version](https://img.shields.io/github/release/tarantool-php/mapper.svg?style=flat-square)](https://github.com/tarantool-php/mapper/releases)
 [![Total Downloads](https://img.shields.io/packagist/dt/tarantool/mapper.svg?style=flat-square)](https://packagist.org/packages/tarantool/mapper)
