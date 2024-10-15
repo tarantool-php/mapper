@@ -133,7 +133,7 @@ class Mapper
 
     public function getClassSpace(int|string $class): int|string
     {
-        if (!is_integer($class) && class_exists($class)) {
+        if (!is_integer($class) && !ctype_lower($class) && class_exists($class)) {
             if (!array_key_exists($class, $this->classNames)) {
                 $this->registerClass($class);
             }

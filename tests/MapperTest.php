@@ -48,6 +48,18 @@ class MapperTest extends TestCase
         $this->assertEquals($row, $mapper->findOne('constructor'));
     }
 
+    public function testAttribute()
+    {
+        $mapper = $this->createMapper();
+        $attribute = $mapper->createSpace('attribute');
+        $attribute->addProperty('key', 'string');
+        $attribute->addProperty('value', 'string');
+        $attribute->addIndex(['key']);
+
+        $attribute = $mapper->findOrCreate('attribute', ['key' => 'tester']);
+        $this->assertNotNull($attribute);
+    }
+
     public function testIdleField()
     {
         $mapper = $this->createMapper();
