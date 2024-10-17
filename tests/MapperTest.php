@@ -46,6 +46,14 @@ class MapperTest extends TestCase
         $mapper->registerClass(TypedConstructor::class);
         $this->assertInstanceOf(TypedConstructor::class, $mapper->findOne('constructor'));
         $this->assertEquals($row, $mapper->findOne('constructor'));
+
+        $constructor = $mapper->findOne('constructor');
+
+        $mapper->update($constructor, ['nick' => 'space casting']);
+        $this->assertSame($constructor->nick, 'space casting');
+
+        $mapper->delete($constructor);
+        $this->assertNull($mapper->findOne('constructor'));
     }
 
     public function testAttribute()
@@ -490,14 +498,20 @@ class MapperTest extends TestCase
 
         $pool = new Pool(function () use ($mapper) {
             return $mapper;
+        }, function ($instance) use ($mapper) {
+            $name = get_class($instance)::getSpaceName();
+            return "prefix.$name";
         });
 
         $pool->create('first.array', ['nick' => 'qwerty']);
-        $pool->create('second.constructor', ['nick' => 'asdf']);
+        $constructor = $pool->create('second.constructor', ['nick' => 'asdf']);
 
         $changes = $pool->getChanges();
         $this->assertCount(4, $changes);
         $this->assertSame($changes[0]->space, 'first.array');
         $this->assertSame($changes[2]->space, 'second.array');
+
+        // validate pool space casting
+        $pool->update($constructor, ['nick' => 'tester']);
     }
 }

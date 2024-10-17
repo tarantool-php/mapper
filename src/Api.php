@@ -9,15 +9,18 @@ use Tarantool\Client\Schema\Operations;
 
 trait Api
 {
-    abstract public function getSpace(string $name): Space;
+    abstract public function getSpace(object|int|string $id): Space;
 
     public function create(string $space, array $data)
     {
         return $this->getSpace($space)->create($data);
     }
 
-    public function delete(string $space, $instance)
+    public function delete(object|string $space, array|object|null $instance = null)
     {
+        if (is_object($space)) {
+            $instance = $space;
+        }
         $this->getSpace($space)->delete($instance);
     }
 
@@ -50,8 +53,11 @@ trait Api
         return $this->getSpace($space)->findOne(compact('id'));
     }
 
-    public function update(string $space, $instance, Operations|array $operations)
+    public function update(string|object $space, object|array $instance, Operations|array|null $operations = null)
     {
+        if (is_object($space)) {
+            [$instance, $operations] = [$space, $instance];
+        }
         $this->getSpace($space)->update($instance, $operations);
     }
 }

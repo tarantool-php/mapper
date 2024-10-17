@@ -143,10 +143,14 @@ class Mapper
         return $class;
     }
 
-    public function getSpace(int|string $id): Space
+    public function getSpace(object|int|string $id): Space
     {
         if (!count($this->spaces)) {
             $this->setSchemaId(0);
+        }
+
+        if (is_object($id)) {
+            $id = get_class($id);
         }
 
         $space = $this->getClassSpace($id);
