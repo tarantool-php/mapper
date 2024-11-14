@@ -87,7 +87,7 @@ class Space
         }
     }
 
-    public function castIndex(array $fields): ?array
+    public function castIndex(array $fields, bool $optionalIndex = false): ?array
     {
         foreach ($this->indexes as $index) {
             if ($index['fields'] == $fields) {
@@ -115,6 +115,10 @@ class Space
             if ($check) {
                 return $index;
             }
+        }
+
+        if ($optionalIndex) {
+            return null;
         }
 
         throw new Exception("Index casting failure");
