@@ -265,6 +265,63 @@ class MapperTest extends TestCase
         $tester->drop();
     }
 
+    public function testTypeCasting()
+    {
+        $mapper = $this->createMapper(arrays: true);
+
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('id', 'unsigned');
+        $tester->addProperty('data', 'unsigned');
+
+        $tester->addIndex(['id']);
+
+        $testRow = $mapper->create('tester', [
+            'id' => "1",
+            'data' => "1",
+        ]);
+
+        $testRow2 = $mapper->create('tester', [
+            'id' => "2",
+            'data' => true,
+        ]);
+
+        $testRow3 = $mapper->create('tester', [
+            'id' => "3",
+            'data' => false,
+        ]);
+
+        // casting on create
+        $this->assertSame($testRow['id'], 1);
+        $this->assertNotSame($testRow['id'], "1");
+
+        $this->assertSame($testRow['data'], 1);
+        $this->assertNotSame($testRow['data'], "1");
+
+        $this->assertSame($testRow2['data'], 1);
+        $this->assertNotSame($testRow['data'], true);
+
+        $this->assertSame($testRow3['data'], 0);
+        $this->assertNotSame($testRow['data'], false);
+
+        //casting on update
+        $mapper->update('tester', $testRow, ['data' => false]);
+        $mapper->update('tester', $testRow2, ['data' => "5"]);
+        $mapper->update('tester', $testRow3, ['data' => true]);
+
+        $testRow = $mapper->findOne('tester', ['id' => 1]);
+        $testRow2 = $mapper->findOne('tester', ['id' => 2]);
+        $testRow3 = $mapper->findOne('tester', ['id' => 3]);
+
+        $this->assertSame($testRow['data'], 0);
+        $this->assertNotSame($testRow['data'], false);
+
+        $this->assertSame($testRow2['data'], 5);
+        $this->assertNotSame($testRow2['data'], "5");
+
+        $this->assertSame($testRow3['data'], 1);
+        $this->assertNotSame($testRow3['data'], true);
+    }
+
     public function testIndexCasting()
     {
         $mapper = $this->createMapper(arrays: true);

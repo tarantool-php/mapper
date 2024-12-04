@@ -461,6 +461,14 @@ class Space
     public function update($instance, Operations|array $operations)
     {
         if (is_array($operations)) {
+            foreach ($this->format as $field) {
+                if (array_key_exists($field['name'], $operations)) {
+                    $operations[$field['name']] = $this->mapper->converter->formatValue(
+                        $field['type'],
+                        $operations[$field['name']]
+                    );
+                }
+            }
             $data = $operations;
             $operations = null;
             foreach ($data as $k => $v) {
