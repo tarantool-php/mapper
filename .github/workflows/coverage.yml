@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tarantool: ["2.11", "3.1"]
+        tarantool: ["2.11"]
     steps:
       - uses: actions/checkout@v2
       - run: docker run -d -p 3301:3301 tarantool/tarantool:${{ matrix.tarantool }}
