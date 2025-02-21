@@ -126,7 +126,7 @@ class Space
 
     public function create(array $data)
     {
-        if (!array_key_exists('id', $data) && $this->fields[0] == 'id') {
+        if (!array_key_exists('id', $data) && in_array('id', $this->fields)) {
             try {
                 [$data['id']] = $this->mapper->client->call("box.sequence.$this->name:next");
             } catch (RequestFailed $e) {
