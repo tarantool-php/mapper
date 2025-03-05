@@ -223,7 +223,10 @@ class Space
             if #tuples > 0 then
                 return true, tuples[1]
             end
-            if tuple[id_key] == 0 and box.sequence[space] then
+            if tuple[id_key] == 0 then
+                if box.sequence[space] == nil then
+                    box.sequence.create(space)
+                end
                 tuple[id_key] = box.sequence[space]:next()
             end
             return false, box.space[space]:insert(tuple)
