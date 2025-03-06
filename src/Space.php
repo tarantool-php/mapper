@@ -225,7 +225,7 @@ class Space
             end
             if tuple[id_key] == 0 then
                 if box.sequence[space] == nil then
-                    box.sequence.create(space)
+                    box.schema.sequence.create(space)
                 end
                 tuple[id_key] = box.sequence[space]:next()
             end
