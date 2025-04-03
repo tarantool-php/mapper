@@ -166,11 +166,19 @@ class Mapper
 
     public function getSpaces(): array
     {
+        if (!count($this->spaces)) {
+            $this->setSchemaId(0);
+        }
+
         return array_values($this->spaces);
     }
 
     public function hasSpace(string $space): bool
     {
+        if (!count($this->spaces)) {
+            $this->setSchemaId(0);
+        }
+
         return array_key_exists($this->getClassSpace($space), $this->spaceId);
     }
 

@@ -35,6 +35,16 @@ class MapperTest extends TestCase
         return $mapper;
     }
 
+    public function testUninitializedSpacePresent()
+    {
+        $this->assertTrue($this->createMapper(dropUserSpaces:false)->hasSpace('_space'));
+    }
+
+    public function testUninitializedSpaceList()
+    {
+        $this->assertNotCount(0, $this->createMapper(dropUserSpaces:false)->getSpaces());
+    }
+
     public function testClassBased()
     {
         $mapper = $this->createMapper();
