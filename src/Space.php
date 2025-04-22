@@ -143,7 +143,8 @@ class Space
 
     public function delete($instance)
     {
-        $this->mapper->client->getSpaceById($this->id)->delete($this->getKey($instance));
+        $rows = $this->mapper->client->getSpaceById($this->id)->delete($this->getKey($instance));
+        return count($rows) ? $this->getInstance(array_pop($rows)) : null;
     }
 
     public function drop()

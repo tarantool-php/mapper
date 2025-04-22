@@ -62,8 +62,9 @@ class MapperTest extends TestCase
         $mapper->update($constructor, ['nick' => 'space casting']);
         $this->assertSame($constructor->nick, 'space casting');
 
-        $mapper->delete($constructor);
+        $result = $mapper->delete($constructor);
         $this->assertNull($mapper->findOne('constructor'));
+        $this->assertNotNull($result);
     }
 
     public function testAttribute()

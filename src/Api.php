@@ -21,7 +21,7 @@ trait Api
         if (is_object($space)) {
             $instance = $space;
         }
-        $this->getSpace($space)->delete($instance);
+        return $this->getSpace($space)->delete($instance);
     }
 
     public function find(string $space, Criteria|array|null $query = null): array
