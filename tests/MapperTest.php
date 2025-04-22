@@ -380,7 +380,7 @@ class MapperTest extends TestCase
         $secondRow = $tester->findOrCreate(['nick' => 'Jimmy'], ['idle' => 0]);
         $findRow = $tester->findOrCreate(['nick' => 'Billy']);
         $result = $mapper->client->evaluate("return box.space.tester.index.nick:select('Jimmy')")[0];
-        $this->assertTrue($result[0][1] == 0);
+        $this->assertTrue($result[0][0] == 0);
         $this->assertSame($secondRow->id, $result[0][1]);
         $this->assertEquals($firstRow, $findRow);
         $tester->drop();
