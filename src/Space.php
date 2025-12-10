@@ -56,7 +56,7 @@ class Space
         if (!array_key_exists('if_not_exists', $config)) {
             $config['if_not_exists'] = true;
         }
-        $name = implode('_', $fields);
+        $name = array_key_exists('name', $config) ? $config['name'] : implode('_', $fields);
         $this->mapper->client->call("box.space.$this->name:create_index", $name, $config);
     }
 

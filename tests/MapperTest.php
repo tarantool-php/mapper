@@ -198,6 +198,27 @@ class MapperTest extends TestCase
         $this->assertSame($indexes[1]['fields'], $indexes[3]['fields']);
     }
 
+    public function testCustomIndexName()
+    {
+        $mapper = $this->createMapper();
+
+        $tester = $mapper->createSpace('tester');
+        $tester->addProperty('id', 'unsigned');
+        $tester->addProperty('nick', 'string');
+        $tester->addProperty('key', 'string');
+
+        $tester->addIndex(['id', 'nick'], ['name' => 'test_index']);
+        $tester->addIndex(['nick', 'key']);
+
+        $property = new ReflectionProperty(Space::class, 'indexes');
+        $property->setAccessible(true);
+        $indexes = $property->getValue($tester);
+
+        $this->assertSame($indexes[1]['name'], 'test_index');
+        $this->assertSame($indexes[2]['name'], 'nick_key');
+        $tester->drop();
+    }
+
     public function testCreateRow()
     {
         $mapper = $this->createMapper();
