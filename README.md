@@ -311,11 +311,12 @@ $mapper->migrate(DropLegacySpaces::class, InitializeData::class);
 ## Performance
 We can calculate mapper overhead using getInstance method that is called per each instance.\
 If you don't use cache, there is single schema fetch on connection and each time schema is upgraded.\
-Perfomance test was made on (AMD Ryzen 5 3600X), Ubuntu 23.10  using PHP 8.3.6
+Performance test was made on (AMD Ryzen 5 3600X), Ubuntu 23.10 using PHP 8.5.4
 
 | Instance type | Instances per second |
 | --- | --- |
-| constructor | 4 664 172 |
-| properties | 4 328 442 |
-| simple array | 11 983 040 |
+| constructor | 6 858 705 |
+| typed_properties | 6 144 060 |
+| array | 12 611 793 |
+| object | 10 695 389 |
 

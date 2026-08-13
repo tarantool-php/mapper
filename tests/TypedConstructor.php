@@ -12,6 +12,8 @@ class TypedConstructor
         public readonly int $id,
         public string $name,
         public string $nick = 'nick',
+        public array $configuration = [],
+        public ?array $context = null,
     ) {
     }
 

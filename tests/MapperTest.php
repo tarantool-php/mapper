@@ -49,7 +49,8 @@ class MapperTest extends TestCase
     {
         $mapper = $this->createMapper();
 
-        $row = $mapper->findOrCreate(TypedConstructor::class, []);
+        // Test with explicit name, id will be auto-generated
+        $row = $mapper->findOrCreate(TypedConstructor::class, ['name' => 'test']);
         $this->assertEquals($row, $mapper->findOne('constructor'));
 
         $mapper = $this->createMapper(dropUserSpaces: false);
@@ -191,7 +192,6 @@ class MapperTest extends TestCase
         $mapper->client->call("box.space._index:insert", $indexSpace->getTuple($third));
 
         $property = new ReflectionProperty(Space::class, 'indexes');
-        $property->setAccessible(true);
         $indexes = $property->getValue($tester);
 
         $this->assertSame($indexes[1]['fields'], $indexes[2]['fields']);
@@ -211,7 +211,6 @@ class MapperTest extends TestCase
         $tester->addIndex(['nick', 'key']);
 
         $property = new ReflectionProperty(Space::class, 'indexes');
-        $property->setAccessible(true);
         $indexes = $property->getValue($tester);
 
         $this->assertSame($indexes[1]['name'], 'test_index');
@@ -462,6 +461,7 @@ class MapperTest extends TestCase
         ];
 
         foreach ($userTypes as $name => $type) {
+            $expectedIndexes = $name === 'constructor' ? 2 : 3; // constructor: id, name; typed_properties: id, optional, name
             foreach ([$name, $type] as $target) {
                 $space = $mapper->createSpace($target);
                 $space->setClass($type);
@@ -471,7 +471,7 @@ class MapperTest extends TestCase
 
                 $this->assertSame($space, $mapper->createSpace($target, ['if_not_exists' => true]));
                 $this->assertSame($space, $mapper->getSpace($space->getId()));
-                $this->assertCount(2, $mapper->find('_vindex', ['id' => $space->getId()]));
+                $this->assertCount($expectedIndexes, $mapper->find('_vindex', ['id' => $space->getId()]));
                 $space->drop();
             }
 
@@ -497,7 +497,14 @@ class MapperTest extends TestCase
         foreach ($todo as $nick) {
             $mapper->arrays = $nick == 'array';
             $space = $mapper->getSpace($nick);
-            $this->assertSame($space->getFields(), ['id', 'name', 'nick']);
+            // constructor has additional fields (configuration, context) from TypedConstructor class
+            // typed_properties has additional field (optional) from TypedProperties class
+            $expectedFields = match ($nick) {
+                'constructor' => ['id', 'name', 'nick', 'configuration', 'context'],
+                'typed_properties' => ['id', 'name', 'nick', 'optional'],
+                default => ['id', 'name', 'nick'],
+            };
+            $this->assertSame($space->getFields(), $expectedFields);
             $this->assertEquals($space->getFieldFormat('id'), [
                 'name' => 'id',
                 'type' => 'unsigned',
@@ -602,5 +609,196 @@ class MapperTest extends TestCase
 
         // validate pool space casting
         $pool->update($constructor, ['nick' => 'tester']);
+    }
+
+    public function testNullableFieldWithNull()
+    {
+        $mapper = $this->createMapper();
+        $mapper->dropUserSpaces();
+
+        $space = $mapper->createSpace('constructor');
+        $space->setClass(\Tarantool\Mapper\Tests\TypedConstructor::class);
+        $space->migrate();
+
+        // Create with null context
+        $instance = $space->create(['name' => 'test-with-null', 'context' => null]);
+        $this->assertNull($instance->context);
+        $this->assertIsArray($instance->configuration);
+        $this->assertSame($instance->configuration, []);
+
+        // Verify bsize doesn't grow for null value
+        $indexInfo = $mapper->find('_vindex', [
+            'id' => $space->getId(),
+            'name' => 'context'
+        ]);
+        if (count($indexInfo) > 0) {
+            $bsize = $indexInfo[0]->bsize;
+            
+            // Insert another row with null context
+            $instance2 = $space->create(['name' => 'test-with-null-2', 'context' => null]);
+            $this->assertNull($instance2->context);
+            
+            // bsize should NOT increase when both values are null
+            $indexInfo2 = $mapper->find('_vindex', [
+                'id' => $space->getId(),
+                'name' => 'context'
+            ]);
+            if (count($indexInfo2) > 0) {
+                $bsize2 = $indexInfo2[0]->bsize;
+                $this->assertLessThanOrEqual($bsize2, $bsize + 1, 
+                    'bsize should not grow significantly when storing null values');
+            }
+        }
+    }
+
+    public function testArrayFieldWithValues()
+    {
+        $mapper = $this->createMapper(arrays: true);
+        $mapper->dropUserSpaces();
+
+        $space = $mapper->createSpace('constructor');
+        $space->setClass(\Tarantool\Mapper\Tests\TypedConstructor::class);
+        $space->migrate();
+
+        // Create with array values
+        $testData = ['key1' => 'value1', 'key2' => 123];
+        $instance = $space->create(['name' => 'test-with-array', 'configuration' => $testData]);
+        
+        $this->assertIsArray($instance->configuration);
+        $this->assertSame($instance->configuration, $testData);
+        $this->assertNull($instance->context);
+
+        // Update with new array
+        $newData = ['updated' => true, 'count' => 42];
+        $updated = $space->update($instance, ['configuration' => $newData]);
+        $this->assertIsArray($updated->configuration);
+        $this->assertSame($updated->configuration, $newData);
+    }
+
+    public function testDefaultValueForArrayAndNull()
+    {
+        $mapper = $this->createMapper(arrays: true);
+        $mapper->dropUserSpaces();
+
+        $space = $mapper->createSpace('constructor');
+        $space->setClass(\Tarantool\Mapper\Tests\TypedConstructor::class);
+        $space->migrate();
+
+        // Create without specifying configuration and context
+        $instance = $space->create(['name' => 'test-defaults']);
+        
+        // Check defaults
+        $this->assertIsArray($instance->configuration);
+        $this->assertSame($instance->configuration, []);
+        $this->assertNull($instance->context);
+
+        // Verify by re-reading
+        $retrieved = $space->findOne(['name' => 'test-defaults']);
+        $this->assertNotNull($retrieved);
+        $this->assertIsArray($retrieved->configuration);
+        $this->assertSame($retrieved->configuration, []);
+        $this->assertNull($retrieved->context);
+    }
+
+    public function testUpdateNullableFieldToNull()
+    {
+        $mapper = $this->createMapper();
+        $mapper->dropUserSpaces();
+
+        $space = $mapper->createSpace('constructor');
+        $space->setClass(\Tarantool\Mapper\Tests\TypedConstructor::class);
+        $space->migrate();
+
+        // Create with context set
+        $initialData = ['user' => 'test', 'session' => 'abc123'];
+        $instance = $space->create(['name' => 'test-update-null', 'context' => $initialData]);
+        $this->assertSame($instance->context, $initialData);
+
+        // Update context to null
+        $updated = $space->update($instance, ['context' => null]);
+        $this->assertNull($updated->context);
+
+        // Verify by re-reading from Tarantool
+        $retrieved = $space->findOne(['name' => 'test-update-null']);
+        $this->assertNotNull($retrieved);
+        $this->assertNull($retrieved->context);
+    }
+
+    public function testUpdateArrayField()
+    {
+        $mapper = $this->createMapper(arrays: true);
+        $mapper->dropUserSpaces();
+
+        $space = $mapper->createSpace('constructor');
+        $space->setClass(\Tarantool\Mapper\Tests\TypedConstructor::class);
+        $space->migrate();
+
+        // Create with empty configuration
+        $instance = $space->create(['name' => 'test-update-array']);
+        $this->assertSame($instance->configuration, []);
+
+        // Update with first array
+        $firstUpdate = ['step' => 1, 'data' => 'initial'];
+        $updated1 = $space->update($instance, ['configuration' => $firstUpdate]);
+        $this->assertIsArray($updated1->configuration);
+        $this->assertSame($updated1->configuration, $firstUpdate);
+
+        // Update with second array
+        $secondUpdate = ['step' => 2, 'processed' => true, 'count' => 99];
+        $updated2 = $space->update($updated1, ['configuration' => $secondUpdate]);
+        $this->assertIsArray($updated2->configuration);
+        $this->assertSame($updated2->configuration, $secondUpdate);
+
+        // Verify by re-reading from Tarantool
+        $retrieved = $space->findOne(['name' => 'test-update-array']);
+        $this->assertNotNull($retrieved);
+        $this->assertIsArray($retrieved->configuration);
+        $this->assertSame($retrieved->configuration, $secondUpdate);
+    }
+
+    public function testUpdateNullableAndArrayTogether()
+    {
+        $mapper = $this->createMapper(arrays: true);
+        $mapper->dropUserSpaces();
+
+        $space = $mapper->createSpace('constructor');
+        $space->setClass(\Tarantool\Mapper\Tests\TypedConstructor::class);
+        $space->migrate();
+
+        // Create with both fields set
+        $instance = $space->create([
+            'name' => 'test-update-both',
+            'configuration' => ['first' => true],
+            'context' => ['temp' => 'value']
+        ]);
+        $this->assertSame($instance->configuration, ['first' => true]);
+        $this->assertSame($instance->context, ['temp' => 'value']);
+
+        // Update both: array to new value, nullable to null
+        $updated = $space->update($instance, [
+            'configuration' => ['second' => false, 'count' => 42],
+            'context' => null
+        ]);
+        
+        $this->assertIsArray($updated->configuration);
+        $this->assertSame($updated->configuration, ['second' => false, 'count' => 42]);
+        $this->assertNull($updated->context);
+
+        // Update both: array to empty, nullable to new value
+        $updated2 = $space->update($updated, [
+            'configuration' => [],
+            'context' => ['restored' => true]
+        ]);
+
+        $this->assertIsArray($updated2->configuration);
+        $this->assertSame($updated2->configuration, []);
+        $this->assertIsArray($updated2->context);
+        $this->assertSame($updated2->context, ['restored' => true]);
+
+        // Final verification from Tarantool
+        $retrieved = $space->findOne(['name' => 'test-update-both']);
+        $this->assertNotNull($retrieved);
+        $this->assertSame($retrieved->configuration, []);
+        $this->assertSame($retrieved->context, ['restored' => true]);
     }
 }

@@ -9,7 +9,7 @@ use Symfony\Component\Uid\Uuid;
 
 final class Converter
 {
-    public static function formatValue(string $type, $value)
+    public static function formatValue(string $type, mixed $value)
     {
         if ($value === null) {
             return null;
@@ -33,6 +33,10 @@ final class Converter
             case 'num':
             case 'NUM':
                 return (int) $value;
+
+            case 'array':
+            case '*':
+                return $value;
 
             case 'uuid':
                 if (is_string($value)) {
@@ -66,6 +70,10 @@ final class Converter
             case 'num':
             case 'NUM':
                 return (int) null;
+
+            case 'array':
+            case '*':
+                return [];
         }
         throw new Exception("Invalid type $type");
     }

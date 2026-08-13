@@ -70,8 +70,12 @@ class Space
             throw new Exception("Duplicate property $name");
         }
 
-        if (array_key_exists('default', $config) && !is_string($config['default'])) {
-            $config['default'] = (string) $config['default'];
+        if (array_key_exists('default', $config)) {
+            if (is_array($config['default'])) {
+                $config['default'] = json_encode($config['default']);
+            } elseif (!is_string($config['default'])) {
+                $config['default'] = (string) $config['default'];
+            }
         }
 
         $this->format[] = $config;
@@ -367,22 +371,36 @@ class Space
         return $this->name;
     }
 
-    public function getTuple($data)
+    public function getTuple(array|object $data)
     {
         $tuple = [];
         foreach ($this->format as $field) {
             $value = null;
-            if (is_array($data) && array_key_exists($field['name'], $data)) {
-                $value = $data[$field['name']];
-            } elseif (!is_array($data) && property_exists($data, $field['name'])) {
+            if (is_array($data)) {
+                if (array_key_exists($field['name'], $data)) {
+                    $value = $data[$field['name']];
+                }
+            } elseif (property_exists($data, $field['name'])) {
                 $value = $data->{$field['name']};
-            } elseif (array_key_exists('default', $field)) {
-                $value = $field['default'];
-            } elseif (array_key_exists('is_nullable', $field) && $field['is_nullable']) {
-                $tuple[] = $value;
+            }
+
+            // Handle nullable fields first
+            if (array_key_exists('is_nullable', $field) && $field['is_nullable'] && $value === null) {
+                $tuple[] = null;
                 continue;
-            } else {
-                $value = $this->mapper->converter->getDefaultValue($field['type']);
+            }
+            
+            // Get value - either from data, object, or default
+            if (!isset($value) || $value === null) {
+                if (array_key_exists('default', $field)) {
+                    if ($field['type'] == '*') {
+                        $value = json_decode($field['default']);
+                    } else {
+                        $value = $field['default'];
+                    }
+                } else {
+                    $value = $this->mapper->converter->getDefaultValue($field['type']);
+                }
             }
             $tuple[] = $this->mapper->converter->formatValue($field['type'], $value);
         }
@@ -403,7 +421,11 @@ class Space
             if (in_array($property->getName(), $this->fields)) {
                 continue;
             }
-            $tarantoolType = match ((string) $property->getType()) {
+            $typeString = (string) $property->getType();
+            $isNullable = str_starts_with($typeString, '?');
+            $baseType = $isNullable ? substr($typeString, 1) : $typeString;
+            
+            $tarantoolType = match ($baseType) {
                 'bool' => 'boolean',
                 'float' => 'number',
                 'int' => 'unsigned',
@@ -412,6 +434,10 @@ class Space
                 default => 'string',
             };
             $opts = [];
+
+            if ($isNullable) {
+                $opts['is_nullable'] = true;
+            }
 
             if (method_exists($property, 'hasDefaultValue') && $property->hasDefaultValue()) {
                 $opts['default'] = $property->getDefaultValue();

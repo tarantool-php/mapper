@@ -1,0 +1,7 @@
+version: '3.8'
+
+services:
+  tarantool:
+    image: tarantool/tarantool:2
+    ports:
+      - "3301:3301"
